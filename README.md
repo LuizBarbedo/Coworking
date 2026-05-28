@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Plataforma de Educação — Prefeitura
 
-## Getting Started
+Plataforma pública de educação online voltada à comunidade. Fase atual: página
+de inscrição (nome, CPF, e-mail, telefone). Próximas fases incluirão
+catálogo de cursos e área autenticada do aluno.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, TypeScript)
+- **Tailwind CSS 4**
+- **Supabase** (banco + auth futuramente)
+- Deploy planejado: Vercel ou Hostinger VPS
+
+## Rodando localmente
 
 ```bash
+# 1. Instalar dependências
+npm install
+
+# 2. Configurar variáveis de ambiente
+cp .env.local.example .env.local
+# edite .env.local com sua URL e anon key do Supabase
+
+# 3. Aplicar schema no Supabase
+# cole o conteúdo de supabase/schema.sql no SQL Editor do seu projeto
+
+# 4. Rodar dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estrutura
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── actions.ts          # Server Actions (insert no Supabase)
+│   ├── globals.css         # paleta brand (azul escuro)
+│   ├── layout.tsx
+│   └── page.tsx            # landing + formulário
+├── components/
+│   └── registration-form.tsx
+└── lib/
+    ├── cpf.ts              # máscara + validação CPF
+    ├── phone.ts            # máscara + validação telefone
+    └── supabase.ts         # cliente lazy
 
-## Learn More
+supabase/
+└── schema.sql              # tabela inscricoes + RLS
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Próximos passos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] Criar projeto no Supabase e preencher `.env.local`
+- [ ] Executar `supabase/schema.sql` no projeto
+- [ ] Definir campos adicionais do formulário de inscrição
+- [ ] Substituir o placeholder "PM" do header pela logo real
+- [ ] Painel administrativo da prefeitura (área autenticada)
+- [ ] Catálogo de cursos
