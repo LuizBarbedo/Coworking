@@ -1,22 +1,28 @@
+import Image from "next/image";
 import { RegistrationForm } from "@/components/registration-form";
 
 export default function Home() {
   return (
     <main className="relative flex flex-1 flex-col">
       <div className="relative flex flex-1 flex-col bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700">
-        <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-8 text-white">
+        <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 pt-8 text-white">
           <div className="flex items-center gap-3">
-            <div
-              aria-hidden="true"
-              className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/20 backdrop-blur"
-            >
-              <span className="text-base font-bold tracking-tight">ED</span>
-            </div>
+            <Image
+              src="/logo-coworking.jpeg"
+              alt="Coworking Social de Mudanças Globais"
+              width={48}
+              height={48}
+              priority
+              className="h-12 w-12 flex-none rounded-lg object-cover ring-1 ring-white/20"
+            />
             <div className="leading-tight">
-              <p className="text-xs uppercase tracking-[0.18em] text-brand-100/80">
-                Educação para todos
+              <p className="text-sm font-semibold">
+                Coworking Social de Mudanças Globais{" "}
+                <span className="text-brand-100/80">— CSMG</span>
               </p>
-              <p className="text-sm font-semibold">Plataforma de Educação</p>
+              <p className="text-xs text-brand-100/80">
+                Instituto Virtual Internacional de Mudanças Globais (IVIG)
+              </p>
             </div>
           </div>
           <span className="hidden text-xs text-brand-100/70 sm:block">
@@ -61,7 +67,10 @@ export default function Home() {
 
       <footer className="border-t border-brand-100 bg-white">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-6 text-xs text-brand-900/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Plataforma de Educação</p>
+          <p>
+            © {new Date().getFullYear()} Coworking Social de Mudanças Globais
+            (CSMG) · Instituto Virtual Internacional de Mudanças Globais (IVIG)
+          </p>
           <p>Dúvidas? Entre em contato pelos nossos canais oficiais.</p>
         </div>
       </footer>
