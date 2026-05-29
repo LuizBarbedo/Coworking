@@ -11,11 +11,11 @@ export default function Home() {
             aria-hidden="true"
             className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/20 backdrop-blur"
           >
-            <span className="text-base font-bold tracking-tight">PM</span>
+            <span className="text-base font-bold tracking-tight">ED</span>
           </div>
           <div className="leading-tight">
             <p className="text-xs uppercase tracking-[0.18em] text-brand-100/80">
-              Prefeitura
+              Educação para todos
             </p>
             <p className="text-sm font-semibold">Plataforma de Educação</p>
           </div>
@@ -47,7 +47,7 @@ export default function Home() {
               <Dot /> Certificado de participação
             </li>
             <li className="flex items-start gap-2">
-              <Dot /> Conteúdo da prefeitura
+              <Dot /> Conteúdo de qualidade
             </li>
             <li className="flex items-start gap-2">
               <Dot /> Sem custo para o aluno
@@ -62,8 +62,8 @@ export default function Home() {
 
       <footer className="border-t border-brand-100 bg-white">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-6 text-xs text-brand-900/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Prefeitura Municipal</p>
-          <p>Dúvidas? Entre em contato pelos canais oficiais da prefeitura.</p>
+          <p>© {new Date().getFullYear()} Plataforma de Educação</p>
+          <p>Dúvidas? Entre em contato pelos nossos canais oficiais.</p>
         </div>
       </footer>
     </main>

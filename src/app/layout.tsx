@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Plataforma de Educação | Prefeitura",
+  title: "Plataforma de Educação",
   description:
     "Plataforma pública de educação online para a comunidade. Faça sua inscrição e tenha acesso gratuito aos cursos.",
 };

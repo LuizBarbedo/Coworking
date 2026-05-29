@@ -17,7 +17,7 @@ const initialValues: RegistrationPayload = {
 export function RegistrationForm() {
   const [values, setValues] = useState<RegistrationPayload>(initialValues);
   const [fieldError, setFieldError] = useState<{ field?: FieldKey; message: string } | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [matricula, setMatricula] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const update = (field: FieldKey, raw: string) => {
@@ -31,12 +31,12 @@ export function RegistrationForm() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFieldError(null);
-    setSuccess(false);
+    setMatricula(null);
 
     startTransition(async () => {
       const result = await registerInscription(values);
       if (result.ok) {
-        setSuccess(true);
+        setMatricula(result.matricula);
         setValues(initialValues);
         return;
       }
@@ -44,7 +44,7 @@ export function RegistrationForm() {
     });
   };
 
-  if (success) {
+  if (matricula) {
     return (
       <div className="rounded-2xl border border-brand-200 bg-white p-8 shadow-sm">
         <h2 className="text-2xl font-semibold text-brand-900">
@@ -54,9 +54,20 @@ export function RegistrationForm() {
           Em breve você receberá no seu e-mail os próximos passos para acessar
           os cursos.
         </p>
+        <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/60 p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-brand-800/70">
+            Seu número de matrícula
+          </p>
+          <p className="mt-1 font-mono text-2xl font-semibold tracking-wider text-brand-900">
+            {matricula}
+          </p>
+          <p className="mt-2 text-xs text-brand-800/70">
+            Guarde este número: ele identifica você na plataforma.
+          </p>
+        </div>
         <button
           type="button"
-          onClick={() => setSuccess(false)}
+          onClick={() => setMatricula(null)}
           className="mt-6 text-sm font-medium text-brand-700 underline-offset-4 hover:underline"
         >
           Fazer outra inscrição

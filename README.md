@@ -1,8 +1,9 @@
-# Plataforma de Educação — Prefeitura
+# Plataforma de Educação
 
 Plataforma pública de educação online voltada à comunidade. Fase atual: página
-de inscrição (nome, CPF, e-mail, telefone). Próximas fases incluirão
-catálogo de cursos e área autenticada do aluno.
+de inscrição (nome, CPF, e-mail, telefone), com geração de número de matrícula
+único por aluno. Próximas fases incluirão catálogo de cursos e área autenticada
+do aluno.
 
 ## Stack
 
@@ -21,8 +22,9 @@ npm install
 cp .env.local.example .env.local
 # edite .env.local com sua URL e anon key do Supabase
 
-# 3. Aplicar schema no Supabase
+# 3. Aplicar o schema no Supabase
 # cole o conteúdo de supabase/schema.sql no SQL Editor do seu projeto
+# e, em seguida, as migrações em supabase/migrations/ (em ordem)
 
 # 4. Rodar dev server
 npm run dev
@@ -47,14 +49,16 @@ src/
     └── supabase.ts         # cliente lazy
 
 supabase/
-└── schema.sql              # tabela inscricoes + RLS
+├── schema.sql              # tabela inscricoes + RLS
+└── migrations/
+    └── 0001_matricula.sql  # coluna matrícula + função criar_inscricao
 ```
 
 ## Próximos passos
 
 - [ ] Criar projeto no Supabase e preencher `.env.local`
-- [ ] Executar `supabase/schema.sql` no projeto
+- [ ] Executar `supabase/schema.sql` e depois `supabase/migrations/0001_matricula.sql`
 - [ ] Definir campos adicionais do formulário de inscrição
-- [ ] Substituir o placeholder "PM" do header pela logo real
-- [ ] Painel administrativo da prefeitura (área autenticada)
+- [ ] Substituir o placeholder "ED" do header pela logo real
+- [ ] Painel administrativo (área autenticada)
 - [ ] Catálogo de cursos

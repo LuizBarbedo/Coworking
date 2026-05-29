@@ -12,7 +12,7 @@ export type RegistrationPayload = {
 };
 
 export type RegistrationResult =
-  | { ok: true }
+  | { ok: true; matricula: string }
   | { ok: false; error: string; field?: keyof RegistrationPayload };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,12 +40,15 @@ export async function registerInscription(
     return { ok: false, error: "Telefone inválido.", field: "telefone" };
   }
 
-  const { error } = await getSupabase().from("inscricoes").insert({
-    nome,
-    cpf,
-    email,
-    telefone,
-  });
+  const { data: matricula, error } = await getSupabase().rpc(
+    "criar_inscricao",
+    {
+      p_nome: nome,
+      p_cpf: cpf,
+      p_email: email,
+      p_telefone: telefone,
+    },
+  );
 
   if (error) {
     if (error.code === "23505") {
@@ -60,5 +63,5 @@ export async function registerInscription(
     };
   }
 
-  return { ok: true };
+  return { ok: true, matricula: matricula as string };
 }

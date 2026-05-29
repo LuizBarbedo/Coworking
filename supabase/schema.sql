@@ -20,7 +20,7 @@ create policy "permitir_insercao_publica"
   to anon
   with check (true);
 
--- Bloqueia leitura pública (apenas service_role ou usuários autenticados da prefeitura poderão ler)
+-- Bloqueia leitura pública (apenas service_role ou usuários autenticados poderão ler)
 -- Adicione policies adicionais quando criar o painel administrativo.
 
 create index if not exists inscricoes_created_at_idx
