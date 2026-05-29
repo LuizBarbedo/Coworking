@@ -34,9 +34,8 @@ export default function Home() {
             Educação online, gratuita e para toda a comunidade.
           </h1>
           <p className="mt-5 max-w-lg text-base text-brand-100/90 sm:text-lg">
-            Uma iniciativa pública para ampliar o acesso ao conhecimento.
-            Inscreva-se em poucos minutos e comece a estudar quando quiser, de
-            onde estiver.
+            Uma iniciativa IVIG para ampliar o acesso ao conhecimento.
+            Inscreva-se em poucos minutos e estude de onde estiver.
           </p>
 
           <ul className="mt-8 grid gap-3 text-sm text-brand-100/90 sm:grid-cols-2">
