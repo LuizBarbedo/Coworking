@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { exigirAluno } from "@/lib/auth";
 import { logout } from "@/app/(plataforma)/actions";
+import { Patrocinadores } from "@/components/patrocinadores";
 
 export default async function AlunoLayout({
   children,
@@ -51,6 +52,8 @@ export default async function AlunoLayout({
       </header>
 
       <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">{children}</div>
+
+      <Patrocinadores />
     </div>
   );
 }

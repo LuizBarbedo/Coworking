@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Patrocinadores } from "@/components/patrocinadores";
 
 /** Moldura visual das telas de autenticação: gradiente da marca + card central. */
 export function AuthShell({
@@ -14,8 +15,9 @@ export function AuthShell({
   rodape?: React.ReactNode;
 }) {
   return (
-    <main className="flex flex-1 flex-col bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 px-6 py-10">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
+    <main className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 px-6 py-10">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <Link href="/" className="mb-8 flex items-center gap-3 text-white">
           <Image
             src="/logo-coworking.jpeg"
@@ -42,7 +44,10 @@ export function AuthShell({
         {rodape ? (
           <p className="mt-6 text-center text-sm text-brand-100/80">{rodape}</p>
         ) : null}
+        </div>
       </div>
+
+      <Patrocinadores />
     </main>
   );
 }

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { RegistrationForm } from "@/components/registration-form";
+import { Patrocinadores } from "@/components/patrocinadores";
 
 export default function Home() {
   return (
@@ -36,7 +37,7 @@ export default function Home() {
               Inscrições abertas
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-              Educação online, gratuita e para toda a comunidade.
+              Capacitação online, gratuita e para toda a comunidade.
             </h1>
             <p className="mt-5 max-w-lg text-base text-brand-100/90 sm:text-lg">
               Uma iniciativa IVIG para ampliar o acesso ao conhecimento.
@@ -64,6 +65,8 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      <Patrocinadores />
 
       <footer className="border-t border-brand-100 bg-white">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-6 text-xs text-brand-900/60 sm:flex-row sm:items-center sm:justify-between">

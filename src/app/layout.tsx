@@ -11,7 +11,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Coworking Social de Mudanças Globais (CSMG) — IVIG",
   description:
-    "Plataforma de educação online do Coworking Social de Mudanças Globais (CSMG), uma iniciativa do Instituto Virtual Internacional de Mudanças Globais (IVIG). Faça sua inscrição e tenha acesso gratuito aos cursos.",
+    "Plataforma de capacitação online do Coworking Social de Mudanças Globais (CSMG), uma iniciativa do Instituto Virtual Internacional de Mudanças Globais (IVIG). Faça sua inscrição e tenha acesso gratuito aos cursos.",
   icons: {
     icon: "/logo-coworking.jpeg",
   },
