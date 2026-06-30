@@ -81,7 +81,7 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <p className="text-sm font-semibold text-brand-900">
-              Siga o Coworking Integrário
+              Siga o Coworking nas redes
             </p>
             <SocialLinks />
           </div>
