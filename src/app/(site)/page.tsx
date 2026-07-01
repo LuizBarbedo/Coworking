@@ -67,6 +67,17 @@ export default function Home() {
               microempreendedores individuais (MEIs) e autônomos moradores de
               municípios da Região Metropolitana do Rio de Janeiro.
             </p>
+
+            <a
+              href="/edital-csmg-001-2026.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/20"
+            >
+              <DownloadIcon />
+              Baixar edital completo (PDF)
+            </a>
           </div>
 
           <div className="lg:pl-4">
@@ -85,12 +96,11 @@ export default function Home() {
             </p>
             <SocialLinks />
           </div>
-          <div className="flex flex-col gap-2 border-t border-brand-100 pt-4 text-xs text-brand-900/60 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 border-t border-brand-100 pt-4 text-xs text-brand-900/60">
             <p>
               © {new Date().getFullYear()} Coworking Social de Mudanças Globais
               (CSMG) · Prefeitura e Oroborus
             </p>
-            <p>Dúvidas? Fale conosco pelo WhatsApp (21) 99090-2912.</p>
           </div>
         </div>
       </footer>
@@ -104,5 +114,23 @@ function Dot() {
       aria-hidden="true"
       className="mt-1.5 inline-block h-1.5 w-1.5 flex-none rounded-full bg-brand-300"
     />
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4 flex-none"
+    >
+      <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+    </svg>
   );
 }
