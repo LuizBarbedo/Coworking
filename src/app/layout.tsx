@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Coworking Social de Mudanças Globais (CSMG) — Prefeitura e SEIM/Integrário · Oroborus",
+  title: "Coworking Social de Mudanças Globais (CSMG) — Prefeitura e SEIM/Integra Rio · Oroborus",
   description:
-    "Plataforma de capacitação online do Coworking Social de Mudanças Globais (CSMG), uma iniciativa da Prefeitura e SEIM/Integrário · Oroborus voltada a empreendedores, MEIs e autônomos da Região Metropolitana do Rio de Janeiro. Faça sua inscrição e tenha acesso gratuito aos cursos.",
+    "Plataforma de capacitação online do Coworking Social de Mudanças Globais (CSMG), uma iniciativa da Prefeitura e SEIM/Integra Rio · Oroborus voltada a empreendedores, MEIs e autônomos da Região Metropolitana do Rio de Janeiro. Faça sua inscrição e tenha acesso gratuito aos cursos.",
   icons: {
     icon: "/logo-coworking.jpeg",
   },

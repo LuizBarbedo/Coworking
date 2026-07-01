@@ -23,7 +23,7 @@ export default function Home() {
                 <span className="text-brand-100/80">— CSMG</span>
               </p>
               <p className="text-xs text-brand-100/80">
-                Prefeitura e SEIM/Integrário · Oroborus
+                Prefeitura e SEIM/Integra Rio · Oroborus
               </p>
             </div>
           </div>
@@ -41,7 +41,7 @@ export default function Home() {
               Capacitação online e gratuita para empreendedores.
             </h1>
             <p className="mt-5 max-w-lg text-base text-brand-100/90 sm:text-lg">
-              Uma iniciativa da Prefeitura e SEIM/Integrário · Oroborus para
+              Uma iniciativa da Prefeitura e SEIM/Integra Rio · Oroborus para
               ampliar o acesso ao empreendedorismo. Inscreva-se em poucos minutos
               e estude de onde estiver.
             </p>

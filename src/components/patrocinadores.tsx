@@ -16,7 +16,7 @@ export function Patrocinadores() {
           alt="Patrocínio: Prefeitura do Rio · Integração Metropolitana · integra.Rio"
           width={1206}
           height={173}
-          className="h-auto w-full max-w-2xl"
+          className="h-auto w-full max-w-3xl"
         />
 
         {/* 2ª linha: demais logomarcas */}
@@ -27,7 +27,7 @@ export function Patrocinadores() {
               alt="Oroborus Consplan"
               width={328}
               height={184}
-              className="h-14 w-auto rounded-md object-contain"
+              className="h-9 w-auto rounded-md object-contain"
             />
           </li>
           <li>
@@ -36,7 +36,7 @@ export function Patrocinadores() {
               alt="Instituto Virtual Internacional de Mudanças Globais (IVIG) — COPPE/UFRJ"
               width={1600}
               height={1251}
-              className="h-20 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
           </li>
           <li>
@@ -45,7 +45,7 @@ export function Patrocinadores() {
               alt="Fundação Interdisciplinar Virtual de Inovação e Mudanças Globais (Fundação I²G)"
               width={1280}
               height={583}
-              className="h-16 w-auto object-contain"
+              className="h-11 w-auto object-contain"
             />
           </li>
         </ul>
