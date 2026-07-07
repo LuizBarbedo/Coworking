@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Rotas da área do aluno (exigem login). A inscrição pública ("/") fica de fora.
-const ROTAS_PROTEGIDAS = ["/painel", "/mentorias"];
+const ROTAS_PROTEGIDAS = ["/painel", "/modulos"];
 // Rotas de entrada: usuário já logado não precisa vê-las.
 const ROTAS_DE_AUTH = ["/login", "/primeiro-acesso"];
 
