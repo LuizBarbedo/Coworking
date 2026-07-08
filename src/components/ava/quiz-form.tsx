@@ -61,13 +61,18 @@ export function QuizForm({
       <input type="hidden" name="quizId" value={quizId} />
 
       {perguntas.map((pergunta, i) => (
-        <fieldset
+        <div
           key={pergunta.id}
+          role="group"
+          aria-labelledby={`pergunta-${pergunta.id}`}
           className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
         >
-          <legend className="px-1 text-sm font-semibold text-brand-900">
+          <p
+            id={`pergunta-${pergunta.id}`}
+            className="text-sm font-semibold text-brand-900"
+          >
             {i + 1}. {pergunta.enunciado}
-          </legend>
+          </p>
           <div className="mt-3 space-y-2">
             {pergunta.alternativas.map((alt, j) => (
               <label
@@ -88,7 +93,7 @@ export function QuizForm({
               </label>
             ))}
           </div>
-        </fieldset>
+        </div>
       ))}
 
       {state && "error" in state ? (

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { exigirMaster } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { LinhaEditavel } from "@/components/master/linha-editavel";
+import { BlocoAdicionar } from "@/components/master/bloco-adicionar";
 import {
   atualizarDisciplina,
   excluirDisciplina,
@@ -235,36 +236,38 @@ export default async function DisciplinaMasterPage({
           <p className="mt-2 text-sm text-slate-500">Nenhuma aula ainda.</p>
         )}
 
-        <form action={criarAula} className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input type="hidden" name="disciplina_id" value={disciplina.id} />
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Título da aula
-            </label>
-            <input name="titulo" required className={inputClass} />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Link do vídeo (YouTube)
-            </label>
-            <input
-              name="video_link"
-              placeholder="https://youtu.be/…"
-              className={inputClass}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Descrição (opcional)
-            </label>
-            <input name="descricao" className={inputClass} />
-          </div>
-          <div className="sm:col-span-2 flex justify-end">
-            <button type="submit" className={btnPrimario}>
-              Adicionar aula
-            </button>
-          </div>
-        </form>
+        <BlocoAdicionar rotulo="Adicionar aula">
+          <form action={criarAula} className="grid gap-3 sm:grid-cols-2">
+            <input type="hidden" name="disciplina_id" value={disciplina.id} />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Título da aula
+              </label>
+              <input name="titulo" required className={inputClass} />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Link do vídeo (YouTube)
+              </label>
+              <input
+                name="video_link"
+                placeholder="https://youtu.be/…"
+                className={inputClass}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Descrição (opcional)
+              </label>
+              <input name="descricao" className={inputClass} />
+            </div>
+            <div className="sm:col-span-2 flex justify-end">
+              <button type="submit" className={btnPrimario}>
+                Adicionar aula
+              </button>
+            </div>
+          </form>
+        </BlocoAdicionar>
       </section>
 
       {/* Materiais */}
@@ -338,32 +341,34 @@ export default async function DisciplinaMasterPage({
           <p className="mt-2 text-sm text-slate-500">Nenhum material ainda.</p>
         )}
 
-        <form action={criarMaterial} className="mt-4 grid gap-3 sm:grid-cols-4">
-          <input type="hidden" name="disciplina_id" value={disciplina.id} />
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Título
-            </label>
-            <input name="titulo" required className={inputClass} />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Tipo
-            </label>
-            <input name="tipo" defaultValue="pdf" className={inputClass} />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              URL
-            </label>
-            <input name="url" required className={inputClass} />
-          </div>
-          <div className="sm:col-span-4 flex justify-end">
-            <button type="submit" className={btnPrimario}>
-              Adicionar material
-            </button>
-          </div>
-        </form>
+        <BlocoAdicionar rotulo="Adicionar material">
+          <form action={criarMaterial} className="grid gap-3 sm:grid-cols-4">
+            <input type="hidden" name="disciplina_id" value={disciplina.id} />
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Título
+              </label>
+              <input name="titulo" required className={inputClass} />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Tipo
+              </label>
+              <input name="tipo" defaultValue="pdf" className={inputClass} />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                URL
+              </label>
+              <input name="url" required className={inputClass} />
+            </div>
+            <div className="sm:col-span-4 flex justify-end">
+              <button type="submit" className={btnPrimario}>
+                Adicionar material
+              </button>
+            </div>
+          </form>
+        </BlocoAdicionar>
       </section>
 
       {/* Avaliação */}
@@ -503,51 +508,52 @@ export default async function DisciplinaMasterPage({
         )}
 
         {/* Nova pergunta */}
-        <form
-          action={criarPergunta}
-          className="mt-6 rounded-lg border border-dashed border-slate-300 p-4"
-        >
-          <input type="hidden" name="disciplina_id" value={disciplina.id} />
-          <h3 className="text-sm font-semibold text-brand-900">
-            Nova pergunta
-          </h3>
-          <div className="mt-3">
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Enunciado
-            </label>
-            <textarea name="enunciado" required rows={2} className={inputClass} />
-          </div>
-          <p className="mt-4 text-xs text-slate-500">
-            Preencha as alternativas e marque a correta. Deixe em branco as que
-            não usar (mínimo 2).
-          </p>
-          <div className="mt-2 space-y-2">
-            {letras.map((letra) => (
-              <div key={letra} className="flex items-center gap-3">
-                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+        <BlocoAdicionar rotulo="Adicionar pergunta">
+          <form action={criarPergunta}>
+            <input type="hidden" name="disciplina_id" value={disciplina.id} />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Enunciado
+              </label>
+              <textarea
+                name="enunciado"
+                required
+                rows={2}
+                className={inputClass}
+              />
+            </div>
+            <p className="mt-4 text-xs text-slate-500">
+              Preencha as alternativas e marque a correta. Deixe em branco as que
+              não usar (mínimo 2).
+            </p>
+            <div className="mt-2 space-y-2">
+              {letras.map((letra) => (
+                <div key={letra} className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+                    <input
+                      type="radio"
+                      name="correta"
+                      value={letra}
+                      className="h-4 w-4 accent-brand-600"
+                      required={letra === "a"}
+                    />
+                    {letra.toUpperCase()}
+                  </label>
                   <input
-                    type="radio"
-                    name="correta"
-                    value={letra}
-                    className="h-4 w-4 accent-brand-600"
-                    required={letra === "a"}
+                    name={`alt_${letra}`}
+                    placeholder={`Alternativa ${letra.toUpperCase()}`}
+                    className={inputClass}
                   />
-                  {letra.toUpperCase()}
-                </label>
-                <input
-                  name={`alt_${letra}`}
-                  placeholder={`Alternativa ${letra.toUpperCase()}`}
-                  className={inputClass}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button type="submit" className={btnPrimario}>
-              Adicionar pergunta
-            </button>
-          </div>
-        </form>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button type="submit" className={btnPrimario}>
+                Adicionar pergunta
+              </button>
+            </div>
+          </form>
+        </BlocoAdicionar>
       </section>
 
       {/* Excluir disciplina */}
