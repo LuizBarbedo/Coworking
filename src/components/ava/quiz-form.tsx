@@ -69,7 +69,7 @@ export function QuizForm({
             {i + 1}. {pergunta.enunciado}
           </legend>
           <div className="mt-3 space-y-2">
-            {pergunta.alternativas.map((alt) => (
+            {pergunta.alternativas.map((alt, j) => (
               <label
                 key={alt.id}
                 className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3.5 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50"
@@ -79,8 +79,11 @@ export function QuizForm({
                   name={`resposta_${pergunta.id}`}
                   value={alt.id}
                   required
-                  className="h-4 w-4 accent-brand-600"
+                  className="peer sr-only"
                 />
+                <span className="flex h-6 w-6 flex-none items-center justify-center rounded-md border border-slate-300 text-xs font-semibold text-slate-500 peer-checked:border-brand-600 peer-checked:bg-brand-600 peer-checked:text-white">
+                  {String.fromCharCode(65 + j)}
+                </span>
                 {alt.texto}
               </label>
             ))}

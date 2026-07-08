@@ -59,12 +59,11 @@ export default async function PainelPage() {
     <div>
       <h1 className="text-2xl font-bold text-brand-900">Meus módulos</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Conclua 70% do conteúdo e seja aprovado(a) nas avaliações para emitir sua
-        declaração de participação.
+        Acompanhe aqui o seu avanço nas mentorias, disciplinas e avaliações.
       </p>
 
-      {/* Declaração de participação (bloqueada até 70% + quizzes aprovados). */}
-      <DeclaracaoCard progresso={progressoCurso} />
+      {/* Progresso geral do aluno (aulas assistidas + avaliações aprovadas). */}
+      <ProgressoGeralCard progresso={progressoCurso} />
 
       {temModulos ? (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -116,46 +115,26 @@ export default async function PainelPage() {
   );
 }
 
-function DeclaracaoCard({
+function ProgressoGeralCard({
   progresso,
 }: {
   progresso: Awaited<ReturnType<typeof getProgressoCurso>>;
 }) {
-  const { aulas, quizzesAprovados, quizzesTotal, aprovadoParaDeclaracao } =
-    progresso;
+  const { aulas, quizzesAprovados, quizzesTotal, geral } = progresso;
 
   return (
-    <div
-      className={`mt-6 rounded-xl border p-5 ${
-        aprovadoParaDeclaracao
-          ? "border-green-200 bg-green-50"
-          : "border-slate-200 bg-white"
-      }`}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="font-semibold text-brand-900">
-            Declaração de participação
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            {aprovadoParaDeclaracao
-              ? "Você concluiu os requisitos. Sua declaração está liberada."
-              : `Progresso: ${aulas.pct}% das aulas · ${quizzesAprovados}/${quizzesTotal} avaliações aprovadas.`}
-          </p>
-        </div>
-        <button
-          type="button"
-          disabled={!aprovadoParaDeclaracao}
-          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-          title={
-            aprovadoParaDeclaracao
-              ? "Emitir declaração"
-              : "Disponível ao concluir 70% das aulas e todas as avaliações"
-          }
-        >
-          Emitir declaração
-        </button>
+    <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="font-semibold text-brand-900">Progresso geral</h2>
+        <span className="text-2xl font-bold text-brand-900">{geral.pct}%</span>
       </div>
+      <div className="mt-3">
+        <BarraProgresso pct={geral.pct} />
+      </div>
+      <p className="mt-3 text-sm text-slate-500">
+        {aulas.feitas} de {aulas.total} aulas assistidas · {quizzesAprovados} de{" "}
+        {quizzesTotal} avaliações aprovadas.
+      </p>
     </div>
   );
 }

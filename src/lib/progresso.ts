@@ -16,8 +16,8 @@ export type ProgressoCurso = {
   aulas: Resumo;
   quizzesTotal: number;
   quizzesAprovados: number;
-  /** Regra dos 70%: assistir ≥70% das aulas E ser aprovado em todos os quizzes. */
-  aprovadoParaDeclaracao: boolean;
+  /** Progresso geral do aluno = aulas assistidas + avaliações aprovadas. */
+  geral: Resumo;
 };
 
 /**
@@ -63,16 +63,13 @@ export async function getProgressoCurso(
   }
 
   const aulasResumo = resumo(feitas, totalAulas);
-  const aprovadoParaDeclaracao =
-    totalAulas > 0 &&
-    aulasResumo.pct >= 70 &&
-    quizzesTotal > 0 &&
-    quizzesAprovados === quizzesTotal;
+  // Progresso geral combina aulas assistidas e avaliações aprovadas.
+  const geral = resumo(feitas + quizzesAprovados, totalAulas + quizzesTotal);
 
   return {
     aulas: aulasResumo,
     quizzesTotal,
     quizzesAprovados,
-    aprovadoParaDeclaracao,
+    geral,
   };
 }
