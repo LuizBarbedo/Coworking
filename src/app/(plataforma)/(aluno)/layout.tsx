@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { exigirAluno } from "@/lib/auth";
+import { exigirAluno, getPapel } from "@/lib/auth";
 import { logout } from "@/app/(plataforma)/actions";
 import { Patrocinadores } from "@/components/patrocinadores";
 
@@ -10,6 +10,7 @@ export default async function AlunoLayout({
   children: React.ReactNode;
 }) {
   const user = await exigirAluno();
+  const ehMaster = (await getPapel()) === "master";
   const nome =
     (user.user_metadata?.nome as string | undefined) ??
     user.email ??
@@ -36,6 +37,14 @@ export default async function AlunoLayout({
           </Link>
 
           <div className="flex items-center gap-3">
+            {ehMaster ? (
+              <Link
+                href="/master"
+                className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700"
+              >
+                Área do Master
+              </Link>
+            ) : null}
             <span className="hidden text-sm text-slate-600 sm:block">
               Olá, {primeiroNome}
             </span>

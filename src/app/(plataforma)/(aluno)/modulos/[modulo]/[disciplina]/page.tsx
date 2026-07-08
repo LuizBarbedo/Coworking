@@ -4,8 +4,7 @@ import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resumo } from "@/lib/progresso";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
-import { VideoPlayer } from "@/components/ava/video-player";
-import { MarcarAssistidaButton } from "@/components/ava/marcar-assistida-button";
+import { ListaAulas } from "@/components/ava/lista-aulas";
 import { AbasDisciplina } from "@/components/ava/abas-disciplina";
 import { QuizForm } from "@/components/ava/quiz-form";
 
@@ -135,41 +134,19 @@ export default async function DisciplinaPage({
   const progDisc = resumo(feitosItens, totalItens);
 
   // ── Painéis das abas (montados no servidor) ────────────────────────────────
-  const painelAulas =
-    (aulas ?? []).length > 0 ? (
-      <div className="space-y-8">
-        {(aulas ?? []).map((aula) => (
-          <section key={aula.id as string}>
-            <VideoPlayer
-              provider={aula.provider as string}
-              videoUid={(aula.video_uid as string | null) ?? null}
-              titulo={aula.titulo as string}
-            />
-            <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="font-semibold text-brand-900">
-                  {aula.titulo as string}
-                </h2>
-                {aula.descricao ? (
-                  <p className="mt-0.5 text-sm text-slate-600">
-                    {aula.descricao as string}
-                  </p>
-                ) : null}
-              </div>
-              <MarcarAssistidaButton
-                aulaId={aula.id as string}
-                caminho={caminho}
-                jaAssistida={assistidas.has(aula.id as string)}
-              />
-            </div>
-          </section>
-        ))}
-      </div>
-    ) : (
-      <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
-        As videoaulas desta disciplina estão sendo preparadas.
-      </p>
-    );
+  const painelAulas = (
+    <ListaAulas
+      caminho={caminho}
+      aulas={(aulas ?? []).map((aula) => ({
+        id: aula.id as string,
+        titulo: aula.titulo as string,
+        descricao: (aula.descricao as string | null) ?? null,
+        provider: aula.provider as string,
+        videoUid: (aula.video_uid as string | null) ?? null,
+        jaAssistida: assistidas.has(aula.id as string),
+      }))}
+    />
+  );
 
   const painelMateriais =
     materiais && materiais.length > 0 ? (
