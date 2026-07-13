@@ -5,6 +5,7 @@ import { exigirMaster } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { LinhaEditavel } from "@/components/master/linha-editavel";
 import { BlocoAdicionar } from "@/components/master/bloco-adicionar";
+import { BotaoEnviar } from "@/components/master/botao-enviar";
 import {
   atualizarDisciplina,
   excluirDisciplina,
@@ -18,6 +19,9 @@ import {
   criarPergunta,
   atualizarPergunta,
   excluirPergunta,
+  criarConhecimento,
+  atualizarConhecimento,
+  excluirConhecimento,
 } from "../../actions";
 
 export const metadata: Metadata = { title: "Editar disciplina — CSMG" };
@@ -46,24 +50,47 @@ export default async function DisciplinaMasterPage({
     .maybeSingle();
   if (!disciplina) notFound();
 
-  const [{ data: aulas }, { data: materiais }, { data: quiz }] =
-    await Promise.all([
-      admin
-        .from("aulas")
-        .select("id, titulo, descricao, provider, video_uid, ordem")
-        .eq("disciplina_id", id)
-        .order("ordem", { ascending: true }),
-      admin
-        .from("materiais")
-        .select("id, titulo, tipo, url, ordem")
-        .eq("disciplina_id", id)
-        .order("ordem", { ascending: true }),
-      admin
-        .from("quizzes")
-        .select("id, titulo, nota_minima")
-        .eq("disciplina_id", id)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: aulas },
+    { data: materiais },
+    { data: quiz },
+    { data: conhecimento },
+  ] = await Promise.all([
+    admin
+      .from("aulas")
+      .select("id, titulo, descricao, provider, video_uid, ordem")
+      .eq("disciplina_id", id)
+      .order("ordem", { ascending: true }),
+    admin
+      .from("materiais")
+      .select("id, titulo, tipo, url, ordem")
+      .eq("disciplina_id", id)
+      .order("ordem", { ascending: true }),
+    admin
+      .from("quizzes")
+      .select("id, titulo, nota_minima")
+      .eq("disciplina_id", id)
+      .maybeSingle(),
+    admin
+      .from("disciplina_conhecimento")
+      .select("id, titulo, conteudo, ordem, arquivo_nome, arquivo_path")
+      .eq("disciplina_id", id)
+      .order("ordem", { ascending: true }),
+  ]);
+
+  // URLs assinadas (1h) para o master baixar/consultar os arquivos anexados.
+  const pathsArquivos = (conhecimento ?? [])
+    .map((k) => k.arquivo_path as string | null)
+    .filter((p): p is string => Boolean(p));
+  const urlPorPath = new Map<string, string>();
+  if (pathsArquivos.length > 0) {
+    const { data: assinadas } = await admin.storage
+      .from("conhecimento")
+      .createSignedUrls(pathsArquivos, 3600);
+    for (const a of assinadas ?? []) {
+      if (a.path && a.signedUrl) urlPorPath.set(a.path, a.signedUrl);
+    }
+  }
 
   let perguntas:
     | {
@@ -212,7 +239,7 @@ export default async function DisciplinaMasterPage({
                       <input
                         name="video_link"
                         defaultValue={(a.video_uid as string | null) ?? ""}
-                        placeholder="Link do vídeo (YouTube)"
+                        placeholder="Link do YouTube ou Cloudflare"
                         className={inputClass}
                       />
                       <input
@@ -247,13 +274,17 @@ export default async function DisciplinaMasterPage({
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
-                Link do vídeo (YouTube)
+                Link do vídeo (YouTube ou Cloudflare)
               </label>
               <input
                 name="video_link"
-                placeholder="https://youtu.be/…"
+                placeholder="https://youtu.be/… ou UID do Cloudflare"
                 className={inputClass}
               />
+              <p className="mt-1 text-xs text-slate-400">
+                Cole o link do YouTube — o aluno assiste embutido na plataforma,
+                sem sair. Também aceita UID/URL do Cloudflare Stream.
+              </p>
             </div>
             <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -366,6 +397,161 @@ export default async function DisciplinaMasterPage({
               <button type="submit" className={btnPrimario}>
                 Adicionar material
               </button>
+            </div>
+          </form>
+        </BlocoAdicionar>
+      </section>
+
+      {/* Base de conhecimento da IA */}
+      <section className={cardClass}>
+        <h2 className="font-semibold text-brand-900">
+          Base de conhecimento da IA
+        </h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Cole um texto <strong>ou anexe um arquivo</strong> (PDF, DOCX, XLSX,
+          TXT, MD ou CSV) com o material que o assistente usará para tirar as
+          dúvidas dos alunos <strong>somente sobre esta disciplina</strong>. O
+          texto do arquivo é extraído e guardado. Títulos e descrições das aulas
+          e materiais já são lidos automaticamente.
+        </p>
+
+        {conhecimento && conhecimento.length > 0 ? (
+          <ul className="mt-4 divide-y divide-slate-100">
+            {conhecimento.map((k) => (
+              <li key={k.id as string} className="py-2.5">
+                <LinhaEditavel
+                  resumo={
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-brand-900">
+                        {k.titulo as string}
+                      </p>
+                      {k.arquivo_nome ? (
+                        <span className="mt-1 inline-flex max-w-full items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                          <span aria-hidden>📎</span>
+                          {urlPorPath.get(k.arquivo_path as string) ? (
+                            <a
+                              href={urlPorPath.get(k.arquivo_path as string)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="truncate text-brand-700 hover:underline"
+                            >
+                              {k.arquivo_nome as string}
+                            </a>
+                          ) : (
+                            <span className="truncate">
+                              {k.arquivo_nome as string}
+                            </span>
+                          )}
+                        </span>
+                      ) : null}
+                      {(k.conteudo as string) ? (
+                        <p className="mt-0.5 truncate text-xs text-slate-400">
+                          {(k.conteudo as string).slice(0, 120)}
+                        </p>
+                      ) : null}
+                    </div>
+                  }
+                  excluir={
+                    <FormExcluir
+                      action={excluirConhecimento}
+                      id={k.id as string}
+                      disciplinaId={disciplina.id}
+                    />
+                  }
+                  formulario={
+                    <form action={atualizarConhecimento} className="grid gap-2">
+                      <input type="hidden" name="id" value={k.id as string} />
+                      <input
+                        type="hidden"
+                        name="disciplina_id"
+                        value={disciplina.id}
+                      />
+                      <input
+                        name="titulo"
+                        required
+                        defaultValue={k.titulo as string}
+                        placeholder="Título do conteúdo"
+                        className={inputClass}
+                      />
+                      <textarea
+                        name="conteudo"
+                        rows={8}
+                        defaultValue={k.conteudo as string}
+                        placeholder="Conteúdo (texto do material)"
+                        className={inputClass}
+                      />
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-500">
+                          Anexar arquivo (acrescenta ao texto acima)
+                        </label>
+                        <input
+                          type="file"
+                          name="arquivo"
+                          accept=".pdf,.docx,.xlsx,.txt,.md,.csv"
+                          className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <BotaoEnviar className={btnPrimario}>
+                          Salvar conteúdo
+                        </BotaoEnviar>
+                      </div>
+                    </form>
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-slate-500">
+            Nenhum conteúdo cadastrado. Sem material, o assistente responderá que
+            não há conteúdo sobre a pergunta.
+          </p>
+        )}
+
+        <BlocoAdicionar rotulo="Adicionar conteúdo">
+          <form action={criarConhecimento} className="grid gap-3">
+            <input type="hidden" name="disciplina_id" value={disciplina.id} />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Título do conteúdo
+              </label>
+              <input
+                name="titulo"
+                placeholder="Ex.: Introdução ao tema (se vazio, usa o nome do arquivo)"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Anexar arquivo (opcional)
+              </label>
+              <input
+                type="file"
+                name="arquivo"
+                accept=".pdf,.docx,.xlsx,.txt,.md,.csv"
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                PDF, DOCX, XLSX, TXT, MD ou CSV (até 20 MB). PDFs escaneados
+                (imagem) não têm texto para extrair.
+              </p>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Conteúdo em texto (opcional se anexar arquivo)
+              </label>
+              <textarea
+                name="conteudo"
+                rows={8}
+                placeholder="Cole aqui o texto do material desta disciplina…"
+                className={inputClass}
+              />
+            </div>
+            <div className="flex justify-end">
+              <BotaoEnviar className={btnPrimario}>
+                Adicionar conteúdo
+              </BotaoEnviar>
             </div>
           </form>
         </BlocoAdicionar>

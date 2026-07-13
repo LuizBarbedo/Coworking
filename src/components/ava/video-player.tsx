@@ -63,7 +63,11 @@ function idYoutube(valor: string): string | null {
 function montarSrc(provider: string, videoUid: string): string | null {
   if (provider === "youtube") {
     const id = idYoutube(videoUid);
-    return id ? `https://www.youtube.com/embed/${id}` : null;
+    // youtube-nocookie + rel=0/modestbranding: player embutido, com privacidade
+    // e sem sugerir vídeos de outros canais ao final (mantém o aluno na aula).
+    return id
+      ? `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`
+      : null;
   }
   if (provider === "cloudflare") {
     return `https://iframe.videodelivery.net/${videoUid}`;

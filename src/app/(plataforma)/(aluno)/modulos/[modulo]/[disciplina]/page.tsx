@@ -7,6 +7,7 @@ import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { ListaAulas } from "@/components/ava/lista-aulas";
 import { AbasDisciplina } from "@/components/ava/abas-disciplina";
 import { QuizForm } from "@/components/ava/quiz-form";
+import { ChatIA } from "@/components/ava/chat-ia";
 
 type Params = { modulo: string; disciplina: string };
 
@@ -233,6 +234,12 @@ export default async function DisciplinaPage({
           aulas={painelAulas}
           materiais={painelMateriais}
           avaliacao={painelAvaliacao}
+          assistente={
+            <ChatIA
+              disciplinaId={disciplina.id}
+              disciplinaTitulo={disciplina.titulo}
+            />
+          }
           contadores={{
             aulas: (aulas ?? []).length,
             materiais: (materiais ?? []).length,

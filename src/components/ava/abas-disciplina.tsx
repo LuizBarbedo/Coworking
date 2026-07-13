@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 
-type Aba = "aulas" | "materiais" | "avaliacao";
+type Aba = "aulas" | "materiais" | "avaliacao" | "assistente";
 
 export function AbasDisciplina({
   aulas,
   materiais,
   avaliacao,
+  assistente,
   contadores,
 }: {
   aulas: React.ReactNode;
   materiais: React.ReactNode;
   avaliacao: React.ReactNode;
+  assistente: React.ReactNode;
   contadores: { aulas: number; materiais: number };
 }) {
   const [ativa, setAtiva] = useState<Aba>("aulas");
@@ -21,6 +23,7 @@ export function AbasDisciplina({
     { id: "aulas", label: "Aulas", count: contadores.aulas },
     { id: "materiais", label: "Materiais", count: contadores.materiais },
     { id: "avaliacao", label: "Avaliação final" },
+    { id: "assistente", label: "Tirar dúvidas (IA)" },
   ];
 
   return (
@@ -59,6 +62,7 @@ export function AbasDisciplina({
         {ativa === "aulas" ? aulas : null}
         {ativa === "materiais" ? materiais : null}
         {ativa === "avaliacao" ? avaliacao : null}
+        {ativa === "assistente" ? assistente : null}
       </div>
     </div>
   );

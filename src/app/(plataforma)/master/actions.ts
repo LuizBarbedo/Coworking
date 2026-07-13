@@ -1,9 +1,24 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { exigirMaster } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { reconstruirChunks } from "@/lib/ia/conhecimento";
+import { extrairTextoDeArquivo } from "@/lib/ia/extrair-texto";
+
+/**
+ * Reconstrói o índice do assistente de IA da disciplina. Best-effort: uma falha
+ * aqui nunca deve derrubar a operação principal do master.
+ */
+async function reindexarIA(admin: Admin, disciplinaId: string): Promise<void> {
+  try {
+    await reconstruirChunks(admin, disciplinaId);
+  } catch {
+    // Índice desatualizado é tolerável; o master pode salvar de novo.
+  }
+}
 
 // ─── utilidades ──────────────────────────────────────────────────────────────
 function slugify(texto: string): string {
@@ -73,13 +88,22 @@ async function proximaOrdem(
   return ((data?.ordem as number | undefined) ?? 0) + 1;
 }
 
-/** Detecta o provedor de vídeo a partir do link colado pelo master. */
+/** Detecta o provedor de vídeo a partir do link (ou ID) colado pelo master. */
 function classificarVideo(link: string): { provider: string; uid: string | null } {
   const v = link.trim();
   if (!v) return { provider: "youtube", uid: null };
+  // YouTube: link (watch/youtu.be/shorts/embed) — guarda o link inteiro; o
+  // player extrai o ID de 11 caracteres na hora de montar o embed.
   if (/youtube\.com|youtu\.be/.test(v)) return { provider: "youtube", uid: v };
+  // Cloudflare Stream: URL de embed/watch ou UID (32 caracteres hexadecimais).
+  if (/cloudflarestream\.com|videodelivery\.net/.test(v)) {
+    const m = v.match(/[0-9a-f]{32}/i);
+    return { provider: "cloudflare", uid: m ? m[0] : v };
+  }
+  if (/^[0-9a-f]{32}$/i.test(v)) return { provider: "cloudflare", uid: v };
+  // Outra URL http(s): tratada como embed genérico.
   if (/^https?:\/\//.test(v)) return { provider: "url", uid: v };
-  // Sem esquema: assume ID de YouTube ou UID de Cloudflare.
+  // Sem esquema e curto: provável ID de vídeo do YouTube (11 caracteres).
   return { provider: "youtube", uid: v };
 }
 
@@ -182,6 +206,7 @@ export async function atualizarDisciplina(formData: FormData) {
     })
     .eq("id", id);
 
+  await reindexarIA(admin, id);
   revalidatePath(`/master/disciplinas/${id}`);
 }
 
@@ -219,6 +244,7 @@ export async function criarAula(formData: FormData) {
     ordem,
   });
 
+  await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
 
@@ -245,6 +271,7 @@ export async function atualizarAula(formData: FormData) {
     })
     .eq("id", id);
 
+  await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
 
@@ -255,6 +282,7 @@ export async function excluirAula(formData: FormData) {
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   if (!id) return;
   await admin.from("aulas").delete().eq("id", id);
+  await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
 
@@ -282,6 +310,7 @@ export async function criarMaterial(formData: FormData) {
     ordem,
   });
 
+  await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
 
@@ -304,6 +333,7 @@ export async function atualizarMaterial(formData: FormData) {
     })
     .eq("id", id);
 
+  await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
 
@@ -314,6 +344,7 @@ export async function excluirMaterial(formData: FormData) {
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   if (!id) return;
   await admin.from("materiais").delete().eq("id", id);
+  await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
 
@@ -437,5 +468,172 @@ export async function excluirPergunta(formData: FormData) {
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   if (!id) return;
   await admin.from("quiz_perguntas").delete().eq("id", id);
+  revalidatePath(`/master/disciplinas/${disciplinaId}`);
+}
+
+// ─── base de conhecimento da IA ────────────────────────────────────────────────
+const BUCKET_CONHECIMENTO = "conhecimento";
+
+type MetaArquivo = {
+  arquivo_nome: string;
+  arquivo_path: string;
+  arquivo_mime: string | null;
+  arquivo_tamanho: number;
+};
+
+/** Envia o arquivo ao Storage privado e devolve os metadados (ou null se falhar). */
+async function subirArquivoConhecimento(
+  admin: Admin,
+  disciplinaId: string,
+  arquivo: File,
+): Promise<MetaArquivo | null> {
+  const seguro = arquivo.name.replace(/[^\w.\-]+/g, "_").slice(-100) || "arquivo";
+  const path = `${disciplinaId}/${randomUUID()}-${seguro}`;
+  const buffer = Buffer.from(await arquivo.arrayBuffer());
+
+  const { error } = await admin.storage
+    .from(BUCKET_CONHECIMENTO)
+    .upload(path, buffer, {
+      contentType: arquivo.type || "application/octet-stream",
+      upsert: false,
+    });
+  if (error) return null;
+
+  return {
+    arquivo_nome: arquivo.name,
+    arquivo_path: path,
+    arquivo_mime: arquivo.type || null,
+    arquivo_tamanho: arquivo.size,
+  };
+}
+
+/** Remove um arquivo do Storage (best-effort). */
+async function removerArquivoConhecimento(
+  admin: Admin,
+  path: string | null | undefined,
+): Promise<void> {
+  if (!path) return;
+  await admin.storage.from(BUCKET_CONHECIMENTO).remove([path]);
+}
+
+/**
+ * Prepara uma linha da base de conhecimento a partir do formulário: junta o
+ * texto colado com o texto extraído do arquivo (para a IA) e sobe o arquivo
+ * original ao Storage (para consulta/download). A entrada é válida se tiver ao
+ * menos texto OU um arquivo.
+ */
+async function prepararConhecimento(
+  admin: Admin,
+  disciplinaId: string,
+  formData: FormData,
+): Promise<{ titulo: string; conteudo: string; meta: MetaArquivo | null } | null> {
+  let titulo = String(formData.get("titulo") ?? "").trim();
+  const textoColado = String(formData.get("conteudo") ?? "").trim();
+
+  let textoArquivo = "";
+  let meta: MetaArquivo | null = null;
+
+  const arquivo = formData.get("arquivo");
+  if (arquivo instanceof File && arquivo.size > 0) {
+    meta = await subirArquivoConhecimento(admin, disciplinaId, arquivo);
+    try {
+      textoArquivo = (await extrairTextoDeArquivo(arquivo)).trim();
+    } catch {
+      // Arquivo sem texto extraível (ex.: PDF escaneado): guardamos só o arquivo.
+      textoArquivo = "";
+    }
+    if (!titulo) titulo = arquivo.name.replace(/\.[^.]+$/, "").trim();
+  }
+
+  const conteudo = [textoColado, textoArquivo].filter(Boolean).join("\n\n");
+
+  // Precisa de um título e de algum conteúdo (texto ou arquivo).
+  if (!titulo || (!conteudo && !meta)) {
+    if (meta) await removerArquivoConhecimento(admin, meta.arquivo_path);
+    return null;
+  }
+  return { titulo, conteudo, meta };
+}
+
+export async function criarConhecimento(formData: FormData) {
+  await exigirMaster();
+  const admin = createSupabaseAdminClient();
+
+  const disciplinaId = String(formData.get("disciplina_id") ?? "");
+  if (!disciplinaId) return;
+  const dados = await prepararConhecimento(admin, disciplinaId, formData);
+  if (!dados) return;
+
+  const ordem = await proximaOrdem(
+    admin,
+    "disciplina_conhecimento",
+    "disciplina_id",
+    disciplinaId,
+  );
+  await admin.from("disciplina_conhecimento").insert({
+    disciplina_id: disciplinaId,
+    titulo: dados.titulo,
+    conteudo: dados.conteudo,
+    ordem,
+    ...(dados.meta ?? {}),
+  });
+
+  await reindexarIA(admin, disciplinaId);
+  revalidatePath(`/master/disciplinas/${disciplinaId}`);
+}
+
+export async function atualizarConhecimento(formData: FormData) {
+  await exigirMaster();
+  const admin = createSupabaseAdminClient();
+
+  const id = String(formData.get("id") ?? "");
+  const disciplinaId = String(formData.get("disciplina_id") ?? "");
+  if (!id) return;
+  const dados = await prepararConhecimento(admin, disciplinaId, formData);
+  if (!dados) return;
+
+  // Anexou um arquivo novo? Remove o antigo do Storage antes de substituir.
+  if (dados.meta) {
+    const { data: antigo } = await admin
+      .from("disciplina_conhecimento")
+      .select("arquivo_path")
+      .eq("id", id)
+      .maybeSingle();
+    await removerArquivoConhecimento(
+      admin,
+      antigo?.arquivo_path as string | null,
+    );
+  }
+
+  await admin
+    .from("disciplina_conhecimento")
+    .update({
+      titulo: dados.titulo,
+      conteudo: dados.conteudo,
+      updated_at: new Date().toISOString(),
+      ...(dados.meta ?? {}),
+    })
+    .eq("id", id);
+
+  await reindexarIA(admin, disciplinaId);
+  revalidatePath(`/master/disciplinas/${disciplinaId}`);
+}
+
+export async function excluirConhecimento(formData: FormData) {
+  await exigirMaster();
+  const admin = createSupabaseAdminClient();
+  const id = String(formData.get("id") ?? "");
+  const disciplinaId = String(formData.get("disciplina_id") ?? "");
+  if (!id) return;
+
+  const { data: linha } = await admin
+    .from("disciplina_conhecimento")
+    .select("arquivo_path")
+    .eq("id", id)
+    .maybeSingle();
+
+  await admin.from("disciplina_conhecimento").delete().eq("id", id);
+  await removerArquivoConhecimento(admin, linha?.arquivo_path as string | null);
+  await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
