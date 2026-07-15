@@ -6,6 +6,7 @@ import { Patrocinadores } from "@/components/patrocinadores";
 import { TemaToggle } from "@/components/ui/tema-toggle";
 import { ContextoIAProvider } from "@/components/ava/contexto-ia";
 import { AssistenteFlutuante } from "@/components/ava/assistente-flutuante";
+import { BotaoTour } from "@/components/tour/botao-tour";
 
 export default async function AlunoLayout({
   children,
@@ -53,6 +54,7 @@ export default async function AlunoLayout({
             <span className="hidden text-sm text-slate-600 sm:block">
               Olá, {primeiroNome}
             </span>
+            <BotaoTour perfil="aluno" />
             <TemaToggle />
             <form action={logout}>
               <button

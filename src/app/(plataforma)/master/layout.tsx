@@ -3,6 +3,9 @@ import Image from "next/image";
 import { exigirMaster } from "@/lib/auth";
 import { logout } from "@/app/(plataforma)/actions";
 import { TemaToggle } from "@/components/ui/tema-toggle";
+import { BotaoTour } from "@/components/tour/botao-tour";
+import { ContextoIAProvider } from "@/components/ava/contexto-ia";
+import { AssistenteFlutuante } from "@/components/ava/assistente-flutuante";
 
 export default async function MasterLayout({
   children,
@@ -12,6 +15,7 @@ export default async function MasterLayout({
   await exigirMaster();
 
   return (
+    <ContextoIAProvider>
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <header className="border-b border-slate-200 bg-brand-900 text-white">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-6 py-3">
@@ -35,6 +39,7 @@ export default async function MasterLayout({
             >
               Ver como aluno
             </Link>
+            <BotaoTour perfil="master" className="border-white/20 text-white/70 hover:text-white hover:border-white/40" />
             <TemaToggle className="border-white/20 text-white/70 hover:text-white hover:border-white/40" />
             <form action={logout}>
               <button
@@ -49,6 +54,8 @@ export default async function MasterLayout({
       </header>
 
       <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">{children}</div>
+      <AssistenteFlutuante />
     </div>
+    </ContextoIAProvider>
   );
 }
