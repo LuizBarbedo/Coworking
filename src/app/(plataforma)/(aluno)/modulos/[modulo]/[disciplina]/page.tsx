@@ -61,7 +61,9 @@ export default async function DisciplinaPage({
     await Promise.all([
       supabase
         .from("aulas")
-        .select("id, titulo, descricao, provider, video_uid, video_status, ordem")
+        // "*" para tolerar ambientes sem a migration 0011 (video_status vem
+        // como undefined até ela ser aplicada, e o código trata como null).
+        .select("*")
         .eq("disciplina_id", disciplina.id)
         .order("ordem", { ascending: true }),
       supabase

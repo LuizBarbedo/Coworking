@@ -60,7 +60,9 @@ export default async function DisciplinaMasterPage({
   ] = await Promise.all([
     admin
       .from("aulas")
-      .select("id, titulo, descricao, provider, video_uid, video_status, ordem")
+      // "*" para tolerar ambientes sem a migration 0011 (video_status vem como
+      // undefined até ela ser aplicada, e o código trata como null).
+      .select("*")
       .eq("disciplina_id", id)
       .order("ordem", { ascending: true }),
     admin
