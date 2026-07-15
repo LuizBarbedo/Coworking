@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resumo } from "@/lib/progresso";
+import { urlAssistir, chaveAula, chaveThumb } from "@/lib/r2";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { ListaAulas } from "@/components/ava/lista-aulas";
 import { AbasDisciplina } from "@/components/ava/abas-disciplina";
@@ -60,7 +61,7 @@ export default async function DisciplinaPage({
     await Promise.all([
       supabase
         .from("aulas")
-        .select("id, titulo, descricao, provider, video_uid, ordem")
+        .select("id, titulo, descricao, provider, video_uid, video_status, ordem")
         .eq("disciplina_id", disciplina.id)
         .order("ordem", { ascending: true }),
       supabase
@@ -138,14 +139,31 @@ export default async function DisciplinaPage({
   const painelAulas = (
     <ListaAulas
       caminho={caminho}
-      aulas={(aulas ?? []).map((aula) => ({
-        id: aula.id as string,
-        titulo: aula.titulo as string,
-        descricao: (aula.descricao as string | null) ?? null,
-        provider: aula.provider as string,
-        videoUid: (aula.video_uid as string | null) ?? null,
-        jaAssistida: assistidas.has(aula.id as string),
-      }))}
+      aulas={await Promise.all(
+        (aulas ?? []).map(async (aula) => {
+          const provider = aula.provider as string;
+          const status = (aula.video_status as string | null) ?? null;
+          // Vídeo próprio pronto: gera URLs assinadas (curtas) no servidor.
+          const [srcR2, poster] =
+            provider === "r2" && status === "pronta"
+              ? await Promise.all([
+                  urlAssistir(chaveAula(aula.id as string)),
+                  urlAssistir(chaveThumb(aula.id as string)).catch(() => null),
+                ])
+              : [null, null];
+          return {
+            id: aula.id as string,
+            titulo: aula.titulo as string,
+            descricao: (aula.descricao as string | null) ?? null,
+            provider,
+            videoUid: (aula.video_uid as string | null) ?? null,
+            jaAssistida: assistidas.has(aula.id as string),
+            srcR2,
+            poster,
+            videoStatus: status,
+          };
+        }),
+      )}
     />
   );
 

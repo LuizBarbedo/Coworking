@@ -6,6 +6,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { LinhaEditavel } from "@/components/master/linha-editavel";
 import { BlocoAdicionar } from "@/components/master/bloco-adicionar";
 import { BotaoEnviar } from "@/components/master/botao-enviar";
+import { UploadVideo } from "@/components/master/upload-video";
 import { ConhecimentoVazio } from "@/components/ilustracoes";
 import {
   atualizarDisciplina,
@@ -59,7 +60,7 @@ export default async function DisciplinaMasterPage({
   ] = await Promise.all([
     admin
       .from("aulas")
-      .select("id, titulo, descricao, provider, video_uid, ordem")
+      .select("id, titulo, descricao, provider, video_uid, video_status, ordem")
       .eq("disciplina_id", id)
       .order("ordem", { ascending: true }),
     admin
@@ -208,7 +209,15 @@ export default async function DisciplinaMasterPage({
                         {i + 1}. {a.titulo as string}
                       </span>
                       <span className="ml-2 text-xs text-slate-400">
-                        {a.video_uid ? (a.provider as string) : "sem vídeo"}
+                        {a.provider === "r2"
+                          ? a.video_status === "pronta"
+                            ? "vídeo próprio"
+                            : a.video_status === "processando"
+                              ? "processando…"
+                              : (a.video_status as string) ?? "vídeo"
+                          : a.video_uid
+                            ? (a.provider as string)
+                            : "sem vídeo"}
                       </span>
                     </span>
                   }
@@ -239,7 +248,11 @@ export default async function DisciplinaMasterPage({
                       />
                       <input
                         name="video_link"
-                        defaultValue={(a.video_uid as string | null) ?? ""}
+                        defaultValue={
+                          a.provider === "r2"
+                            ? ""
+                            : ((a.video_uid as string | null) ?? "")
+                        }
                         placeholder="Link do YouTube ou Cloudflare"
                         className={inputClass}
                       />
@@ -253,6 +266,16 @@ export default async function DisciplinaMasterPage({
                         <button type="submit" className={btnPrimario}>
                           Salvar aula
                         </button>
+                      </div>
+                      <div className="sm:col-span-2 border-t border-slate-100 pt-3">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+                          ou hospede o vídeo na plataforma
+                        </p>
+                        <UploadVideo
+                          aulaId={a.id as string}
+                          disciplinaId={disciplina.id}
+                          status={a.video_status as string | null}
+                        />
                       </div>
                     </form>
                   }

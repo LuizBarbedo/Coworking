@@ -11,6 +11,9 @@ export type AulaItem = {
   provider: string;
   videoUid: string | null;
   jaAssistida: boolean;
+  srcR2?: string | null; // URL R2 assinada (só para provider "r2")
+  poster?: string | null;
+  videoStatus?: string | null;
 };
 
 export function ListaAulas({
@@ -75,6 +78,9 @@ export function ListaAulas({
                   provider={aula.provider}
                   videoUid={aula.videoUid}
                   titulo={aula.titulo}
+                  srcR2={aula.srcR2}
+                  poster={aula.poster}
+                  videoStatus={aula.videoStatus}
                 />
                 <div className="mt-4 flex justify-end">
                   <MarcarAssistidaButton

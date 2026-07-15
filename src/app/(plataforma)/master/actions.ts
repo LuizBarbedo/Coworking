@@ -7,6 +7,11 @@ import { exigirMaster } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { reconstruirChunks } from "@/lib/ia/conhecimento";
 import { extrairTextoDeArquivo } from "@/lib/ia/extrair-texto";
+import {
+  chaveAula,
+  chaveOriginal,
+  urlUploadOriginal,
+} from "@/lib/r2";
 
 /**
  * Reconstrói o índice do assistente de IA da disciplina. Best-effort: uma falha
@@ -284,6 +289,88 @@ export async function excluirAula(formData: FormData) {
   await admin.from("aulas").delete().eq("id", id);
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+}
+
+// ─── upload de vídeo (Cloudflare R2 + transcodificação) ───────────────────────
+
+const TIPOS_VIDEO = new Set([
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-matroska",
+  "video/x-msvideo",
+]);
+
+/**
+ * Passo 1 do upload: devolve uma URL assinada para o navegador enviar o vídeo
+ * ORIGINAL direto para o R2 (contorna o limite de corpo da Vercel).
+ */
+export async function iniciarUploadVideo(
+  aulaId: string,
+  nomeArquivo: string,
+  contentType: string,
+): Promise<{ url: string; chave: string } | { erro: string }> {
+  await exigirMaster();
+  if (!aulaId || !nomeArquivo) return { erro: "Aula ou arquivo inválido." };
+  if (!TIPOS_VIDEO.has(contentType)) {
+    return { erro: "Envie um arquivo de vídeo (MP4, MOV, WEBM, MKV ou AVI)." };
+  }
+  const chave = chaveOriginal(aulaId, nomeArquivo);
+  const url = await urlUploadOriginal(chave, contentType, 3600);
+  return { url, chave };
+}
+
+/**
+ * Passo 2: o original já está no R2. Enfileira a transcodificação (worker no
+ * KVM4) e marca a aula como "processando". O worker gera a versão 720p +
+ * thumbnail e marca "pronta".
+ */
+export async function finalizarUploadVideo(
+  aulaId: string,
+  chaveOriginalArq: string,
+  disciplinaId: string,
+): Promise<void> {
+  await exigirMaster();
+  const admin = createSupabaseAdminClient();
+  if (!aulaId || !chaveOriginalArq) return;
+
+  await admin
+    .from("aulas")
+    .update({
+      provider: "r2",
+      video_uid: chaveAula(aulaId), // chave final que a Modal vai produzir
+      video_status: "processando",
+      video_pronto_em: null,
+    })
+    .eq("id", aulaId);
+
+  const { data: job } = await admin
+    .from("video_jobs")
+    .insert({ aula_id: aulaId, chave_original: chaveOriginalArq, status: "processando" })
+    .select("id")
+    .single();
+
+  // Dispara a transcodificação na Modal SOB DEMANDA (sem polling).
+  const url = process.env.MODAL_TRANSCODE_URL;
+  const segredo = process.env.VIDEO_WEBHOOK_SECRET;
+  if (url && segredo) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: segredo,
+          jobId: job?.id,
+          aulaId,
+          chaveOriginal: chaveOriginalArq,
+        }),
+      });
+    } catch {
+      // Se a Modal não responder, a aula fica "processando"; o master reenvia.
+    }
+  }
+
+  if (disciplinaId) revalidatePath(`/master/disciplinas/${disciplinaId}`);
 }
 
 // ─── materiais ───────────────────────────────────────────────────────────────
