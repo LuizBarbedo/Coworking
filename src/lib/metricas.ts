@@ -4,12 +4,21 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type PontoSerie = { dia: string; total: number };
 
+export type OrigemAgregada = {
+  source: string | null;
+  medium: string | null;
+  campaign: string | null;
+  total: number;
+};
+
 export type Metricas = {
   total: number;
   hoje: number;
   semana: number;
   ultima: string | null;
   serie: PontoSerie[];
+  /** Ausente enquanto a migração 0012 não for aplicada. */
+  origens?: OrigemAgregada[];
 };
 
 /**
