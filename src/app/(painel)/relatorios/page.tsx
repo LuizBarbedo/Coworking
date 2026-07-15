@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { painelAutenticado } from "@/lib/painel-auth";
+import { formatarTaxaConversao } from "@/lib/conversao";
 import { obterMetricas, type OrigemAgregada } from "@/lib/metricas";
 import { sairPainel } from "@/app/(painel)/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -87,23 +88,30 @@ function rotuloOrigem(valor: string | null, vazio: string): string {
 function TabelaOrigens({
   origens,
   dias,
+  visitasPeriodo,
 }: {
   origens: OrigemAgregada[];
   dias: number;
+  visitasPeriodo?: number;
 }) {
   const totalPeriodo = origens.reduce((soma, o) => soma + o.total, 0);
+  // Antes da migração 0013 não há contagem de visitas — esconde as colunas.
+  const medeVisitas = visitasPeriodo !== undefined;
   return (
     <section className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
       <h3 className="text-sm font-semibold text-brand-900 dark:text-brand-100">
         Origem do tráfego
       </h3>
       <p className="mt-1 text-xs text-slate-400">
-        Inscrições dos últimos {dias} dias por UTM da campanha (anúncios da
-        Meta, links divulgados). Sem UTM = acesso direto ou orgânico.
+        Últimos {dias} dias por UTM da campanha (anúncios da Meta, links
+        divulgados). Sem UTM = acesso direto ou orgânico.
+        {medeVisitas
+          ? " Conversão = inscrições ÷ visitas."
+          : null}
       </p>
       {origens.length === 0 ? (
         <p className="mt-4 text-sm text-slate-500">
-          Nenhuma inscrição no período.
+          Nenhuma visita ou inscrição no período.
         </p>
       ) : (
         <div className="mt-4 overflow-x-auto">
@@ -113,7 +121,15 @@ function TabelaOrigens({
                 <th className="py-2 pr-4 font-medium">Fonte</th>
                 <th className="py-2 pr-4 font-medium">Meio</th>
                 <th className="py-2 pr-4 font-medium">Campanha</th>
+                {medeVisitas ? (
+                  <th className="py-2 pr-4 text-right font-medium">Visitas</th>
+                ) : null}
                 <th className="py-2 text-right font-medium">Inscrições</th>
+                {medeVisitas ? (
+                  <th className="py-2 pl-4 text-right font-medium">
+                    Conversão
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
@@ -131,9 +147,19 @@ function TabelaOrigens({
                   <td className="py-2 pr-4 text-slate-500">
                     {rotuloOrigem(o.campaign, "—")}
                   </td>
+                  {medeVisitas ? (
+                    <td className="py-2 pr-4 text-right tabular-nums text-slate-500">
+                      {o.visitas ?? 0}
+                    </td>
+                  ) : null}
                   <td className="py-2 text-right tabular-nums text-brand-900 dark:text-brand-100">
                     {o.total}
                   </td>
+                  {medeVisitas ? (
+                    <td className="py-2 pl-4 text-right tabular-nums text-slate-500">
+                      {formatarTaxaConversao(o.visitas, o.total)}
+                    </td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>
@@ -142,7 +168,17 @@ function TabelaOrigens({
                 <td className="pt-2" colSpan={3}>
                   Total no período
                 </td>
+                {medeVisitas ? (
+                  <td className="pt-2 text-right tabular-nums">
+                    {visitasPeriodo}
+                  </td>
+                ) : null}
                 <td className="pt-2 text-right tabular-nums">{totalPeriodo}</td>
+                {medeVisitas ? (
+                  <td className="pt-2 pl-4 text-right tabular-nums">
+                    {formatarTaxaConversao(visitasPeriodo, totalPeriodo)}
+                  </td>
+                ) : null}
               </tr>
             </tfoot>
           </table>
@@ -231,7 +267,11 @@ export default async function RelatoriosPage({
         <GraficoEvolucao serie={metricas.serie} />
 
         {metricas.origens ? (
-          <TabelaOrigens origens={metricas.origens} dias={dias} />
+          <TabelaOrigens
+            origens={metricas.origens}
+            dias={dias}
+            visitasPeriodo={metricas.visitas_periodo}
+          />
         ) : null}
       </div>
     </main>

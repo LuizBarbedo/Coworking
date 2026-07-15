@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { BannerConsentimento } from "@/components/consentimento/banner-consentimento";
+import { RegistroVisita } from "@/components/metricas/registro-visita";
+import { AvisoPrivacidade } from "@/components/privacidade/aviso-privacidade";
 import { RegistrationForm } from "@/components/registration-form";
 import { Patrocinadores } from "@/components/patrocinadores";
 import { SocialLinks } from "@/components/social-links";
@@ -175,7 +176,8 @@ export default function Home() {
         </div>
       </footer>
 
-      <BannerConsentimento />
+      <RegistroVisita />
+      <AvisoPrivacidade />
     </main>
   );
 }

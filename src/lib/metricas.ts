@@ -9,6 +9,8 @@ export type OrigemAgregada = {
   medium: string | null;
   campaign: string | null;
   total: number;
+  /** Visitas do período — ausente enquanto a migração 0013 não for aplicada. */
+  visitas?: number;
 };
 
 export type Metricas = {
@@ -19,6 +21,8 @@ export type Metricas = {
   serie: PontoSerie[];
   /** Ausente enquanto a migração 0012 não for aplicada. */
   origens?: OrigemAgregada[];
+  /** Total de visitas do período — ausente antes da migração 0013. */
+  visitas_periodo?: number;
 };
 
 /**

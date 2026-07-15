@@ -21,6 +21,26 @@ export type RegistrationResult =
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Conta uma visita à landing (anônima: só data + UTMs, nenhum dado pessoal).
+ * Nunca propaga erro — medição não pode atrapalhar a página; sem a migração
+ * 0013 a RPC não existe e a chamada é simplesmente ignorada.
+ */
+export async function registrarVisita(
+  origem: Partial<Origem> | null | undefined,
+): Promise<void> {
+  const { source, medium, campaign } = sanitizarOrigem(origem);
+  const { error } = await getSupabase().rpc("registrar_visita", {
+    p_utm_source: source,
+    p_utm_medium: medium,
+    p_utm_campaign: campaign,
+  });
+  // PGRST202 = RPC ainda não existe (migração pendente) — silencioso.
+  if (error && error.code !== "PGRST202") {
+    console.error("Falha ao registrar visita da landing:", error.message);
+  }
+}
+
 export async function registerInscription(
   data: RegistrationPayload,
 ): Promise<RegistrationResult> {
