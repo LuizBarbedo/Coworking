@@ -19,3 +19,18 @@ test("rota protegida redireciona visitante para /login", async ({ page }) => {
   await page.goto("/painel");
   await expect(page).toHaveURL(/\/login/);
 });
+
+test("política de privacidade responde", async ({ page }) => {
+  await page.goto("/privacidade");
+  await expect(
+    page.getByRole("heading", { name: /política de privacidade/i }),
+  ).toBeVisible();
+});
+
+test("robots.txt esconde a plataforma dos buscadores", async ({ request }) => {
+  const resposta = await request.get("/robots.txt");
+  expect(resposta.ok()).toBe(true);
+  const corpo = await resposta.text();
+  expect(corpo).toContain("Disallow: /painel");
+  expect(corpo).toContain("Disallow: /master");
+});
