@@ -146,13 +146,24 @@ export default async function DisciplinaPage({
           const provider = aula.provider as string;
           const status = (aula.video_status as string | null) ?? null;
           // Vídeo próprio pronto: gera URLs assinadas (curtas) no servidor.
-          const [srcR2, poster] =
-            provider === "r2" && status === "pronta"
-              ? await Promise.all([
-                  urlAssistir(chaveAula(aula.id as string)),
-                  urlAssistir(chaveThumb(aula.id as string)).catch(() => null),
-                ])
-              : [null, null];
+          // Em try/catch para não derrubar a página se as envs de R2 faltarem
+          // (urlAssistir lança de forma síncrona quando não há credenciais).
+          let srcR2: string | null = null;
+          let poster: string | null = null;
+          if (provider === "r2" && status === "pronta") {
+            try {
+              srcR2 = await urlAssistir(chaveAula(aula.id as string));
+            } catch {
+              srcR2 = null;
+            }
+            if (srcR2) {
+              try {
+                poster = await urlAssistir(chaveThumb(aula.id as string));
+              } catch {
+                poster = null; // poster é opcional
+              }
+            }
+          }
           return {
             id: aula.id as string,
             titulo: aula.titulo as string,

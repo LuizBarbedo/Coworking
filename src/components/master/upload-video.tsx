@@ -54,7 +54,9 @@ export function UploadVideo({
         accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-msvideo"
         className="hidden"
         onChange={(e) => {
-          const f = e.target.files?.[0];
+          const input = e.currentTarget;
+          const f = input.files?.[0];
+          input.value = ""; // permite reenviar o mesmo arquivo após falha
           if (f) void enviar(f);
         }}
       />

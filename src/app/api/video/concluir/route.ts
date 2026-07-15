@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       .from("aulas")
       .update({
         video_status: "pronta",
-        video_duracao_seg: corpo.duracao || null,
+        video_duracao_seg: corpo.duracao ?? null,
         video_thumbnail: corpo.thumb ?? null,
         video_pronto_em: new Date().toISOString(),
       })

@@ -101,7 +101,7 @@ export function AdicionarAula({ disciplinaId }: { disciplinaId: string }) {
           type="file"
           accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-msvideo"
           className="hidden"
-          onChange={(e) => setNomeArquivo(e.target.files?.[0]?.name ?? null)}
+          onChange={(e) => setNomeArquivo(e.currentTarget.files?.[0]?.name ?? null)}
         />
         <div className="mt-2 flex items-center gap-3">
           <button

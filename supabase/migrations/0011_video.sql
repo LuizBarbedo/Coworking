@@ -1,8 +1,8 @@
 -- 0011_video.sql
 --
--- Pipeline de vídeo próprio (Cloudflare R2 + transcodificação no KVM4):
+-- Pipeline de vídeo próprio (Cloudflare R2 + transcodificação sob demanda na Modal):
 --   1. O master sobe o original direto pro R2 (presigned PUT, prefixo raw/).
---   2. Um worker (ffmpeg, systemd no KVM4) normaliza para 720p + thumbnail,
+--   2. A Modal (ffmpeg, disparada sob demanda) normaliza para 720p + thumbnail,
 --      sobe a versão servível e apaga o original.
 --   3. O aluno assiste via presigned GET (privado, expira).
 --
@@ -19,7 +19,7 @@ alter table public.aulas
   add column if not exists video_pronto_em timestamptz,
   add column if not exists video_duracao_seg int;
 
--- Fila de transcodificação consumida pelo worker no KVM4.
+-- Fila/registro de transcodificação (jobs disparados sob demanda na Modal).
 create table if not exists public.video_jobs (
   id uuid primary key default gen_random_uuid(),
   aula_id uuid not null references public.aulas (id) on delete cascade,

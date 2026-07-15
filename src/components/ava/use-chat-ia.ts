@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type MensagemChatIA = { role: "user" | "assistant"; content: string };
 
@@ -16,6 +16,12 @@ export function useChatIA({ disciplinaId }: { disciplinaId?: string }) {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const carregandoRef = useRef(false);
+  // Espelha as mensagens atuais para ler o histórico sem depender do timing
+  // do updater de setState nem de closure desatualizada.
+  const mensagensRef = useRef<MensagemChatIA[]>([]);
+  useEffect(() => {
+    mensagensRef.current = mensagens;
+  }, [mensagens]);
 
   const enviar = useCallback(
     async (texto: string) => {
@@ -26,15 +32,12 @@ export function useChatIA({ disciplinaId }: { disciplinaId?: string }) {
       setErro(null);
       setCarregando(true);
 
-      let historico: MensagemChatIA[] = [];
-      setMensagens((m) => {
-        historico = m.slice(-LIMITE_HISTORICO);
-        return [
-          ...m,
-          { role: "user", content: pergunta },
-          { role: "assistant", content: "" },
-        ];
-      });
+      const historico = mensagensRef.current.slice(-LIMITE_HISTORICO);
+      setMensagens((m) => [
+        ...m,
+        { role: "user", content: pergunta },
+        { role: "assistant", content: "" },
+      ]);
 
       try {
         const resp = await fetch("/api/ia/chat", {

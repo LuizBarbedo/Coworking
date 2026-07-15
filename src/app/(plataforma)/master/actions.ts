@@ -356,9 +356,9 @@ export async function iniciarUploadVideo(
 }
 
 /**
- * Passo 2: o original já está no R2. Enfileira a transcodificação (worker no
- * KVM4) e marca a aula como "processando". O worker gera a versão 720p +
- * thumbnail e marca "pronta".
+ * Passo 2: o original já está no R2. Registra o job e dispara a
+ * transcodificação SOB DEMANDA na Modal, marcando a aula como "processando".
+ * A Modal gera a versão 720p + thumbnail e marca "pronta" via webhook.
  */
 export async function finalizarUploadVideo(
   aulaId: string,
