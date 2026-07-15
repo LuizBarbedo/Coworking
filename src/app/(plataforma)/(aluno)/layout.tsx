@@ -3,6 +3,9 @@ import Link from "next/link";
 import { exigirAluno, getPapel } from "@/lib/auth";
 import { logout } from "@/app/(plataforma)/actions";
 import { Patrocinadores } from "@/components/patrocinadores";
+import { TemaToggle } from "@/components/ui/tema-toggle";
+import { ContextoIAProvider } from "@/components/ava/contexto-ia";
+import { AssistenteFlutuante } from "@/components/ava/assistente-flutuante";
 
 export default async function AlunoLayout({
   children,
@@ -18,21 +21,22 @@ export default async function AlunoLayout({
   const primeiroNome = nome.split(" ")[0];
 
   return (
+    <ContextoIAProvider>
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <header className="border-b border-slate-200 bg-superficie">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-superficie/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-6 py-3">
-          <Link href="/painel" className="flex items-center gap-2.5">
+          <Link href="/painel" className="group flex items-center gap-2.5" data-tour="marca">
             <Image
-              src="/logo-coworking.jpeg"
-              alt="CSMG"
-              width={36}
-              height={36}
+              src="/logo-roda.svg"
+              alt="Roda CSMG — quatro pessoas de mãos dadas em círculo"
+              width={34}
+              height={34}
               priority
-              className="h-9 w-9 flex-none rounded-md object-cover ring-1 ring-black/5"
+              className="h-[34px] w-[34px] flex-none transition-transform duration-500 group-hover:rotate-90"
             />
-            <span className="text-sm font-semibold text-brand-900 dark:text-brand-100">
+            <span className="font-display text-sm font-bold tracking-tight text-brand-900 dark:text-brand-100">
               CSMG
-              <span className="ml-1 font-normal text-slate-400">· AVA</span>
+              <span className="ml-1 font-sans font-normal text-slate-400">· AVA</span>
             </span>
           </Link>
 
@@ -40,6 +44,7 @@ export default async function AlunoLayout({
             {ehMaster ? (
               <Link
                 href="/master"
+                data-tour="area-master"
                 className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-brand-700"
               >
                 Área do Master
@@ -48,6 +53,7 @@ export default async function AlunoLayout({
             <span className="hidden text-sm text-slate-600 sm:block">
               Olá, {primeiroNome}
             </span>
+            <TemaToggle />
             <form action={logout}>
               <button
                 type="submit"
@@ -63,6 +69,8 @@ export default async function AlunoLayout({
       <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">{children}</div>
 
       <Patrocinadores />
+      <AssistenteFlutuante />
     </div>
+    </ContextoIAProvider>
   );
 }
