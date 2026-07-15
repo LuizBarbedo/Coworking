@@ -16,7 +16,8 @@ alter table public.aulas
   add column if not exists video_status text
     check (video_status in ('processando', 'pronta', 'erro')),
   add column if not exists video_thumbnail text,
-  add column if not exists video_pronto_em timestamptz;
+  add column if not exists video_pronto_em timestamptz,
+  add column if not exists video_duracao_seg int;
 
 -- Fila de transcodificação consumida pelo worker no KVM4.
 create table if not exists public.video_jobs (
