@@ -51,8 +51,11 @@ export default function PrivacidadePage() {
           <p>
             <strong>Origem da visita:</strong> quando você chega por um link de
             divulgação (ex.: anúncio no Instagram), registramos os parâmetros
-            da campanha junto com a inscrição. Esses dados são usados apenas de
-            forma agregada, para medir quais divulgações funcionam.
+            da campanha junto com a inscrição. Também contamos as visitas à
+            página inicial de forma <strong>anônima</strong> — guardamos apenas
+            a data e a campanha de origem, sem endereço IP, sem identificador e
+            sem cookie de rastreamento. Esses dados são usados apenas de forma
+            agregada, para medir quais divulgações funcionam.
           </p>
           <p>
             <strong>No uso da plataforma:</strong> cookies essenciais de sessão
@@ -61,14 +64,12 @@ export default function PrivacidadePage() {
           </p>
         </Secao>
 
-        <Secao titulo="Cookies de parceiros">
+        <Secao titulo="Cookies de terceiros">
           <p>
-            Com o seu aceite no aviso de privacidade, poderemos usar cookies de
-            medição de parceiros (como o pixel da Meta) para avaliar as
-            campanhas de divulgação. Se você escolher &ldquo;Só o
-            essencial&rdquo;, nenhum cookie de terceiros é carregado. Você pode
-            mudar de ideia limpando os dados do site no navegador — o aviso
-            aparecerá de novo.
+            <strong>Não usamos cookies de terceiros</strong> nem ferramentas de
+            rastreamento de parceiros. Se isso mudar um dia (por exemplo, um
+            pixel de medição de anúncios), pediremos o seu consentimento antes
+            de carregar qualquer script externo.
           </p>
         </Secao>
 
