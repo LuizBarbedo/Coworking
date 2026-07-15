@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import { BannerConsentimento } from "@/components/consentimento/banner-consentimento";
 import { RegistrationForm } from "@/components/registration-form";
 import { Patrocinadores } from "@/components/patrocinadores";
 import { SocialLinks } from "@/components/social-links";
@@ -158,14 +160,22 @@ export default function Home() {
             </p>
             <SocialLinks />
           </div>
-          <div className="flex flex-col gap-2 border-t border-brand-100 pt-4 text-xs text-brand-900/60 dark:border-brand-800 dark:text-brand-100/60">
+          <div className="flex flex-col gap-2 border-t border-brand-100 pt-4 text-xs text-brand-900/60 dark:border-brand-800 dark:text-brand-100/60 sm:flex-row sm:items-center sm:justify-between">
             <p>
               © {new Date().getFullYear()} Coworking Social de Mudanças Globais
               (CSMG) · Prefeitura e Oroborus
             </p>
+            <Link
+              href="/privacidade"
+              className="underline-offset-4 transition hover:text-brand-900 hover:underline dark:hover:text-brand-100"
+            >
+              Política de Privacidade
+            </Link>
           </div>
         </div>
       </footer>
+
+      <BannerConsentimento />
     </main>
   );
 }
