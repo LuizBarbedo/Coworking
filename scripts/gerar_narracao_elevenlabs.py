@@ -28,34 +28,55 @@ VOICE_SETTINGS = {
 }
 
 # Roteiros em tom conversacional e caloroso — a pontuação guia a entonação.
+# O tour é um passeio guiado, que navega painel → módulo → disciplina.
 NARRACAO = [
+    # --- Aluno ---
     ("aluno", "bemvindo",
      "Oi! Que bom te ver por aqui. Seja muito bem-vindo à plataforma do "
-     "Coworking Social! Vem comigo, que eu vou te mostrar como tudo "
-     "funciona… é rapidinho, viu?"),
+     "Coworking Social! Vem comigo, que eu vou te mostrar tudo que dá pra "
+     "fazer por aqui… é rapidinho, viu?"),
     ("aluno", "progresso",
      "Olha só: aqui em cima você acompanha o seu progresso. Dá pra ver "
      "quantas aulas você já assistiu e quantas avaliações já passou. "
      "Legal, né?"),
     ("aluno", "modulos",
-     "Estes aqui são os seus módulos. É só clicar em um deles pra abrir "
-     "as disciplinas, os vídeos das aulas e os materiais de estudo."),
+     "Estes aqui são os seus módulos, o coração do curso. Deixa que eu "
+     "abro um pra você ver o que tem dentro."),
+    ("aluno", "disciplinas",
+     "Prontinho! Cada módulo reúne várias disciplinas. Vou entrar numa "
+     "delas pra te mostrar o conteúdo por dentro."),
+    ("aluno", "abas",
+     "Repara nessas abas: é aqui que tudo se organiza. Você tem as aulas, "
+     "os materiais pra baixar, a avaliação e o assistente de inteligência "
+     "artificial da disciplina."),
+    ("aluno", "aulas",
+     "Nesta aba ficam as aulas em vídeo. Quando terminar de assistir uma, "
+     "é só marcar como concluída, que a plataforma registra o seu "
+     "progresso automaticamente."),
+    ("aluno", "avaliacao",
+     "E na avaliação você testa o que aprendeu. Fica tranquilo: dá pra "
+     "refazer quantas vezes precisar até mandar bem."),
     ("aluno", "assistente",
-     "E ó: sempre que bater uma dúvida, fala com o assistente aqui no "
-     "cantinho. Ele conhece todo o conteúdo do curso e te responde na "
+     "E ó, o melhor: esse assistente aqui no cantinho te acompanha em "
+     "todas as telas. Bateu uma dúvida, é só chamar que ele responde na "
      "hora. Bons estudos, tá?"),
+    # --- Master ---
     ("master", "bemvindo",
      "Seja bem-vindo à Área do Master! É aqui que você cria e organiza "
-     "todo o conteúdo do curso, do seu jeito."),
+     "todo o conteúdo do curso, do seu jeito. Vou te mostrar o caminho."),
     ("master", "modulos",
-     "Comece pelos módulos. Dentro de cada um você monta as disciplinas… "
-     "e, dentro delas, as aulas, os materiais e as avaliações."),
+     "Tudo começa pelos módulos. Cada módulo é uma grande área do curso. "
+     "Deixa eu abrir um pra você ver as disciplinas dentro dele."),
+    ("master", "disciplinas",
+     "Aqui estão as disciplinas do módulo. É dentro de cada uma que você "
+     "cadastra as aulas, os materiais e as avaliações. Vou entrar numa."),
     ("master", "conhecimento",
-     "Aqui, na base de conhecimento, você envia documentos pra treinar o "
-     "assistente de inteligência artificial daquela disciplina."),
+     "E este é um recurso poderoso: a base de conhecimento. Você envia "
+     "documentos aqui pra treinar o assistente de inteligência artificial "
+     "daquela disciplina, com o conteúdo que você escolher."),
     ("master", "assistente",
-     "E o assistente também fica à sua disposição, pra você testar as "
-     "respostas antes de liberar para os alunos."),
+     "O assistente também fica à sua disposição, pra você testar as "
+     "respostas antes de liberar para os alunos. Bom trabalho!"),
 ]
 
 

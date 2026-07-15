@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { passosVisiveis, todosOsPassos } from "./passos";
+import { passosDoTour, todosOsPassos } from "./passos";
 
 describe("passos do tour", () => {
   it("aluno e master têm passos com áudio e título", () => {
     for (const perfil of ["aluno", "master"] as const) {
       const passos = todosOsPassos(perfil);
-      expect(passos.length).toBeGreaterThanOrEqual(3);
+      expect(passos.length).toBeGreaterThanOrEqual(5);
       for (const p of passos) {
         expect(p.titulo).toBeTruthy();
         expect(p.descricao).toBeTruthy();
@@ -19,18 +19,37 @@ describe("passos do tour", () => {
     expect(todosOsPassos("master")[0].seletor).toBeUndefined();
   });
 
-  it("passosVisiveis mantém passos centrais e descarta elementos ausentes", () => {
-    // nenhum elemento existe na tela → sobra só o passo central de boas-vindas
-    const soCentrais = passosVisiveis("aluno", () => false);
-    expect(soCentrais).toHaveLength(1);
-    expect(soCentrais[0].seletor).toBeUndefined();
+  it("sem nada na tela, sobra só o passo central", () => {
+    const passos = passosDoTour("aluno", () => false, () => false);
+    expect(passos).toHaveLength(1);
+    expect(passos[0].seletor).toBeUndefined();
+  });
 
-    // todos presentes → todos os passos
-    const todos = passosVisiveis("aluno", () => true);
-    expect(todos).toEqual(todosOsPassos("aluno"));
+  it("inclui passos presentes e os alcançáveis por link (navegação)", () => {
+    // Só a tela do painel: progresso e modulos presentes; há link em "modulos"
+    // → disciplinas entra por navegação, e abas/aulas/avaliacao entram como
+    // irmãos da página profunda que "disciplinas" abre.
+    const presentes = new Set(["progresso", "modulos", "assistente"]);
+    const passos = passosDoTour(
+      "aluno",
+      (t) => presentes.has(t),
+      (t) => t === "modulos",
+    );
+    const seletores = passos.map((p) => p.seletor);
+    expect(seletores).toContain("progresso");
+    expect(seletores).toContain("disciplinas"); // via link
+    expect(seletores).toContain("aulas"); // irmão na página profunda
+    expect(seletores).toContain("assistente");
+  });
 
-    // só "progresso" presente → central + progresso
-    const parcial = passosVisiveis("aluno", (s) => s === "progresso");
-    expect(parcial.map((p) => p.seletor)).toEqual([undefined, "progresso"]);
+  it("não inclui passos profundos quando não há link para chegar", () => {
+    const passos = passosDoTour(
+      "aluno",
+      (t) => t === "progresso" || t === "modulos",
+      () => false, // nenhum link disponível
+    );
+    const seletores = passos.map((p) => p.seletor);
+    expect(seletores).not.toContain("disciplinas");
+    expect(seletores).not.toContain("aulas");
   });
 });

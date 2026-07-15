@@ -1,16 +1,51 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { driver, type Driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import "./tour.css";
-import { passosVisiveis, type PerfilTour } from "@/lib/tour/passos";
+import { passosDoTour, type PassoTour, type PerfilTour } from "@/lib/tour/passos";
+
+const seletorDe = (dataTour: string) => `[data-tour="${dataTour}"]`;
+
+/** Espera um elemento aparecer no DOM (após navegação), com timeout. */
+function esperarElemento(seletor: string, timeout = 5000): Promise<Element> {
+  return new Promise((resolve, reject) => {
+    const existente = document.querySelector(seletor);
+    if (existente) return resolve(existente);
+    const inicio = performance.now();
+    const t = setInterval(() => {
+      const el = document.querySelector(seletor);
+      if (el) {
+        clearInterval(t);
+        resolve(el);
+      } else if (performance.now() - inicio > timeout) {
+        clearInterval(t);
+        reject(new Error(`elemento ${seletor} não apareceu`));
+      }
+    }, 120);
+  });
+}
+
+/** href do primeiro link dentro do contêiner com aquele data-tour. */
+function primeiroLink(dataTour: string): string | null {
+  const link = document.querySelector<HTMLAnchorElement>(
+    `${seletorDe(dataTour)} a[href]`,
+  );
+  return link?.getAttribute("href") ?? null;
+}
+
+/** Tempo estimado de leitura (fallback quando o áudio está mudo/bloqueado). */
+function tempoLeitura(texto: string): number {
+  return Math.min(14000, Math.max(5000, texto.length * 55));
+}
 
 /**
- * Botão de ajuda que inicia o tour guiado (driver.js) com narração em voz
- * (Kokoro pt-BR). Na primeira visita do perfil, oferece o tour automaticamente.
- * O áudio só toca após um gesto do usuário (clique em iniciar), respeitando a
- * política de autoplay dos navegadores.
+ * Tour guiado que roda sozinho: um passeio que NAVEGA entre as páginas
+ * (painel → módulo → disciplina), destaca cada recurso, narra em voz
+ * (ElevenLabs) e avança automaticamente ao fim de cada narração. Abre sozinho
+ * no primeiro acesso do perfil (novo navegador); o botão "?" reabre depois.
  */
 export function BotaoTour({
   perfil,
@@ -19,27 +54,11 @@ export function BotaoTour({
   perfil: PerfilTour;
   className?: string;
 }) {
-  const [oferecer, setOferecer] = useState(false);
+  const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mudoRef = useRef(false);
-  const jaIniciouRef = useRef(false);
+  const rodandoRef = useRef(false);
   const chaveVisto = `csmg-tour-${perfil}-visto`;
-
-  // Oferece o tour na primeira visita deste perfil (após um instante, para
-  // não competir com o carregamento da página e evitar setState síncrono).
-  useEffect(() => {
-    let id: number | undefined;
-    try {
-      if (!localStorage.getItem(chaveVisto)) {
-        id = window.setTimeout(() => {
-          if (!jaIniciouRef.current) setOferecer(true);
-        }, 700);
-      }
-    } catch {
-      /* sem storage: não oferece automaticamente */
-    }
-    return () => window.clearTimeout(id);
-  }, [chaveVisto]);
 
   const marcarVisto = useCallback(() => {
     try {
@@ -52,30 +71,111 @@ export function BotaoTour({
   const pararAudio = useCallback(() => {
     const a = audioRef.current;
     if (a) {
+      a.onended = null;
       a.pause();
-      a.currentTime = 0;
     }
   }, []);
 
-  const tocar = useCallback((src: string) => {
-    if (mudoRef.current) return;
-    pararAudio();
-    const a = new Audio(src);
-    audioRef.current = a;
-    void a.play().catch(() => {
-      /* autoplay bloqueado ou arquivo ausente: segue sem áudio */
-    });
-  }, [pararAudio]);
-
   const iniciar = useCallback(() => {
-    jaIniciouRef.current = true;
-    setOferecer(false);
+    if (rodandoRef.current) return;
+    rodandoRef.current = true;
     mudoRef.current = false;
 
-    const passos = passosVisiveis(perfil, (s) =>
-      Boolean(document.querySelector(`[data-tour="${s}"]`)),
+    const passos = passosDoTour(
+      perfil,
+      (t) => Boolean(document.querySelector(seletorDe(t))),
+      (t) => Boolean(primeiroLink(t)),
     );
-    if (passos.length === 0) return;
+    if (passos.length === 0) {
+      rodandoRef.current = false;
+      return;
+    }
+
+    // URL onde cada passo foi mostrado — permite voltar de páginas profundas.
+    const urlDoPasso: (string | null)[] = new Array(passos.length).fill(null);
+    let timerAvanco: number | undefined;
+
+    function limparAvanco() {
+      if (timerAvanco) window.clearTimeout(timerAvanco);
+      timerAvanco = undefined;
+      if (audioRef.current) audioRef.current.onended = null;
+    }
+
+    // Narra o passo e agenda o auto-avanço: no fim do áudio, ou por tempo de
+    // leitura quando o áudio está mudo ou é bloqueado pelo navegador.
+    function narrar(idx: number) {
+      limparAvanco();
+      pararAudio();
+      const passo = passos[idx];
+      const porTempo = () => {
+        timerAvanco = window.setTimeout(
+          () => void transicao(true),
+          tempoLeitura(passo.descricao),
+        );
+      };
+      if (mudoRef.current) {
+        porTempo();
+        return;
+      }
+      const a = new Audio(passo.audio);
+      audioRef.current = a;
+      a.onended = () => void transicao(true);
+      a.play()
+        .then(() => {
+          // Tocando: segurança caso "ended" não dispare.
+          timerAvanco = window.setTimeout(() => void transicao(true), 30000);
+        })
+        .catch(() => {
+          // Autoplay bloqueado (sem gesto): segue com legenda, avança por tempo.
+          a.onended = null;
+          porTempo();
+        });
+    }
+
+    async function garantirPagina(passo: PassoTour, idx: number) {
+      if (!passo.seletor) return;
+      if (document.querySelector(seletorDe(passo.seletor))) return;
+      if (urlDoPasso[idx]) {
+        router.push(urlDoPasso[idx]!);
+        await esperarElemento(seletorDe(passo.seletor));
+        return;
+      }
+      if (passo.linkDe) {
+        const href = primeiroLink(passo.linkDe);
+        if (!href) throw new Error("sem link para navegar");
+        router.push(href);
+        await esperarElemento(seletorDe(passo.seletor));
+        return;
+      }
+      await esperarElemento(seletorDe(passo.seletor));
+    }
+
+    function proximoAlcancavel(de: number): number {
+      for (let j = de; j < passos.length; j++) {
+        const s = passos[j];
+        if (!s.seletor || document.querySelector(seletorDe(s.seletor))) return j;
+      }
+      return -1;
+    }
+
+    async function transicao(paraFrente: boolean) {
+      limparAvanco();
+      const alvo = drv.getActiveIndex()! + (paraFrente ? 1 : -1);
+      if (alvo < 0) return;
+      if (alvo >= passos.length) {
+        drv.destroy();
+        return;
+      }
+      try {
+        await garantirPagina(passos[alvo], alvo);
+        if (paraFrente) drv.moveNext();
+        else drv.movePrevious();
+      } catch {
+        const j = paraFrente ? proximoAlcancavel(alvo + 1) : -1;
+        if (j >= 0) drv.moveTo(j);
+        else drv.destroy();
+      }
+    }
 
     const botaoMudo = () =>
       `<button type="button" class="tour-mudo" aria-pressed="${mudoRef.current}">${
@@ -90,8 +190,10 @@ export function BotaoTour({
       prevBtnText: "Voltar",
       doneBtnText: "Concluir",
       progressText: "{{current}} de {{total}}",
-      steps: passos.map((p) => ({
-        element: p.seletor ? `[data-tour="${p.seletor}"]` : undefined,
+      onNextClick: () => void transicao(true),
+      onPrevClick: () => void transicao(false),
+      steps: passos.map((p, idx) => ({
+        element: p.seletor ? seletorDe(p.seletor) : undefined,
         popover: {
           title: p.titulo,
           description: `${p.descricao}${botaoMudo()}`,
@@ -99,79 +201,54 @@ export function BotaoTour({
             const btn = pop.wrapper.querySelector<HTMLButtonElement>(".tour-mudo");
             btn?.addEventListener("click", () => {
               mudoRef.current = !mudoRef.current;
-              if (mudoRef.current) pararAudio();
               btn.setAttribute("aria-pressed", String(mudoRef.current));
               btn.textContent = mudoRef.current ? "🔇 Áudio" : "🔊 Áudio";
-              if (!mudoRef.current) {
-                const idx = drv.getActiveIndex();
-                if (idx != null) tocar(passos[idx].audio);
-              }
+              narrar(idx); // re-agenda conforme o novo estado do áudio
             });
           },
         },
-        onHighlighted: () => tocar(p.audio),
+        onHighlighted: () => {
+          urlDoPasso[idx] = window.location.pathname;
+          narrar(idx);
+        },
       })),
       onDestroyed: () => {
+        limparAvanco();
         pararAudio();
+        rodandoRef.current = false;
         marcarVisto();
       },
     });
 
     drv.drive();
-  }, [perfil, marcarVisto, pararAudio, tocar]);
+  }, [perfil, router, marcarVisto, pararAudio]);
 
-  const recusar = useCallback(() => {
-    setOferecer(false);
-    marcarVisto();
-  }, [marcarVisto]);
+  // Abre sozinho no primeiro acesso do perfil, na página inicial dele.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(chaveVisto)) return;
+    } catch {
+      return;
+    }
+    const raiz = perfil === "aluno" ? "/painel" : "/master";
+    if (window.location.pathname !== raiz) return;
+    const id = window.setTimeout(() => iniciar(), 600);
+    return () => window.clearTimeout(id);
+  }, [chaveVisto, perfil, iniciar]);
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={iniciar}
-        aria-label="Fazer o tour guiado da plataforma"
-        title="Tour guiado"
-        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-brand-300 hover:text-brand-600 ${className}`}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <circle cx="12" cy="12" r="10" />
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-          <path d="M12 17h.01" />
-        </svg>
-      </button>
-
-      {oferecer ? (
-        <div
-          role="dialog"
-          aria-label="Oferta de tour guiado"
-          className="animate-surgir fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-slate-200 bg-superficie p-4 shadow-xl ring-1 ring-black/5"
-        >
-          <p className="font-display text-sm font-bold text-brand-900 dark:text-brand-100">
-            Quer um tour rápido?
-          </p>
-          <p className="mt-1 text-sm text-slate-500">
-            Em menos de um minuto, com narração, mostramos o essencial da
-            plataforma.
-          </p>
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              onClick={iniciar}
-              className="flex-1 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98]"
-            >
-              Iniciar tour
-            </button>
-            <button
-              type="button"
-              onClick={recusar}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-            >
-              Agora não
-            </button>
-          </div>
-        </div>
-      ) : null}
-    </>
+    <button
+      type="button"
+      onClick={iniciar}
+      aria-label="Fazer o tour guiado da plataforma"
+      title="Tour guiado"
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-brand-300 hover:text-brand-600 ${className}`}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <path d="M12 17h.01" />
+      </svg>
+    </button>
   );
 }

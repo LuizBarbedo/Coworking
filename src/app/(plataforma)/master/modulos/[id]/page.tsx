@@ -56,7 +56,7 @@ export default async function ModuloMasterPage({
             Disciplinas
           </h2>
           {disciplinas && disciplinas.length > 0 ? (
-            <ul className="escalonado mt-3 space-y-3">
+            <ul className="escalonado mt-3 space-y-3" data-tour="master-disciplinas">
               {disciplinas.map((d) => (
                 <li key={d.id}>
                   <Link
