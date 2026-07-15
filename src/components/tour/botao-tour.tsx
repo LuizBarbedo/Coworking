@@ -28,12 +28,20 @@ function esperarElemento(seletor: string, timeout = 5000): Promise<Element> {
   });
 }
 
-/** href do primeiro link dentro do contêiner com aquele data-tour. */
-function primeiroLink(dataTour: string): string | null {
-  const link = document.querySelector<HTMLAnchorElement>(
-    `${seletorDe(dataTour)} a[href]`,
+/**
+ * hrefs dos links dentro do contêiner, com os que TÊM conteúdo
+ * (data-conteudo="1") primeiro — o tour prioriza módulos/disciplinas com aulas
+ * e evita entrar nos vazios.
+ */
+function todosLinks(dataTour: string): string[] {
+  const links = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>(`${seletorDe(dataTour)} a[href]`),
   );
-  return link?.getAttribute("href") ?? null;
+  const comConteudo = links.filter((a) => a.dataset.conteudo === "1");
+  const resto = links.filter((a) => a.dataset.conteudo !== "1");
+  return [...comConteudo, ...resto]
+    .map((a) => a.getAttribute("href"))
+    .filter((h): h is string => Boolean(h));
 }
 
 /** Tempo estimado de leitura (fallback quando o áudio está mudo/bloqueado). */
@@ -84,7 +92,7 @@ export function BotaoTour({
     const passos = passosDoTour(
       perfil,
       (t) => Boolean(document.querySelector(seletorDe(t))),
-      (t) => Boolean(primeiroLink(t)),
+      (t) => todosLinks(t).length > 0,
     );
     if (passos.length === 0) {
       rodandoRef.current = false;
@@ -132,20 +140,45 @@ export function BotaoTour({
         });
     }
 
+    // Ativa a aba `data-aba` da disciplina, se o passo precisar de outra aba.
+    async function garantirAba(passo: PassoTour) {
+      if (!passo.aba || !passo.seletor) return;
+      if (document.querySelector(seletorDe(passo.seletor))) return;
+      const tab = document.querySelector<HTMLElement>(
+        `${seletorDe("abas")} [data-aba="${passo.aba}"]`,
+      );
+      if (tab) {
+        tab.click();
+        await esperarElemento(seletorDe(passo.seletor), 2500);
+      }
+    }
+
     async function garantirPagina(passo: PassoTour, idx: number) {
       if (!passo.seletor) return;
+      await garantirAba(passo);
       if (document.querySelector(seletorDe(passo.seletor))) return;
       if (urlDoPasso[idx]) {
         router.push(urlDoPasso[idx]!);
         await esperarElemento(seletorDe(passo.seletor));
+        await garantirAba(passo);
         return;
       }
       if (passo.linkDe) {
-        const href = primeiroLink(passo.linkDe);
-        if (!href) throw new Error("sem link para navegar");
-        router.push(href);
-        await esperarElemento(seletorDe(passo.seletor));
-        return;
+        // Testa cada link candidato até achar um com o conteúdo do passo
+        // (ex.: pula módulos/disciplinas vazios).
+        const candidatos = todosLinks(passo.linkDe);
+        if (candidatos.length === 0) throw new Error("sem link para navegar");
+        for (const href of candidatos) {
+          router.push(href);
+          try {
+            await esperarElemento(seletorDe(passo.seletor), 6000);
+            await garantirAba(passo);
+            return;
+          } catch {
+            /* candidato sem conteúdo: tenta o próximo */
+          }
+        }
+        throw new Error("nenhum candidato com conteúdo");
       }
       await esperarElemento(seletorDe(passo.seletor));
     }

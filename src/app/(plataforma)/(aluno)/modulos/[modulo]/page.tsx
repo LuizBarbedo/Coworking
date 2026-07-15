@@ -106,6 +106,7 @@ export default async function ModuloPage({
               <li key={disciplina.id}>
                 <Link
                   href={`/modulos/${moduloSlug}/${disciplina.slug}`}
+                  data-conteudo={p.total > 0 ? "1" : "0"}
                   className="flex items-center gap-4 rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
                 >
                   <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-brand-50 text-sm font-semibold text-brand-600 dark:bg-brand-900/40 dark:text-brand-300">

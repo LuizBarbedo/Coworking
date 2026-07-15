@@ -12,6 +12,7 @@ export type PassoTour = {
   descricao: string;
   audio: string;
   linkDe?: string;
+  aba?: string; // data-aba a ativar (troca de aba na página da disciplina)
 };
 
 export type PerfilTour = "aluno" | "master";
@@ -56,6 +57,7 @@ const TOURS: Record<PerfilTour, PassoTour[]> = {
     },
     {
       seletor: "aulas",
+      aba: "aulas",
       titulo: "Aulas em vídeo",
       descricao:
         "Assista às aulas e marque cada uma como concluída para registrar seu progresso.",
@@ -63,6 +65,7 @@ const TOURS: Record<PerfilTour, PassoTour[]> = {
     },
     {
       seletor: "avaliacao",
+      aba: "avaliacao",
       titulo: "Avaliação",
       descricao:
         "Teste o que aprendeu. Você pode refazer a avaliação quantas vezes precisar.",
@@ -128,18 +131,20 @@ export function passosDoTour(
   temLink: (dataTour: string) => boolean,
 ): PassoTour[] {
   const resultado: PassoTour[] = [];
+  // Contêineres que um passo já incluído ABRE ao navegar: o seletor dele passa
+  // a existir (com links) na página aonde o tour chega. Assim a cadeia
+  // painel → módulo → disciplina se propaga passo a passo.
+  const alcancaveis = new Set<string>();
   let paginaProfundaAberta = false;
+
   for (const passo of TOURS[perfil]) {
-    if (!passo.seletor) {
+    if (!passo.seletor || existe(passo.seletor)) {
       resultado.push(passo);
       continue;
     }
-    if (existe(passo.seletor)) {
+    if (passo.linkDe && (temLink(passo.linkDe) || alcancaveis.has(passo.linkDe))) {
       resultado.push(passo);
-      continue;
-    }
-    if (passo.linkDe && temLink(passo.linkDe)) {
-      resultado.push(passo);
+      alcancaveis.add(passo.seletor); // este passo abre a página do seu seletor
       paginaProfundaAberta = true;
       continue;
     }

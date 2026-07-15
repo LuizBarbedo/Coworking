@@ -78,6 +78,7 @@ export default async function PainelPage() {
               <li key={modulo.id}>
                 <Link
                   href={`/modulos/${modulo.slug}`}
+                  data-conteudo={p.total > 0 ? "1" : "0"}
                   className="block h-full rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
                 >
                   <h2 className="font-semibold text-brand-900 dark:text-brand-100">

@@ -38,6 +38,7 @@ describe("passos do tour", () => {
     const seletores = passos.map((p) => p.seletor);
     expect(seletores).toContain("progresso");
     expect(seletores).toContain("disciplinas"); // via link
+    expect(seletores).toContain("abas"); // via cadeia (disciplinas abre o contêiner)
     expect(seletores).toContain("aulas"); // irmão na página profunda
     expect(seletores).toContain("assistente");
   });

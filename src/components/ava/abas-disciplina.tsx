@@ -40,6 +40,7 @@ export function AbasDisciplina({
               key={aba.id}
               role="tab"
               aria-selected={ativo}
+              data-aba={aba.id}
               type="button"
               onClick={() => setAtiva(aba.id)}
               className={`-mb-px whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
