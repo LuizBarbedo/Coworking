@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- A Roda CSMG: quatro pessoas de mãos dadas em círculo (releitura vetorial
+       original do logotipo). Cada arco é um corpo; o ponto junto à sua ponta,
+       a cabeça — juntas giram no sentido da colaboração. -->
+  <path d="M 53.25 37.69 A 22 22 0 0 1 33.92 53.92" stroke="#D98E1B" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 26.31 53.25 A 22 22 0 0 1 10.08 33.92" stroke="#17605B" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 10.75 26.31 A 22 22 0 0 1 30.08 10.08" stroke="#C93A2E" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 37.69 10.75 A 22 22 0 0 1 53.92 30.08" stroke="#114B46" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="44.22" cy="36.45" r="3.6" fill="#D98E1B"/>
+  <circle cx="27.55" cy="44.22" r="3.6" fill="#17605B"/>
+  <circle cx="19.78" cy="27.55" r="3.6" fill="#C93A2E"/>
+  <circle cx="36.45" cy="19.78" r="3.6" fill="#114B46"/>
+</svg>

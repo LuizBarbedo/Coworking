@@ -5,6 +5,8 @@ import { sairPainel } from "@/app/(painel)/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SenhaForm } from "@/components/painel/senha-form";
 import { GraficoEvolucao } from "@/components/painel/grafico-evolucao";
+import { TemaToggle } from "@/components/ui/tema-toggle";
+import { Contador } from "@/components/ui/contador";
 
 export const metadata: Metadata = {
   title: "Painel de inscrições — CSMG",
@@ -36,11 +38,12 @@ function Cartao({
   detalhe?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
       <p className="text-sm font-medium text-slate-500">{rotulo}</p>
-      <p className="mt-2 text-3xl font-bold text-brand-900">
-        {valor.toLocaleString("pt-BR")}
-      </p>
+      <Contador
+        valor={valor}
+        className="mt-2 block font-display text-3xl font-bold text-brand-900 dark:text-brand-100"
+      />
       {detalhe ? <p className="mt-1 text-xs text-slate-400">{detalhe}</p> : null}
     </div>
   );
@@ -63,27 +66,30 @@ export default async function RelatoriosPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-background">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-superficie">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-6 py-3">
           <div>
-            <h1 className="text-sm font-semibold text-brand-900">
+            <h1 className="text-sm font-semibold text-brand-900 dark:text-brand-100">
               CSMG <span className="font-normal text-slate-400">· Painel</span>
             </h1>
           </div>
-          <form action={sairPainel}>
-            <button
-              type="submit"
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              Sair
-            </button>
-          </form>
+          <div className="flex items-center gap-3">
+            <TemaToggle />
+            <form action={sairPainel}>
+              <button
+                type="submit"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:scale-[0.98]"
+              >
+                Sair
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-5xl flex-1 space-y-6 px-6 py-8">
+      <div className="animate-aparecer mx-auto w-full max-w-5xl flex-1 space-y-6 px-6 py-8">
         <div>
-          <h2 className="text-2xl font-bold text-brand-900">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
             Acompanhamento de inscrições
           </h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -91,7 +97,7 @@ export default async function RelatoriosPage() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="escalonado grid gap-4 sm:grid-cols-3">
           <Cartao
             rotulo="Total de inscritos"
             valor={metricas.total}

@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-type Papel = "user" | "assistant";
-type Mensagem = { role: Papel; content: string };
+import { useChatIA } from "./use-chat-ia";
 
 /**
- * Chat com o assistente de IA da disciplina. Envia a pergunta para
- * /api/ia/chat e exibe a resposta em streaming (texto puro). O servidor
- * restringe as respostas ao conteúdo desta disciplina.
+ * Chat com o assistente de IA da disciplina (aba "Tirar dúvidas"). A lógica de
+ * streaming vive em useChatIA — compartilhada com o assistente flutuante.
  */
 export function ChatIA({
   disciplinaId,
@@ -17,84 +14,27 @@ export function ChatIA({
   disciplinaId: string;
   disciplinaTitulo: string;
 }) {
-  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [input, setInput] = useState("");
-  const [carregando, setCarregando] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
+  const { mensagens, carregando, erro, enviar: enviarPergunta } = useChatIA({
+    disciplinaId,
+  });
   const fimRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fimRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens]);
 
-  async function enviar(e: React.FormEvent) {
+  function enviar(e: React.FormEvent) {
     e.preventDefault();
-    const pergunta = input.trim();
-    if (!pergunta || carregando) return;
-
-    setErro(null);
+    const texto = input;
     setInput("");
-    const historico = mensagens.slice(-6);
-    setMensagens((m) => [
-      ...m,
-      { role: "user", content: pergunta },
-      { role: "assistant", content: "" },
-    ]);
-    setCarregando(true);
-
-    try {
-      const resp = await fetch("/api/ia/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ disciplinaId, pergunta, historico }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        const detalhe = await resp.text().catch(() => "");
-        throw new Error(detalhe || "Não foi possível obter a resposta.");
-      }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let acumulado = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acumulado += decoder.decode(value, { stream: true });
-        setMensagens((m) => {
-          const copia = m.slice();
-          copia[copia.length - 1] = { role: "assistant", content: acumulado };
-          return copia;
-        });
-      }
-
-      if (!acumulado.trim()) {
-        setMensagens((m) => {
-          const copia = m.slice();
-          copia[copia.length - 1] = {
-            role: "assistant",
-            content: "Não recebi uma resposta. Tente novamente.",
-          };
-          return copia;
-        });
-      }
-    } catch (err) {
-      setErro(
-        err instanceof Error && err.message
-          ? err.message
-          : "Ocorreu um erro ao falar com o assistente.",
-      );
-      // Remove a bolha vazia do assistente.
-      setMensagens((m) => m.slice(0, -1));
-    } finally {
-      setCarregando(false);
-    }
+    void enviarPergunta(texto);
   }
 
   return (
-    <div className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="flex flex-col rounded-xl border border-slate-200 bg-superficie shadow-sm">
       <div className="border-b border-slate-100 px-4 py-3">
-        <h2 className="text-sm font-semibold text-brand-900">
+        <h2 className="text-sm font-semibold text-brand-900 dark:text-brand-100">
           Assistente da disciplina
         </h2>
         <p className="mt-0.5 text-xs text-slate-500">

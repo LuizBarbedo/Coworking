@@ -1,25 +1,73 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f5f7fb;
-  --foreground: #0b1437;
+/* Dark mode por classe (toggle do usuário), não por media query. */
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --brand-50: #eef2ff;
-  --brand-100: #dbe3ff;
-  --brand-200: #b9c6ff;
-  --brand-300: #8da1ff;
-  --brand-400: #5e76f0;
-  --brand-500: #3a52d4;
-  --brand-600: #243aa8;
-  --brand-700: #1a2a82;
-  --brand-800: #122060;
-  --brand-900: #0b1437;
-  --brand-950: #060b22;
+:root {
+  /* Paleta da marca — extraída do logotipo (a Roda: quatro pessoas de mãos
+     dadas): verde-mar como âncora, âmbar e vermelho como acentos, papel
+     levemente quente como fundo. */
+  --brand-50: #f0f7f5;
+  --brand-100: #dcebe8;
+  --brand-200: #b9d8d2;
+  --brand-300: #8abdb5;
+  --brand-400: #55998f;
+  --brand-500: #2e7a72;
+  --brand-600: #17605b;
+  --brand-700: #135049;
+  --brand-800: #10403b;
+  --brand-900: #0c302d;
+  --brand-950: #071e1c;
+
+  --ambar-100: #f9ebd3;
+  --ambar-400: #e8a020;
+  --ambar-500: #d98e1b;
+  --ambar-600: #b87413;
+  --ambar-700: #935b0f;
+
+  --vermelho-100: #f9e0dd;
+  --vermelho-500: #c93a2e;
+  --vermelho-600: #a82e24;
+  --vermelho-700: #8c261e;
+
+  --background: #faf7f2;
+  --foreground: #14262b;
+  --superficie: #ffffff;
+}
+
+.dark {
+  --background: #0d1a1d;
+  --foreground: #ecf2f0;
+  --superficie: #142529;
+
+  /* Reveste a escala estrutural (slate) para o tema escuro: os componentes
+     usam slate p/ bordas e texto apoiado — aqui ela vira verde-tinta. */
+  --color-slate-50: #16282c;
+  --color-slate-100: #1c3236;
+  --color-slate-200: #274247;
+  --color-slate-300: #35545a;
+  --color-slate-400: #6b8b8a;
+  --color-slate-500: #8fa9a6;
+  --color-slate-600: #afc4c0;
+  --color-slate-700: #c9d8d4;
+  --color-slate-800: #dee9e5;
+  --color-slate-900: #eff5f2;
+
+  /* Tints de feedback usados como fundo/texto ganham par escuro. */
+  --color-red-50: #331a17;
+  --color-red-200: #5c2b25;
+  --color-red-400: #d4675c;
+  --color-red-600: #e08a81;
+  --color-red-700: #eba69f;
+  --color-green-50: #12312a;
+  --color-green-100: #1a4237;
+  --color-green-700: #86cbb3;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-superficie: var(--superficie);
 
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -33,12 +81,107 @@
   --color-brand-900: var(--brand-900);
   --color-brand-950: var(--brand-950);
 
-  --font-sans: var(--font-inter);
+  --color-ambar-100: var(--ambar-100);
+  --color-ambar-400: var(--ambar-400);
+  --color-ambar-500: var(--ambar-500);
+  --color-ambar-600: var(--ambar-600);
+  --color-ambar-700: var(--ambar-700);
+
+  --color-vermelho-100: var(--vermelho-100);
+  --color-vermelho-500: var(--vermelho-500);
+  --color-vermelho-600: var(--vermelho-600);
+  --color-vermelho-700: var(--vermelho-700);
+
+  --font-sans: var(--font-figtree);
+  --font-display: var(--font-bricolage);
+
+  /* Animações utilitárias (ex.: animate-surgir). Sóbrias por padrão. */
+  --animate-aparecer: aparecer 0.4s ease-out both;
+  --animate-surgir: surgir 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-escalar: escalar 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-girar-roda: girar-roda 1.4s linear infinite;
+  --animate-brilho: brilho 1.8s ease-in-out infinite;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes surgir {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes escalar {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes girar-roda {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes brilho {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* Traço que se "desenha" (ex.: ✓/✗ do resultado do quiz). */
+.quiz-traco {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: desenhar-traco 0.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.quiz-traco-2 {
+  animation-delay: 0.22s;
+}
+
+@keyframes desenhar-traco {
+  to { stroke-dashoffset: 0; }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ambar-100);
+  color: var(--brand-900);
+}
+
+.dark ::selection {
+  background: var(--brand-700);
+  color: var(--brand-50);
+}
+
+/* Foco visível com o âmbar da marca — assinatura discreta e acessível. */
+:focus-visible {
+  outline: 2px solid var(--ambar-500);
+  outline-offset: 2px;
+}
+
+/* Entrada escalonada de listas: aplique .escalonado no contêiner e
+   animate-surgir nos filhos. */
+.escalonado > * { animation: surgir 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.escalonado > *:nth-child(1) { animation-delay: 0ms; }
+.escalonado > *:nth-child(2) { animation-delay: 60ms; }
+.escalonado > *:nth-child(3) { animation-delay: 120ms; }
+.escalonado > *:nth-child(4) { animation-delay: 180ms; }
+.escalonado > *:nth-child(5) { animation-delay: 240ms; }
+.escalonado > *:nth-child(6) { animation-delay: 300ms; }
+.escalonado > *:nth-child(n + 7) { animation-delay: 360ms; }
+
+/* Acessibilidade: quem pediu menos movimento recebe menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -23,9 +23,12 @@ export function BarraProgresso({
         aria-valuemax={100}
       >
         <div
-          className="h-full rounded-full bg-brand-600 transition-all"
+          className={`h-full rounded-full transition-[width] duration-700 ease-out ${
+            valor >= 100 ? "bg-ambar-500" : "bg-brand-600"
+          }`}
           style={{ width: `${valor}%` }}
         />
+        {/* 100% vira âmbar: a cor de celebração da marca. */}
       </div>
     </div>
   );

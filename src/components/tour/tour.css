@@ -1,0 +1,91 @@
+/* Estiliza o driver.js com a identidade CSMG (claro/escuro). */
+
+.driver-popover.driverjs-theme {
+  background: var(--superficie);
+  color: var(--foreground);
+  border-radius: 1rem;
+  box-shadow:
+    0 10px 30px -10px rgb(0 0 0 / 0.25),
+    0 0 0 1px rgb(0 0 0 / 0.05);
+  max-width: 22rem;
+}
+
+.driver-popover.driverjs-theme .driver-popover-title {
+  font-family: var(--font-bricolage), var(--font-figtree), sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--brand-900);
+}
+
+:root.dark .driver-popover.driverjs-theme .driver-popover-title {
+  color: var(--brand-100);
+}
+
+.driver-popover.driverjs-theme .driver-popover-description {
+  color: var(--brand-900);
+  opacity: 0.72;
+  font-size: 0.875rem;
+}
+
+:root.dark .driver-popover.driverjs-theme .driver-popover-description {
+  color: var(--brand-100);
+}
+
+.driver-popover.driverjs-theme .driver-popover-progress-text {
+  color: var(--brand-500);
+  font-size: 0.75rem;
+}
+
+.driver-popover.driverjs-theme .driver-popover-navigation-btns button {
+  background: var(--brand-600);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.driver-popover.driverjs-theme .driver-popover-navigation-btns button:hover {
+  background: var(--brand-700);
+}
+
+.driver-popover.driverjs-theme .driver-popover-prev-btn {
+  background: transparent;
+  color: var(--brand-600);
+  border: 1px solid var(--brand-200);
+}
+
+:root.dark .driver-popover.driverjs-theme .driver-popover-prev-btn {
+  color: var(--brand-300);
+  border-color: var(--brand-700);
+}
+
+.driver-popover.driverjs-theme .driver-popover-close-btn {
+  color: var(--brand-900);
+  opacity: 0.5;
+}
+
+:root.dark .driver-popover.driverjs-theme .driver-popover-close-btn {
+  color: var(--brand-100);
+}
+
+/* Botão de áudio (mudo) embutido na descrição. */
+.driver-popover.driverjs-theme .tour-mudo {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--brand-200);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+:root.dark .driver-popover.driverjs-theme .tour-mudo {
+  background: color-mix(in srgb, var(--brand-900) 40%, transparent);
+  border-color: var(--brand-700);
+  color: var(--brand-200);
+}

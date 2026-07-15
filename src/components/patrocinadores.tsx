@@ -8,8 +8,10 @@ import Image from "next/image";
  */
 export function Patrocinadores() {
   return (
-    <section className="border-t border-brand-100 bg-white">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-8">
+    <section className="border-t border-brand-100 bg-superficie dark:border-slate-200">
+      {/* Logomarcas institucionais pedem fundo claro: no tema escuro a faixa
+          vira um cartão branco deliberado, não um vazamento de tema. */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-6 py-8 dark:rounded-2xl dark:bg-white dark:my-6 dark:max-w-4xl dark:px-8">
         {/* 1ª linha: banner oficial "Patrocínio" (Prefeitura · Integração · integra.Rio) */}
         <Image
           src="/patrocinadores/01-prefeitura-integra.jpeg"

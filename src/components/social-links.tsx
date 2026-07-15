@@ -72,7 +72,7 @@ export function SocialLinks() {
             rel="noopener noreferrer"
             aria-label={s.name}
             title={s.name}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-100 text-brand-700 transition hover:bg-brand-50 hover:text-brand-900"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-100 text-brand-700 transition hover:bg-brand-50 hover:text-brand-900 dark:border-slate-200 dark:text-brand-100 dark:hover:bg-slate-100 dark:hover:text-brand-100"
           >
             {s.icon}
           </a>

@@ -6,10 +6,12 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { LinhaEditavel } from "@/components/master/linha-editavel";
 import { BlocoAdicionar } from "@/components/master/bloco-adicionar";
 import { BotaoEnviar } from "@/components/master/botao-enviar";
+import { UploadVideo } from "@/components/master/upload-video";
+import { AdicionarAula } from "@/components/master/adicionar-aula";
+import { ConhecimentoVazio } from "@/components/ilustracoes";
 import {
   atualizarDisciplina,
   excluirDisciplina,
-  criarAula,
   atualizarAula,
   excluirAula,
   criarMaterial,
@@ -28,9 +30,9 @@ export const metadata: Metadata = { title: "Editar disciplina — CSMG" };
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200";
-const cardClass = "rounded-xl border border-slate-200 bg-white p-5 shadow-sm";
+const cardClass = "rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm";
 const btnPrimario =
-  "rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700";
+  "rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98]";
 
 type Params = { id: string };
 
@@ -58,7 +60,9 @@ export default async function DisciplinaMasterPage({
   ] = await Promise.all([
     admin
       .from("aulas")
-      .select("id, titulo, descricao, provider, video_uid, ordem")
+      // "*" para tolerar ambientes sem a migration 0011 (video_status vem como
+      // undefined até ela ser aplicada, e o código trata como null).
+      .select("*")
       .eq("disciplina_id", id)
       .order("ordem", { ascending: true }),
     admin
@@ -136,7 +140,7 @@ export default async function DisciplinaMasterPage({
   const letras = ["a", "b", "c", "d", "e"];
 
   return (
-    <div className="space-y-8">
+    <div className="animate-aparecer space-y-8">
       <div>
         <Link
           href={`/master/modulos/${disciplina.modulo_id}`}
@@ -144,14 +148,14 @@ export default async function DisciplinaMasterPage({
         >
           ← Voltar ao módulo
         </Link>
-        <h1 className="mt-3 text-2xl font-bold text-brand-900">
+        <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
           {disciplina.titulo}
         </h1>
       </div>
 
       {/* Editar disciplina */}
       <section className={cardClass}>
-        <h2 className="font-semibold text-brand-900">Dados da disciplina</h2>
+        <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Dados da disciplina</h2>
         <form action={atualizarDisciplina} className="mt-4 grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="id" value={disciplina.id} />
           <div className="sm:col-span-2">
@@ -194,8 +198,8 @@ export default async function DisciplinaMasterPage({
       </section>
 
       {/* Aulas */}
-      <section className={cardClass}>
-        <h2 className="font-semibold text-brand-900">Aulas (vídeo)</h2>
+      <section className={cardClass} data-tour="master-aulas">
+        <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Aulas (vídeo)</h2>
         {aulas && aulas.length > 0 ? (
           <ul className="mt-3 divide-y divide-slate-100">
             {aulas.map((a, i) => (
@@ -203,11 +207,19 @@ export default async function DisciplinaMasterPage({
                 <LinhaEditavel
                   resumo={
                     <span className="text-sm text-slate-700">
-                      <span className="font-medium text-brand-900">
+                      <span className="font-medium text-brand-900 dark:text-brand-100">
                         {i + 1}. {a.titulo as string}
                       </span>
                       <span className="ml-2 text-xs text-slate-400">
-                        {a.video_uid ? (a.provider as string) : "sem vídeo"}
+                        {a.provider === "r2"
+                          ? a.video_status === "pronta"
+                            ? "vídeo próprio"
+                            : a.video_status === "processando"
+                              ? "processando…"
+                              : (a.video_status as string) ?? "vídeo"
+                          : a.video_uid
+                            ? (a.provider as string)
+                            : "sem vídeo"}
                       </span>
                     </span>
                   }
@@ -238,7 +250,11 @@ export default async function DisciplinaMasterPage({
                       />
                       <input
                         name="video_link"
-                        defaultValue={(a.video_uid as string | null) ?? ""}
+                        defaultValue={
+                          a.provider === "r2"
+                            ? ""
+                            : ((a.video_uid as string | null) ?? "")
+                        }
                         placeholder="Link do YouTube ou Cloudflare"
                         className={inputClass}
                       />
@@ -253,6 +269,16 @@ export default async function DisciplinaMasterPage({
                           Salvar aula
                         </button>
                       </div>
+                      <div className="sm:col-span-2 border-t border-slate-100 pt-3">
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+                          ou hospede o vídeo na plataforma
+                        </p>
+                        <UploadVideo
+                          aulaId={a.id as string}
+                          disciplinaId={disciplina.id}
+                          status={a.video_status as string | null}
+                        />
+                      </div>
                     </form>
                   }
                 />
@@ -264,46 +290,13 @@ export default async function DisciplinaMasterPage({
         )}
 
         <BlocoAdicionar rotulo="Adicionar aula">
-          <form action={criarAula} className="grid gap-3 sm:grid-cols-2">
-            <input type="hidden" name="disciplina_id" value={disciplina.id} />
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Título da aula
-              </label>
-              <input name="titulo" required className={inputClass} />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Link do vídeo (YouTube ou Cloudflare)
-              </label>
-              <input
-                name="video_link"
-                placeholder="https://youtu.be/… ou UID do Cloudflare"
-                className={inputClass}
-              />
-              <p className="mt-1 text-xs text-slate-400">
-                Cole o link do YouTube — o aluno assiste embutido na plataforma,
-                sem sair. Também aceita UID/URL do Cloudflare Stream.
-              </p>
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Descrição (opcional)
-              </label>
-              <input name="descricao" className={inputClass} />
-            </div>
-            <div className="sm:col-span-2 flex justify-end">
-              <button type="submit" className={btnPrimario}>
-                Adicionar aula
-              </button>
-            </div>
-          </form>
+          <AdicionarAula disciplinaId={disciplina.id} />
         </BlocoAdicionar>
       </section>
 
       {/* Materiais */}
-      <section className={cardClass}>
-        <h2 className="font-semibold text-brand-900">Materiais</h2>
+      <section className={cardClass} data-tour="master-materiais">
+        <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Materiais</h2>
         {materiais && materiais.length > 0 ? (
           <ul className="mt-3 divide-y divide-slate-100">
             {materiais.map((m) => (
@@ -314,7 +307,7 @@ export default async function DisciplinaMasterPage({
                       href={m.url as string}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block truncate text-sm font-medium text-brand-700 hover:underline"
+                      className="block truncate text-sm font-medium text-brand-700 hover:underline dark:text-brand-300"
                     >
                       {m.titulo as string}
                     </a>
@@ -403,8 +396,8 @@ export default async function DisciplinaMasterPage({
       </section>
 
       {/* Base de conhecimento da IA */}
-      <section className={cardClass}>
-        <h2 className="font-semibold text-brand-900">
+      <section className={cardClass} data-tour="master-conhecimento">
+        <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">
           Base de conhecimento da IA
         </h2>
         <p className="mt-1 text-sm text-slate-500">
@@ -422,7 +415,7 @@ export default async function DisciplinaMasterPage({
                 <LinhaEditavel
                   resumo={
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-brand-900">
+                      <p className="truncate text-sm font-medium text-brand-900 dark:text-brand-100">
                         {k.titulo as string}
                       </p>
                       {k.arquivo_nome ? (
@@ -433,7 +426,7 @@ export default async function DisciplinaMasterPage({
                               href={urlPorPath.get(k.arquivo_path as string)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="truncate text-brand-700 hover:underline"
+                              className="truncate text-brand-700 hover:underline dark:text-brand-300"
                             >
                               {k.arquivo_nome as string}
                             </a>
@@ -488,7 +481,7 @@ export default async function DisciplinaMasterPage({
                           type="file"
                           name="arquivo"
                           accept=".pdf,.docx,.xlsx,.txt,.md,.csv"
-                          className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
+                          className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 transition hover:file:bg-brand-100 dark:file:bg-brand-900/40 dark:file:text-brand-300 dark:hover:file:bg-brand-900/60"
                         />
                       </div>
                       <div className="flex justify-end">
@@ -503,10 +496,13 @@ export default async function DisciplinaMasterPage({
             ))}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-slate-500">
-            Nenhum conteúdo cadastrado. Sem material, o assistente responderá que
-            não há conteúdo sobre a pergunta.
-          </p>
+          <div className="mt-3 flex flex-col items-center rounded-lg border border-dashed border-slate-300 p-6 text-center">
+            <ConhecimentoVazio className="h-28 w-auto text-slate-300" />
+            <p className="mt-3 max-w-sm text-sm text-slate-500">
+              Nenhum conteúdo cadastrado. Sem material, o assistente responderá
+              que não há conteúdo sobre a pergunta.
+            </p>
+          </div>
         )}
 
         <BlocoAdicionar rotulo="Adicionar conteúdo">
@@ -530,7 +526,7 @@ export default async function DisciplinaMasterPage({
                 type="file"
                 name="arquivo"
                 accept=".pdf,.docx,.xlsx,.txt,.md,.csv"
-                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 transition hover:file:bg-brand-100 dark:file:bg-brand-900/40 dark:file:text-brand-300 dark:hover:file:bg-brand-900/60"
               />
               <p className="mt-1 text-xs text-slate-400">
                 PDF, DOCX, XLSX, TXT, MD ou CSV (até 20 MB). PDFs escaneados
@@ -558,8 +554,8 @@ export default async function DisciplinaMasterPage({
       </section>
 
       {/* Avaliação */}
-      <section className={cardClass}>
-        <h2 className="font-semibold text-brand-900">Avaliação final</h2>
+      <section className={cardClass} data-tour="master-avaliacao">
+        <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Avaliação final</h2>
 
         <form
           action={atualizarQuiz}
@@ -596,7 +592,7 @@ export default async function DisciplinaMasterPage({
 
         {/* Perguntas existentes */}
         {perguntas && perguntas.length > 0 ? (
-          <ul className="mt-6 space-y-3">
+          <ul className="escalonado mt-6 space-y-3">
             {perguntas.map((p, i) => (
               <li
                 key={p.id}
@@ -605,7 +601,7 @@ export default async function DisciplinaMasterPage({
                 <LinhaEditavel
                   resumo={
                     <>
-                      <p className="font-medium text-brand-900">
+                      <p className="font-medium text-brand-900 dark:text-brand-100">
                         {i + 1}. {p.enunciado}
                       </p>
                       <ul className="mt-2 space-y-1 text-sm">

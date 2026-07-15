@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import {
   marcarAulaAssistida,
   type MarcarState,
 } from "@/app/(plataforma)/(aluno)/actions";
+import { tocarConclusao } from "@/lib/som/sons";
 
 export function MarcarAssistidaButton({
   aulaId,
@@ -20,7 +21,13 @@ export function MarcarAssistidaButton({
     undefined,
   );
 
-  const concluida = jaAssistida || (state && "ok" in state);
+  // Som discreto só na transição (marcou agora), não se já vinha assistida.
+  const marcouAgora = Boolean(state && "ok" in state);
+  useEffect(() => {
+    if (marcouAgora) tocarConclusao();
+  }, [marcouAgora]);
+
+  const concluida = jaAssistida || marcouAgora;
 
   if (concluida) {
     return (
@@ -49,7 +56,7 @@ export function MarcarAssistidaButton({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+        className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-60"
       >
         {pending ? "Registrando…" : "Marcar como assistida"}
       </button>

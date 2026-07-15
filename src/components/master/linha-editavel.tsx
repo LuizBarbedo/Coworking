@@ -26,7 +26,7 @@ export function LinhaEditavel({
           <button
             type="button"
             onClick={() => setAberto((v) => !v)}
-            className="rounded-md px-2 py-1 text-xs font-medium text-brand-600 transition hover:bg-brand-50"
+            className="rounded-md px-2 py-1 text-xs font-medium text-brand-600 transition hover:bg-brand-50 active:scale-[0.98] dark:text-brand-300 dark:hover:bg-brand-900/40"
           >
             {aberto ? "Fechar" : "Editar"}
           </button>

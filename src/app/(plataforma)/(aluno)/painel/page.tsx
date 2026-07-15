@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProgressoCurso, resumo } from "@/lib/progresso";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
+import { Contador } from "@/components/ui/contador";
+import { ModulosVazio } from "@/components/ilustracoes";
 
 export const metadata: Metadata = {
   title: "Meu painel — CSMG",
@@ -56,8 +58,10 @@ export default async function PainelPage() {
   const temModulos = modulos && modulos.length > 0;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-brand-900">Meus módulos</h1>
+    <div className="animate-aparecer">
+      <h1 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
+        Meus módulos
+      </h1>
       <p className="mt-1 text-sm text-slate-500">
         Acompanhe aqui o seu avanço nas mentorias, disciplinas e avaliações.
       </p>
@@ -66,7 +70,7 @@ export default async function PainelPage() {
       <ProgressoGeralCard progresso={progressoCurso} />
 
       {temModulos ? (
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+        <ul className="escalonado mt-8 grid gap-4 sm:grid-cols-2" data-tour="modulos">
           {modulos.map((modulo) => {
             const p = porModulo.get(modulo.id) ?? { total: 0, feitas: 0 };
             const r = resumo(p.feitas, p.total);
@@ -74,9 +78,10 @@ export default async function PainelPage() {
               <li key={modulo.id}>
                 <Link
                   href={`/modulos/${modulo.slug}`}
-                  className="block h-full rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
+                  data-conteudo={p.total > 0 ? "1" : "0"}
+                  className="block h-full rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
                 >
-                  <h2 className="font-semibold text-brand-900">
+                  <h2 className="font-semibold text-brand-900 dark:text-brand-100">
                     {modulo.titulo}
                   </h2>
                   {modulo.instrutor ? (
@@ -101,11 +106,12 @@ export default async function PainelPage() {
           })}
         </ul>
       ) : (
-        <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
-          <p className="text-sm font-medium text-slate-700">
+        <div className="mt-8 flex flex-col items-center rounded-xl border border-dashed border-slate-300 bg-superficie p-10 text-center">
+          <ModulosVazio className="h-36 w-auto text-slate-300" />
+          <p className="mt-4 text-sm font-medium text-slate-700">
             Os módulos estão sendo preparados.
           </p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 max-w-sm text-sm text-slate-500">
             O conteúdo em vídeo, os materiais e as avaliações aparecerão aqui
             assim que forem publicados.
           </p>
@@ -123,10 +129,17 @@ function ProgressoGeralCard({
   const { aulas, quizzesAprovados, quizzesTotal, geral } = progresso;
 
   return (
-    <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div
+      className="mt-6 rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm"
+      data-tour="progresso"
+    >
       <div className="flex items-center justify-between gap-4">
-        <h2 className="font-semibold text-brand-900">Progresso geral</h2>
-        <span className="text-2xl font-bold text-brand-900">{geral.pct}%</span>
+        <h2 className="font-semibold text-brand-900 dark:text-brand-100">Progresso geral</h2>
+        <Contador
+          valor={geral.pct}
+          sufixo="%"
+          className="font-display text-2xl font-bold text-brand-900 dark:text-brand-100"
+        />
       </div>
       <div className="mt-3">
         <BarraProgresso pct={geral.pct} />

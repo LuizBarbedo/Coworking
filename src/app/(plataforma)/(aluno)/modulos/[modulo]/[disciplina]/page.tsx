@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resumo } from "@/lib/progresso";
+import { urlAssistir, chaveAula, chaveThumb } from "@/lib/r2";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { ListaAulas } from "@/components/ava/lista-aulas";
 import { AbasDisciplina } from "@/components/ava/abas-disciplina";
@@ -60,7 +61,9 @@ export default async function DisciplinaPage({
     await Promise.all([
       supabase
         .from("aulas")
-        .select("id, titulo, descricao, provider, video_uid, ordem")
+        // "*" para tolerar ambientes sem a migration 0011 (video_status vem
+        // como undefined até ela ser aplicada, e o código trata como null).
+        .select("*")
         .eq("disciplina_id", disciplina.id)
         .order("ordem", { ascending: true }),
       supabase
@@ -138,14 +141,42 @@ export default async function DisciplinaPage({
   const painelAulas = (
     <ListaAulas
       caminho={caminho}
-      aulas={(aulas ?? []).map((aula) => ({
-        id: aula.id as string,
-        titulo: aula.titulo as string,
-        descricao: (aula.descricao as string | null) ?? null,
-        provider: aula.provider as string,
-        videoUid: (aula.video_uid as string | null) ?? null,
-        jaAssistida: assistidas.has(aula.id as string),
-      }))}
+      aulas={await Promise.all(
+        (aulas ?? []).map(async (aula) => {
+          const provider = aula.provider as string;
+          const status = (aula.video_status as string | null) ?? null;
+          // Vídeo próprio pronto: gera URLs assinadas (curtas) no servidor.
+          // Em try/catch para não derrubar a página se as envs de R2 faltarem
+          // (urlAssistir lança de forma síncrona quando não há credenciais).
+          let srcR2: string | null = null;
+          let poster: string | null = null;
+          if (provider === "r2" && status === "pronta") {
+            try {
+              srcR2 = await urlAssistir(chaveAula(aula.id as string));
+            } catch {
+              srcR2 = null;
+            }
+            if (srcR2) {
+              try {
+                poster = await urlAssistir(chaveThumb(aula.id as string));
+              } catch {
+                poster = null; // poster é opcional
+              }
+            }
+          }
+          return {
+            id: aula.id as string,
+            titulo: aula.titulo as string,
+            descricao: (aula.descricao as string | null) ?? null,
+            provider,
+            videoUid: (aula.video_uid as string | null) ?? null,
+            jaAssistida: assistidas.has(aula.id as string),
+            srcR2,
+            poster,
+            videoStatus: status,
+          };
+        }),
+      )}
     />
   );
 
@@ -158,9 +189,9 @@ export default async function DisciplinaPage({
               href={m.url as string}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300"
+              className="flex items-center gap-3 rounded-lg border border-slate-200 bg-superficie px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300"
             >
-              <span className="rounded bg-brand-50 px-2 py-0.5 text-xs font-semibold uppercase text-brand-600">
+              <span className="rounded bg-brand-50 px-2 py-0.5 text-xs font-semibold uppercase text-brand-600 dark:bg-brand-900/40 dark:text-brand-300">
                 {(m.tipo as string) ?? "arquivo"}
               </span>
               {m.titulo as string}
@@ -169,23 +200,23 @@ export default async function DisciplinaPage({
         ))}
       </ul>
     ) : (
-      <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+      <p className="rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
         Nenhum material disponível nesta disciplina.
       </p>
     );
 
   const painelAvaliacao = !quiz ? (
-    <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+    <p className="rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
       Esta disciplina ainda não tem avaliação.
     </p>
   ) : perguntasCompletas.length === 0 ? (
-    <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+    <p className="rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
       A avaliação ainda não tem perguntas.
     </p>
   ) : (
     <div>
       <div className="mb-4">
-        <h2 className="font-semibold text-brand-900">{quiz.titulo as string}</h2>
+        <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">{quiz.titulo as string}</h2>
         <p className="mt-0.5 text-sm text-slate-500">
           Nota mínima para aprovação: {quiz.nota_minima}%.
           {ultimaTentativa
@@ -205,7 +236,7 @@ export default async function DisciplinaPage({
   );
 
   return (
-    <div>
+    <div className="animate-aparecer">
       <Link
         href={`/modulos/${moduloSlug}`}
         className="text-sm text-brand-600 transition hover:text-brand-700"
@@ -213,7 +244,7 @@ export default async function DisciplinaPage({
         ← {modulo.titulo}
       </Link>
 
-      <h1 className="mt-3 text-2xl font-bold text-brand-900">
+      <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
         {disciplina.titulo}
       </h1>
       {disciplina.descricao ? (

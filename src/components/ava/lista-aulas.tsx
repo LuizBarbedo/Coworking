@@ -11,6 +11,9 @@ export type AulaItem = {
   provider: string;
   videoUid: string | null;
   jaAssistida: boolean;
+  srcR2?: string | null; // URL R2 assinada (só para provider "r2")
+  poster?: string | null;
+  videoStatus?: string | null;
 };
 
 export function ListaAulas({
@@ -24,20 +27,20 @@ export function ListaAulas({
 
   if (aulas.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+      <p className="rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
         As videoaulas desta disciplina estão sendo preparadas.
       </p>
     );
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="escalonado space-y-3" data-tour="aulas">
       {aulas.map((aula, i) => {
         const expandida = aberta === aula.id;
         return (
           <li
             key={aula.id}
-            className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+            className="overflow-hidden rounded-xl border border-slate-200 bg-superficie shadow-sm"
           >
             <button
               type="button"
@@ -49,13 +52,13 @@ export function ListaAulas({
                 className={`flex h-9 w-9 flex-none items-center justify-center rounded-full text-sm font-semibold ${
                   aula.jaAssistida
                     ? "bg-green-100 text-green-700"
-                    : "bg-brand-50 text-brand-600"
+                    : "bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300"
                 }`}
               >
                 {aula.jaAssistida ? "✓" : i + 1}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-brand-900">
+                <span className="block font-semibold text-brand-900 dark:text-brand-100">
                   {aula.titulo}
                 </span>
                 {aula.descricao ? (
@@ -75,6 +78,9 @@ export function ListaAulas({
                   provider={aula.provider}
                   videoUid={aula.videoUid}
                   titulo={aula.titulo}
+                  srcR2={aula.srcR2}
+                  poster={aula.poster}
+                  videoStatus={aula.videoStatus}
                 />
                 <div className="mt-4 flex justify-end">
                   <MarcarAssistidaButton
