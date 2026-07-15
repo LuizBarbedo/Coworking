@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { RegistrationForm } from "@/components/registration-form";
 import { Patrocinadores } from "@/components/patrocinadores";
@@ -5,9 +6,56 @@ import { SocialLinks } from "@/components/social-links";
 import { TemaToggle } from "@/components/ui/tema-toggle";
 import { RodaAnimada } from "@/components/marca/roda-animada";
 
+const TITULO =
+  "Capacitação gratuita para empreendedores — CSMG · Coworking Social de Mudanças Globais";
+const DESCRICAO =
+  "Cursos online gratuitos para empreendedores, MEIs e autônomos da Região Metropolitana do Rio de Janeiro. Iniciativa da Prefeitura e SEIM/Integra Rio · Oroborus. Inscreva-se em minutos.";
+
+// Metadata da landing: canônica + Open Graph/Twitter completos — é a página
+// que recebe o tráfego pago da Meta e os compartilhamentos no WhatsApp.
+export const metadata: Metadata = {
+  title: TITULO,
+  description: DESCRICAO,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: TITULO,
+    description: DESCRICAO,
+    url: "/",
+    siteName: "CSMG — Coworking Social de Mudanças Globais",
+    locale: "pt_BR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITULO,
+    description: DESCRICAO,
+  },
+};
+
+// Dados estruturados (JSON-LD): ajudam buscadores a entender quem oferece o
+// quê. Conteúdo estático, sem nada dinâmico ou vindo do usuário.
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: "Coworking Social de Mudanças Globais (CSMG)",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  description: DESCRICAO,
+  areaServed: "Região Metropolitana do Rio de Janeiro",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "BRL",
+    description: "Cursos de capacitação online gratuitos",
+  },
+};
+
 export default function Home() {
   return (
     <main className="relative flex flex-1 flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       <div className="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700">
         {/* Roda ambiente: gira devagar ao fundo do hero, sangrando pela borda. */}
         <RodaAnimada
