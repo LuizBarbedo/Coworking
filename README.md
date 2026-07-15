@@ -27,6 +27,9 @@ groups_, que sobem juntas para a Vercel:
   **Assistente flutuante** disponível em todas as telas autenticadas.
 - **Tour guiado**: driver.js + narração em voz (ElevenLabs) — passeio
   automático e multi-página que abre no primeiro acesso.
+- **Vídeo das aulas**: Cloudflare R2 (armazenamento, egress grátis) +
+  transcodificação para 720p **sob demanda na Modal**; playback privado por
+  URL assinada. YouTube/URL externa também são suportados.
 - **E-mail**: Nodemailer + Gmail SMTP (confirmação de inscrição)
 - **Testes**: Vitest (unit) + Playwright (E2E)
 - Deploy: Vercel (via GitHub)
@@ -89,6 +92,10 @@ npm run test:e2e    # E2E (Playwright) — e2e/*.spec.ts, sobe o dev server se p
 | `OLLAMA_BASE_URL` | **só servidor** | padrão `https://ollama.com` (nuvem) |
 | `OLLAMA_THINK` | **só servidor** | `"true"` liga o modo raciocínio |
 | `ELEVENLABS_API_KEY` | **offline** | só para regerar a narração do tour (não é lida em runtime) |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | **só servidor** | Cloudflare R2 (vídeo das aulas): presigned PUT/GET |
+| `R2_BUCKET_VIDEOS` | **só servidor** | bucket privado dos vídeos (`csmg-videos`) |
+| `MODAL_TRANSCODE_URL` | **só servidor** | web endpoint da Modal que transcodifica sob demanda |
+| `VIDEO_WEBHOOK_SECRET` | **só servidor** | autentica o disparo da Modal e o callback `/api/video/concluir` |
 
 Configure as de runtime também na Vercel (Project Settings → Environment
 Variables). O `.env.local.example` traz o modelo comentado. Os áudios do tour
@@ -151,7 +158,8 @@ supabase/
     ├── 0007_fix_alternativas_publicas.sql  # alternativas visíveis sem o gabarito
     ├── 0008_ia_chat.sql              # conhecimento, chunks (tsvector) e log da IA
     ├── 0009_conhecimento_arquivos.sql # bucket privado p/ arquivos da base
-    └── 0010_busca_geral.sql          # RPC buscar_chunks_geral (assistente global)
+    ├── 0010_busca_geral.sql          # RPC buscar_chunks_geral (assistente global)
+    └── 0011_video.sql                # status de vídeo em aulas + fila video_jobs
 ```
 
 ## Como o aluno entra
@@ -164,6 +172,30 @@ supabase/
 
 Quem tem `app_metadata.role = "master"` (gravado só pelo service_role) vê
 também a **Área do Master** para cadastrar conteúdo.
+
+## Vídeo das aulas (Cloudflare R2 + Modal)
+
+O master pode **enviar um arquivo de vídeo** (além de colar link do YouTube/URL):
+
+1. O navegador sobe o original direto pro **R2** (presigned PUT — contorna o
+   limite de corpo da Vercel). A aula fica `processando`.
+2. `finalizarUploadVideo` dispara **sob demanda** o web endpoint da **Modal**
+   (`scripts/modal/transcode.py`), que baixa do R2, normaliza para **720p**
+   (ffmpeg), gera thumbnail, sobe a versão servível e apaga o original.
+3. A Modal chama de volta **`/api/video/concluir`** (autenticado por
+   `VIDEO_WEBHOOK_SECRET`) — só aí o banco é atualizado, com a service-role
+   **que nunca sai do nosso lado**.
+4. O aluno assiste por **URL assinada** (privada, expira) num player nativo.
+
+**Ativar em um ambiente novo:**
+- [ ] Aplicar a migration `supabase/migrations/0011_video.sql` no SQL Editor.
+- [ ] Criar o bucket R2 privado + chaves S3 (Object Read & Write) e configurar
+      o **CORS** do bucket (PUT/GET/HEAD para as origens do app).
+- [ ] Definir as envs `R2_*`, `MODAL_TRANSCODE_URL`, `VIDEO_WEBHOOK_SECRET`.
+- [ ] Criar o secret `csmg-video` na Modal (R2 + `VIDEO_WEBHOOK_SECRET` +
+      `APP_WEBHOOK_URL`, **sem** a service-role) e `modal deploy
+      scripts/modal/transcode.py`.
+- [ ] Ajustar `APP_WEBHOOK_URL` (no secret da Modal) para a URL pública do app.
 
 ## Documentação para contribuidores
 

@@ -134,6 +134,21 @@ conteúdo + base de conhecimento) · `(painel)/actions.ts` (senha do painel).
 - **Ilustrações**: `components/ilustracoes/` — SVG inline, herdam o tema via
   `currentColor`; usadas em estados vazios e no 404.
 
+### Vídeo das aulas (R2 + Modal)
+
+- Provedor por aula: `aulas.provider` = `youtube` | `url` | `cloudflare` | `r2`
+  (+ `video_uid`). O upload próprio usa `r2`; YouTube/URL seguem por embed.
+- **Upload**: `iniciarUploadVideo`/`finalizarUploadVideo` (`master/actions.ts`)
+  + `components/master/upload-video.tsx`: presigned PUT direto pro R2
+  (`lib/r2.ts`, server-only), fila `video_jobs`, aula fica `processando`.
+- **Transcodificação SOB DEMANDA na Modal** (`scripts/modal/transcode.py`, web
+  endpoint): baixa do R2, `ffmpeg` cap **720p** (teto, não upscale) + thumbnail,
+  sobe a versão servível, apaga o original e chama `/api/video/concluir`.
+- **Segurança**: a Modal só tem R2 + `VIDEO_WEBHOOK_SECRET` — **nunca** a
+  service-role. O banco é atualizado no webhook (`api/video/concluir`).
+- **Playback**: a página da disciplina gera URL R2 **assinada** (curta) no
+  servidor; `VideoPlayer` toca `r2` num `<video>` nativo com poster.
+
 ## Convenções
 
 - **Tudo em pt-BR**: comentários, nomes de arquivos, funções, variáveis,
