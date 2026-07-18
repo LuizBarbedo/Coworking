@@ -6,7 +6,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { exigirAluno } from "@/lib/auth";
+import { exigirAluno, getSessaoEquipe } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { moderarConteudo } from "@/lib/forum/moderacao";
@@ -69,10 +69,14 @@ export async function criarPost(
     .map((o) => String(o).trim())
     .filter(Boolean);
 
+  // Equipe (admin/monitor) publica direto: já é quem modera — sem fila de
+  // IA nem rate-limit. O selo "Equipe" identifica essas publicações.
+  const ehEquipe = (await getSessaoEquipe()) !== null;
+
   // Pré-checagens baratas antes de gastar uma chamada de IA.
   const invalido = validarPost({ tipo, titulo, corpo, opcoes });
   if (invalido) return { error: invalido };
-  if (!podePostar(await contarPublicacoesRecentes(aluno.id))) {
+  if (!ehEquipe && !podePostar(await contarPublicacoesRecentes(aluno.id))) {
     return { error: "Calma lá! Você atingiu o limite de publicações por hora." };
   }
 
@@ -103,7 +107,10 @@ export async function criarPost(
     disciplinaTitulo = disciplina.titulo;
   }
 
-  const { data: post, error } = await supabase
+  // Equipe insere via service_role (a policy do aluno obriga nascer
+  // pendente — de propósito); aluno insere pendente com o próprio cliente.
+  const escritor = ehEquipe ? createSupabaseAdminClient() : supabase;
+  const { data: post, error } = await escritor
     .from("forum_posts")
     .insert({
       autor_id: aluno.id,
@@ -111,6 +118,7 @@ export async function criarPost(
       tipo,
       titulo,
       corpo,
+      ...(ehEquipe ? { status: "aprovado" } : {}),
     })
     .select("id")
     .single();
@@ -119,7 +127,7 @@ export async function criarPost(
   }
 
   if (tipo === "enquete") {
-    const { error: erroOpcoes } = await supabase
+    const { error: erroOpcoes } = await escritor
       .from("forum_enquete_opcoes")
       .insert(
         opcoes.map((texto, ordem) => ({ post_id: post.id, texto, ordem })),
@@ -133,13 +141,15 @@ export async function criarPost(
     }
   }
 
-  const veredito = await moderarConteudo({
-    titulo,
-    corpo,
-    opcoes,
-    disciplinaTitulo,
-  });
-  await aplicarVeredito("forum_posts", post.id, veredito);
+  if (!ehEquipe) {
+    const veredito = await moderarConteudo({
+      titulo,
+      corpo,
+      opcoes,
+      disciplinaTitulo,
+    });
+    await aplicarVeredito("forum_posts", post.id, veredito);
+  }
 
   revalidatePath("/forum");
   redirect(`/forum/${post.id}`);
@@ -156,7 +166,8 @@ export async function criarResposta(
   if (!postId) return { error: "Post inválido." };
   const invalido = validarResposta(corpo);
   if (invalido) return { error: invalido };
-  if (!podePostar(await contarPublicacoesRecentes(aluno.id))) {
+  const ehEquipe = (await getSessaoEquipe()) !== null;
+  if (!ehEquipe && !podePostar(await contarPublicacoesRecentes(aluno.id))) {
     return { error: "Calma lá! Você atingiu o limite de publicações por hora." };
   }
 
@@ -168,25 +179,36 @@ export async function criarResposta(
     .single();
   if (!post) return { error: "Post não encontrado." };
 
-  const { data: resposta, error } = await supabase
+  // Resposta da equipe entra direto (quem modera não espera a fila).
+  const escritor = ehEquipe ? createSupabaseAdminClient() : supabase;
+  const { data: resposta, error } = await escritor
     .from("forum_respostas")
-    .insert({ post_id: postId, autor_id: aluno.id, corpo })
+    .insert({
+      post_id: postId,
+      autor_id: aluno.id,
+      corpo,
+      ...(ehEquipe ? { status: "aprovado" } : {}),
+    })
     .select("id")
     .single();
   if (error || !resposta) {
     return { error: "Não foi possível enviar a resposta." };
   }
 
-  // A relação vem sem tipo do supabase-js — objeto único por FK.
-  const disciplina = post.disciplinas as unknown as { titulo: string } | null;
-  const veredito = await moderarConteudo({
-    titulo: `Resposta em: ${post.titulo}`,
-    corpo,
-    disciplinaTitulo: disciplina?.titulo ?? null,
-  });
-  await aplicarVeredito("forum_respostas", resposta.id, veredito);
-  if (veredito.veredito === "aprovado") {
+  if (ehEquipe) {
     await notificarNovaResposta(postId, aluno.id);
+  } else {
+    // A relação vem sem tipo do supabase-js — objeto único por FK.
+    const disciplina = post.disciplinas as unknown as { titulo: string } | null;
+    const veredito = await moderarConteudo({
+      titulo: `Resposta em: ${post.titulo}`,
+      corpo,
+      disciplinaTitulo: disciplina?.titulo ?? null,
+    });
+    await aplicarVeredito("forum_respostas", resposta.id, veredito);
+    if (veredito.veredito === "aprovado") {
+      await notificarNovaResposta(postId, aluno.id);
+    }
   }
 
   revalidatePath(`/forum/${postId}`);

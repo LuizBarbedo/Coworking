@@ -4,6 +4,7 @@ import "server-only";
 // Ficam no servidor — quem votou em quê nunca chega ao cliente.
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { lerSessaoEquipe } from "@/lib/permissoes";
 
 /** Nome de exibição de cada autor (user_metadata.nome, com fallback). */
 export async function nomesDosAutores(
@@ -25,16 +26,21 @@ export async function nomesDosAutores(
   return nomes;
 }
 
-export type AutorPerfil = { nome: string; avatarUrl: string | null };
+export type AutorPerfil = {
+  nome: string;
+  avatarUrl: string | null;
+  /** Membro da equipe (admin/monitor) — ganha o selo "Equipe" no fórum. */
+  equipe: boolean;
+};
 
-/** Nome + foto de perfil de cada autor (uma query de perfis pro lote). */
+/** Nome, foto e vínculo com a equipe de cada autor do lote. */
 export async function autoresComPerfil(
   ids: string[],
 ): Promise<Map<string, AutorPerfil>> {
   const unicos = [...new Set(ids)];
   const admin = createSupabaseAdminClient();
-  const [nomes, perfis] = await Promise.all([
-    nomesDosAutores(unicos),
+  const [contas, perfis] = await Promise.all([
+    Promise.all(unicos.map((id) => admin.auth.admin.getUserById(id))),
     admin.from("perfis").select("aluno_id, avatar_url").in("aluno_id", unicos),
   ]);
   const fotos = new Map(
@@ -43,12 +49,20 @@ export async function autoresComPerfil(
       (p.avatar_url as string | null) ?? null,
     ]),
   );
-  return new Map(
-    unicos.map((id) => [
-      id,
-      { nome: nomes.get(id) ?? "Aluno(a)", avatarUrl: fotos.get(id) ?? null },
-    ]),
-  );
+  const resultado = new Map<string, AutorPerfil>();
+  unicos.forEach((id, i) => {
+    const usuario = contas[i]?.data?.user;
+    const nome =
+      (usuario?.user_metadata as { nome?: string })?.nome ??
+      usuario?.email ??
+      "Aluno(a)";
+    resultado.set(id, {
+      nome: nome.split(" ").slice(0, 2).join(" "),
+      avatarUrl: fotos.get(id) ?? null,
+      equipe: lerSessaoEquipe(usuario?.app_metadata) !== null,
+    });
+  });
+  return resultado;
 }
 
 export type ContagemPost = { votos: number; respostas: number };

@@ -128,6 +128,37 @@ test.describe("fórum com moderação prévia", () => {
     await contextoMod.close();
   });
 
+  test("equipe publica sem fila de moderação e com o selo Equipe", async ({
+    browser,
+  }) => {
+    const email = emailDeTeste("forum-equipe");
+    const senha = `E2e!${Date.now()}`;
+    await criarMembroEquipe(email, senha, "monitor", ["moderar_forum"]);
+    const contexto = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
+    const pagina = await contexto.newPage();
+    await logarNumaNovaSessao(pagina, email, senha);
+
+    await pagina.goto("/forum/novo");
+    await pagina.fill(
+      "#post-titulo",
+      `Aviso da equipe ${Date.now()}: calendário da semana`,
+    );
+    await pagina.fill(
+      "#post-corpo",
+      "As aulas novas do módulo entram no ar na segunda-feira.",
+    );
+    await pagina.getByRole("button", { name: "Publicar" }).click();
+    await pagina.waitForURL(/\/forum\/[0-9a-f-]+/, { timeout: 30_000 });
+
+    // Sem "em análise": entrou direto, com o selo da equipe.
+    await expect(pagina.getByText("está em análise")).toHaveCount(0);
+    await expect(pagina.getByText("Equipe", { exact: true })).toBeVisible();
+
+    await contexto.close();
+  });
+
   test("enquete aprovada tem voto único e mostra resultados", async ({
     page,
   }) => {

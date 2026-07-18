@@ -3,7 +3,7 @@ import Link from "next/link";
 import { exigirAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { autoresComPerfil, contagensDosPosts } from "@/lib/forum/dados";
-import { BadgeStatus, BadgeTipo } from "@/components/forum/badges";
+import { BadgeEquipe, BadgeStatus, BadgeTipo } from "@/components/forum/badges";
 import { Avatar } from "@/components/perfil/avatar";
 import { Comunidade } from "@/components/ilustracoes";
 
@@ -235,9 +235,10 @@ export default async function ForumPage({
                       avatarUrl={autores.get(p.autor_id)?.avatarUrl ?? null}
                       tamanho="sm"
                     />
-                    {autores.get(p.autor_id)?.nome} ·{" "}
-                    {dataCurta(p.created_at)} · {c.votos} útil · {c.respostas}{" "}
-                    resposta(s)
+                    {autores.get(p.autor_id)?.nome}
+                    {autores.get(p.autor_id)?.equipe ? <BadgeEquipe /> : null}{" "}
+                    · {dataCurta(p.created_at)} · {c.votos} útil ·{" "}
+                    {c.respostas} resposta(s)
                   </p>
                 </Link>
               </li>

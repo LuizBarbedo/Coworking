@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { nomesDosAutores } from "@/lib/forum/dados";
@@ -49,13 +50,22 @@ export default async function ModeracaoForumPage() {
 
   return (
     <div className="animate-aparecer">
-      <h1 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
-        Moderação do fórum
-      </h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
+          Moderação do fórum
+        </h1>
+        <Link
+          href="/forum"
+          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          Abrir o fórum →
+        </Link>
+      </div>
       <p className="mt-1 text-sm text-slate-500">
         Publicações que a IA marcou pra revisão (ou não conseguiu avaliar).
         Aprovadas entram no ar na hora; rejeições podem levar um motivo, que o
-        autor vê.
+        autor vê. Suas publicações no fórum entram sem passar pela fila e
+        levam o selo Equipe.
       </p>
 
       {total === 0 ? (

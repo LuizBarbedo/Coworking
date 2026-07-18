@@ -29,6 +29,14 @@ export function BadgeStatus({
   );
 }
 
+export function BadgeEquipe() {
+  return (
+    <span className="rounded bg-brand-900 px-2 py-0.5 text-xs font-medium text-white dark:bg-brand-100 dark:text-brand-900">
+      Equipe
+    </span>
+  );
+}
+
 export function BadgeSolucao() {
   return (
     <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">

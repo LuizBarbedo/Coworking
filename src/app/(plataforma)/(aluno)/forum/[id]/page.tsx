@@ -10,7 +10,12 @@ import {
   votosDasRespostas,
 } from "@/lib/forum/dados";
 import { Avatar } from "@/components/perfil/avatar";
-import { BadgeSolucao, BadgeStatus, BadgeTipo } from "@/components/forum/badges";
+import {
+  BadgeEquipe,
+  BadgeSolucao,
+  BadgeStatus,
+  BadgeTipo,
+} from "@/components/forum/badges";
 import { BotaoUtil } from "@/components/forum/botao-util";
 import { Enquete, type OpcaoEnquete } from "@/components/forum/enquete";
 import { FormReenviar } from "@/components/forum/form-reenviar";
@@ -183,6 +188,7 @@ export default async function PostPage({
           >
             {autores.get(post.autor_id)?.nome}
           </Link>
+          {autores.get(post.autor_id)?.equipe ? <BadgeEquipe /> : null}
           · {dataHora(post.created_at)}
         </p>
         {post.corpo ? (
@@ -255,6 +261,7 @@ export default async function PostPage({
                       >
                         {autores.get(r.autor_id)?.nome}
                       </Link>
+                      {autores.get(r.autor_id)?.equipe ? <BadgeEquipe /> : null}
                       <span>· {dataHora(r.created_at)}</span>
                     </div>
                     {minha && r.status === "rejeitado" && r.motivo_rejeicao ? (

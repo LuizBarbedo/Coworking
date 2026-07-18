@@ -34,9 +34,15 @@ test.describe("níveis de acesso da equipe", () => {
     // A aba Equipe (só de admin) não aparece pra monitor.
     await expect(page.getByRole("link", { name: "Equipe" })).toHaveCount(0);
 
-    // Acesso direto ao AVA de aluno volta pro hub.
+    // Acesso direto ao CONTEÚDO de aluno volta pro hub…
     await page.goto("/painel");
     await page.waitForURL(/\/master\/relatorios/, { timeout: 30_000 });
+
+    // …mas o fórum (comunidade) fica aberto pra toda a equipe.
+    await page.goto("/forum");
+    await expect(
+      page.getByRole("heading", { name: "Fórum", exact: true }),
+    ).toBeVisible();
 
     // Acesso direto à gestão de equipe idem.
     await page.goto("/master/equipe");

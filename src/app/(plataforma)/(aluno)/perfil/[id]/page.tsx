@@ -5,7 +5,9 @@ import { exigirAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { estatisticasDoAluno } from "@/lib/perfil/estatisticas";
+import { lerSessaoEquipe } from "@/lib/permissoes";
 import { Avatar } from "@/components/perfil/avatar";
+import { BadgeEquipe } from "@/components/forum/badges";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
 
 export const metadata: Metadata = { title: "Perfil — CSMG" };
@@ -69,8 +71,9 @@ export default async function PerfilPublicoPage({
             tamanho="lg"
           />
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
+            <h1 className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
               {nome}
+              {lerSessaoEquipe(conta.user.app_metadata) ? <BadgeEquipe /> : null}
             </h1>
             {perfil?.bio ? (
               <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-400">
