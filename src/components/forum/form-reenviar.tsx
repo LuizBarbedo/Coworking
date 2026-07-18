@@ -7,6 +7,7 @@ import {
   reenviarPost,
   type ForumState,
 } from "@/app/(plataforma)/(aluno)/forum/actions";
+import { useFeedbackDeAcao } from "@/components/ui/form-acao";
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200";
@@ -25,6 +26,10 @@ export function FormReenviar({
     undefined,
   );
   const [aberto, setAberto] = useState(false);
+  useFeedbackDeAcao(state, {
+    toastErro: false,
+    aoSucesso: () => setAberto(false),
+  });
 
   if (!aberto) {
     return (
