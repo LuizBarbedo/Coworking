@@ -30,7 +30,7 @@ export function ollamaConfigurado(): boolean {
  */
 export async function ollamaChat(
   messages: MensagemChat[],
-  opts?: { stream?: boolean; temperature?: number },
+  opts?: { stream?: boolean; temperature?: number; signal?: AbortSignal },
 ): Promise<Response> {
   const apiKey = process.env.OLLAMA_API_KEY;
   if (!apiKey) {
@@ -39,6 +39,7 @@ export async function ollamaChat(
 
   return fetch(`${BASE_URL}/api/chat`, {
     method: "POST",
+    signal: opts?.signal,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
