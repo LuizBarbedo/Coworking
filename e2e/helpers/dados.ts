@@ -110,6 +110,13 @@ export async function criarMembroEquipe(
   }
 }
 
+/** true se a migração 0016 (perfis) já foi aplicada no banco. */
+export async function perfilDisponivel(): Promise<boolean> {
+  const admin = criarAdmin();
+  const { error } = await admin.from("perfis").select("aluno_id").limit(1);
+  return !error;
+}
+
 /** true se a migração 0015 (fórum) já foi aplicada no banco. */
 export async function forumDisponivel(): Promise<boolean> {
   const admin = criarAdmin();
