@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { exigirVisaoAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resumo } from "@/lib/progresso";
 import { urlAssistir, chaveAula, chaveThumb } from "@/lib/r2";
@@ -50,6 +51,7 @@ export default async function DisciplinaPage({
 }: {
   params: Promise<Params>;
 }) {
+  await exigirVisaoAluno();
   const { modulo: moduloSlug, disciplina: disciplinaSlug } = await params;
   const ctx = await carregar(moduloSlug, disciplinaSlug);
   if (!ctx) notFound();

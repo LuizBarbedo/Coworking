@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { exigirAluno, getSessaoEquipe } from "@/lib/auth";
-import { podeVerComoAluno } from "@/lib/permissoes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(plataforma)/actions";
 import { Avatar } from "@/components/perfil/avatar";
@@ -20,8 +18,9 @@ export default async function AlunoLayout({
 }) {
   const user = await exigirAluno();
   const sessao = await getSessaoEquipe();
-  // Monitor sem a permissão visao_aluno não navega o AVA como aluno.
-  if (!podeVerComoAluno(sessao)) redirect("/master");
+  // O bloqueio de monitor sem visao_aluno fica nas páginas de CONTEÚDO
+  // (painel, disciplinas) via exigirVisaoAluno — fórum e perfil são de
+  // comunidade e ficam abertos pra toda a equipe.
   const ehEquipe = sessao !== null;
   const nome =
     (user.user_metadata?.nome as string | undefined) ??

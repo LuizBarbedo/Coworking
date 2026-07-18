@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { exigirVisaoAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getProgressoCurso, resumo } from "@/lib/progresso";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
@@ -20,6 +21,7 @@ type Modulo = {
 };
 
 export default async function PainelPage() {
+  await exigirVisaoAluno();
   const supabase = await createSupabaseServerClient();
 
   const [

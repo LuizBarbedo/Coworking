@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   lerSessaoEquipe,
+  podeVerComoAluno,
   temPermissao,
   type Permissao,
   type SessaoEquipe,
@@ -61,6 +62,18 @@ export const getSessaoEquipe = cache(
     return lerSessaoEquipe(user?.app_metadata);
   },
 );
+
+/**
+ * Garante acesso ao CONTEÚDO do curso como aluno: aluno comum e admin
+ * passam; monitor precisa de visao_aluno. As áreas de comunidade (fórum,
+ * perfil) não usam este guard — equipe navega nelas sem a permissão.
+ */
+export async function exigirVisaoAluno() {
+  const user = await exigirAluno();
+  const sessao = await getSessaoEquipe();
+  if (!podeVerComoAluno(sessao)) redirect("/master");
+  return user;
+}
 
 /** Garante membro da equipe COM a permissão; senão volta pro hub. */
 export async function exigirPermissao(permissao: Permissao) {
