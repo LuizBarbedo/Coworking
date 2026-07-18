@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { exigirMaster } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { exigirMaster, getSessaoEquipe } from "@/lib/auth";
+import { primeiraRotaPermitida, temPermissao } from "@/lib/permissoes";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { criarModulo } from "./actions";
 
@@ -18,6 +20,12 @@ type Modulo = {
 
 export default async function MasterHome() {
   await exigirMaster();
+  // A home do hub é a aba Conteúdo: monitor sem essa permissão vai pra
+  // primeira aba que pode ver (ou pro painel de aluno, se nenhuma).
+  const sessao = await getSessaoEquipe();
+  if (sessao && !temPermissao(sessao, "editar_conteudo")) {
+    redirect(primeiraRotaPermitida(sessao) ?? "/painel");
+  }
   const admin = createSupabaseAdminClient();
   const { data: modulos } = await admin
     .from("modulos")

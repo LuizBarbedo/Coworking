@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { exigirAluno, getPapel } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { exigirAluno, getSessaoEquipe } from "@/lib/auth";
+import { podeVerComoAluno } from "@/lib/permissoes";
 import { logout } from "@/app/(plataforma)/actions";
 import { Patrocinadores } from "@/components/patrocinadores";
 import { TemaToggle } from "@/components/ui/tema-toggle";
@@ -15,7 +17,10 @@ export default async function AlunoLayout({
   children: React.ReactNode;
 }) {
   const user = await exigirAluno();
-  const ehMaster = (await getPapel()) === "master";
+  const sessao = await getSessaoEquipe();
+  // Monitor sem a permissão visao_aluno não navega o AVA como aluno.
+  if (!podeVerComoAluno(sessao)) redirect("/master");
+  const ehEquipe = sessao !== null;
   const nome =
     (user.user_metadata?.nome as string | undefined) ??
     user.email ??
@@ -43,7 +48,7 @@ export default async function AlunoLayout({
           </Link>
 
           <div className="flex items-center gap-3">
-            {ehMaster ? (
+            {ehEquipe ? (
               <Link
                 href="/master"
                 data-tour="area-master"

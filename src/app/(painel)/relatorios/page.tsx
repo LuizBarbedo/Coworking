@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { painelAutenticado } from "@/lib/painel-auth";
 import { obterMetricas } from "@/lib/metricas";
-import { compararPeriodos, type Variacao } from "@/lib/variacao";
 import { sairPainel } from "@/app/(painel)/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SenhaForm } from "@/components/painel/senha-form";
-import { GraficoEvolucao } from "@/components/painel/grafico-evolucao";
-import { TabelaOrigens } from "@/components/painel/tabela-origens";
-import { GeradorUtm } from "@/components/painel/gerador-utm";
+import {
+  PainelMetricas,
+  resolverDias,
+} from "@/components/painel/painel-metricas";
 import { TemaToggle } from "@/components/ui/tema-toggle";
-import { Contador } from "@/components/ui/contador";
 
 export const metadata: Metadata = {
   title: "Painel de inscrições — CSMG",
@@ -19,92 +17,6 @@ export const metadata: Metadata = {
 
 // Sempre renderiza no servidor com dados frescos (lê cookie + conta ao vivo).
 export const dynamic = "force-dynamic";
-
-function formatarUltima(iso: string | null): string {
-  if (!iso) return "—";
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(iso));
-}
-
-const CORES_VARIACAO = {
-  alta: "text-emerald-600 dark:text-emerald-400",
-  queda: "text-red-600 dark:text-red-400",
-  estavel: "text-slate-400",
-} as const;
-
-function Cartao({
-  rotulo,
-  valor,
-  detalhe,
-  variacao,
-  referencia,
-}: {
-  rotulo: string;
-  valor: number;
-  detalhe?: string;
-  /** Comparação com o período anterior — some sem a migração 0014. */
-  variacao?: Variacao | null;
-  referencia?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">{rotulo}</p>
-      <div className="mt-2 flex items-baseline gap-2">
-        <Contador
-          valor={valor}
-          className="block font-display text-3xl font-bold text-brand-900 dark:text-brand-100"
-        />
-        {variacao ? (
-          <span
-            className={`text-xs font-medium ${CORES_VARIACAO[variacao.direcao]}`}
-          >
-            {variacao.direcao === "alta" ? "▲ " : null}
-            {variacao.direcao === "queda" ? "▼ " : null}
-            {variacao.texto}
-            {referencia ? ` vs. ${referencia}` : null}
-          </span>
-        ) : null}
-      </div>
-      {detalhe ? <p className="mt-1 text-xs text-slate-400">{detalhe}</p> : null}
-    </div>
-  );
-}
-
-const PERIODOS = [
-  { dias: 7, rotulo: "7 dias" },
-  { dias: 30, rotulo: "30 dias" },
-  { dias: 90, rotulo: "90 dias" },
-] as const;
-
-function FiltroPeriodo({ dias }: { dias: number }) {
-  return (
-    <nav
-      aria-label="Período do relatório"
-      className="inline-flex rounded-lg border border-slate-200 bg-superficie p-0.5 text-sm shadow-sm"
-    >
-      {PERIODOS.map((p) => (
-        <Link
-          key={p.dias}
-          href={`/relatorios?dias=${p.dias}`}
-          aria-current={p.dias === dias ? "page" : undefined}
-          className={
-            p.dias === dias
-              ? "rounded-md bg-brand-900 px-3 py-1 font-medium text-white dark:bg-brand-100 dark:text-brand-900"
-              : "rounded-md px-3 py-1 text-slate-500 transition hover:text-brand-900 dark:hover:text-brand-100"
-          }
-        >
-          {p.rotulo}
-        </Link>
-      ))}
-    </nav>
-  );
-}
 
 export default async function RelatoriosPage({
   searchParams,
@@ -124,8 +36,7 @@ export default async function RelatoriosPage({
   }
 
   const parametros = await searchParams;
-  const dias =
-    PERIODOS.find((p) => String(p.dias) === parametros.dias)?.dias ?? 30;
+  const dias = resolverDias(parametros.dias);
   const metricas = await obterMetricas(dias);
 
   return (
@@ -151,75 +62,8 @@ export default async function RelatoriosPage({
         </div>
       </header>
 
-      <div className="animate-aparecer mx-auto w-full max-w-5xl flex-1 space-y-6 px-6 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
-              Acompanhamento de inscrições
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Última inscrição em {formatarUltima(metricas.ultima)}.
-            </p>
-          </div>
-          <FiltroPeriodo dias={dias} />
-        </div>
-
-        <div className="escalonado grid gap-4 sm:grid-cols-3">
-          <Cartao
-            rotulo="Total de inscritos"
-            valor={metricas.total}
-            detalhe="Desde o início das inscrições"
-          />
-          <Cartao
-            rotulo="Hoje"
-            valor={metricas.hoje}
-            detalhe="Novas inscrições de hoje"
-            variacao={compararPeriodos(metricas.hoje, metricas.ontem)}
-            referencia="ontem"
-          />
-          <Cartao
-            rotulo="Últimos 7 dias"
-            valor={metricas.semana}
-            detalhe="Inclui o dia de hoje"
-            variacao={compararPeriodos(
-              metricas.semana,
-              metricas.semana_anterior,
-            )}
-            referencia="semana anterior"
-          />
-        </div>
-
-        <GraficoEvolucao serie={metricas.serie} />
-
-        {metricas.origens ? (
-          <TabelaOrigens
-            origens={metricas.origens}
-            dias={dias}
-            visitasPeriodo={metricas.visitas_periodo}
-          />
-        ) : null}
-
-        <GeradorUtm
-          enderecoBase={`https://${process.env.DOMINIO_LANDING ?? "coworkingsocial.com.br"}/`}
-        />
-
-        <p className="text-xs text-slate-400">
-          Exportar CSV:{" "}
-          <a
-            href={`/relatorios/exportar?tipo=origens&dias=${dias}`}
-            className="underline transition hover:text-brand-900 dark:hover:text-brand-100"
-          >
-            origens do tráfego
-          </a>{" "}
-          ·{" "}
-          <a
-            href={`/relatorios/exportar?tipo=serie&dias=${dias}`}
-            className="underline transition hover:text-brand-900 dark:hover:text-brand-100"
-          >
-            série diária
-          </a>{" "}
-          — abre direto no Excel/planilha.
-        </p>
+      <div className="animate-aparecer mx-auto w-full max-w-5xl flex-1 px-6 py-8">
+        <PainelMetricas metricas={metricas} dias={dias} basePath="/relatorios" />
       </div>
     </main>
   );

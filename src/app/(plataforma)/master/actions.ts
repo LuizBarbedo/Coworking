@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { exigirMaster } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { reconstruirChunks } from "@/lib/ia/conhecimento";
 import { extrairTextoDeArquivo } from "@/lib/ia/extrair-texto";
@@ -97,7 +97,7 @@ async function proximaOrdem(
 
 // ─── módulos ─────────────────────────────────────────────────────────────────
 export async function criarModulo(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const titulo = String(formData.get("titulo") ?? "").trim();
@@ -118,7 +118,7 @@ export async function criarModulo(formData: FormData) {
 }
 
 export async function atualizarModulo(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
@@ -141,7 +141,7 @@ export async function atualizarModulo(formData: FormData) {
 }
 
 export async function excluirModulo(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -152,7 +152,7 @@ export async function excluirModulo(formData: FormData) {
 
 // ─── disciplinas ─────────────────────────────────────────────────────────────
 export async function criarDisciplina(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const moduloId = String(formData.get("modulo_id") ?? "");
@@ -179,7 +179,7 @@ export async function criarDisciplina(formData: FormData) {
 }
 
 export async function atualizarDisciplina(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const titulo = String(formData.get("titulo") ?? "").trim();
@@ -199,7 +199,7 @@ export async function atualizarDisciplina(formData: FormData) {
 }
 
 export async function excluirDisciplina(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const moduloId = String(formData.get("modulo_id") ?? "");
@@ -211,7 +211,7 @@ export async function excluirDisciplina(formData: FormData) {
 
 // ─── aulas ───────────────────────────────────────────────────────────────────
 export async function criarAula(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
@@ -246,7 +246,7 @@ export async function criarAulaComId(
   descricao: string,
   link: string,
 ): Promise<{ id: string } | { erro: string }> {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   if (!disciplinaId || !titulo.trim()) return { erro: "Informe o título da aula." };
 
@@ -272,7 +272,7 @@ export async function criarAulaComId(
 }
 
 export async function atualizarAula(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
@@ -308,7 +308,7 @@ export async function atualizarAula(formData: FormData) {
 }
 
 export async function excluirAula(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
@@ -337,7 +337,7 @@ export async function iniciarUploadVideo(
   nomeArquivo: string,
   contentType: string,
 ): Promise<{ url: string; chave: string } | { erro: string }> {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   if (!aulaId || !nomeArquivo) return { erro: "Aula ou arquivo inválido." };
   if (!TIPOS_VIDEO.has(contentType)) {
     return { erro: "Envie um arquivo de vídeo (MP4, MOV, WEBM, MKV ou AVI)." };
@@ -357,7 +357,7 @@ export async function finalizarUploadVideo(
   chaveOriginalArq: string,
   disciplinaId: string,
 ): Promise<void> {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   if (!aulaId || !chaveOriginalArq) return;
 
@@ -402,7 +402,7 @@ export async function finalizarUploadVideo(
 
 // ─── materiais ───────────────────────────────────────────────────────────────
 export async function criarMaterial(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
@@ -429,7 +429,7 @@ export async function criarMaterial(formData: FormData) {
 }
 
 export async function atualizarMaterial(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
@@ -452,7 +452,7 @@ export async function atualizarMaterial(formData: FormData) {
 }
 
 export async function excluirMaterial(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
@@ -480,7 +480,7 @@ async function garantirQuiz(admin: Admin, disciplinaId: string): Promise<string>
 }
 
 export async function atualizarQuiz(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   if (!disciplinaId) return;
@@ -497,7 +497,7 @@ export async function atualizarQuiz(formData: FormData) {
 }
 
 export async function criarPergunta(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
@@ -540,7 +540,7 @@ export async function criarPergunta(formData: FormData) {
 }
 
 export async function atualizarPergunta(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
@@ -576,7 +576,7 @@ export async function atualizarPergunta(formData: FormData) {
 }
 
 export async function excluirPergunta(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
@@ -670,7 +670,7 @@ async function prepararConhecimento(
 }
 
 export async function criarConhecimento(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
@@ -697,7 +697,7 @@ export async function criarConhecimento(formData: FormData) {
 }
 
 export async function atualizarConhecimento(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
@@ -734,7 +734,7 @@ export async function atualizarConhecimento(formData: FormData) {
 }
 
 export async function excluirConhecimento(formData: FormData) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");

@@ -88,6 +88,29 @@ export async function criarAlunoAtivado(
 }
 
 /**
+ * Membro da equipe (admin ou monitor com permissões) pronto pra logar —
+ * pro spec dos níveis de acesso da administração.
+ */
+export async function criarMembroEquipe(
+  email: string,
+  senha: string,
+  nivel: "admin" | "monitor",
+  permissoes: string[] = [],
+): Promise<void> {
+  const admin = criarAdmin();
+  const { error } = await admin.auth.admin.createUser({
+    email,
+    password: senha,
+    email_confirm: true,
+    user_metadata: { nome: nivel === "admin" ? "Admin E2E" : "Monitor E2E" },
+    app_metadata: { role: "master", nivel, permissoes },
+  });
+  if (error) {
+    throw new Error(`Falha ao criar membro de equipe: ${error.message}`);
+  }
+}
+
+/**
  * Aluno selecionado mas SEM conta — pro spec exercitar o /primeiro-acesso.
  * Devolve a matrícula gerada pelo banco.
  */

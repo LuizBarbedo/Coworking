@@ -3,6 +3,12 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  lerSessaoEquipe,
+  temPermissao,
+  type Permissao,
+  type SessaoEquipe,
+} from "@/lib/permissoes";
 
 /**
  * Retorna o usuário autenticado (ou null). Memoizado por render para evitar
@@ -42,5 +48,32 @@ export async function exigirMaster() {
   if (!user) redirect("/login");
   const role = (user.app_metadata as { role?: string } | undefined)?.role;
   if (role !== "master") redirect("/painel");
+  return user;
+}
+
+/**
+ * Sessão de equipe do usuário logado (admin/monitor + permissões), ou null
+ * pra aluno comum. Memoizada por render, como getAluno.
+ */
+export const getSessaoEquipe = cache(
+  async (): Promise<SessaoEquipe | null> => {
+    const user = await getAluno();
+    return lerSessaoEquipe(user?.app_metadata);
+  },
+);
+
+/** Garante membro da equipe COM a permissão; senão volta pro hub. */
+export async function exigirPermissao(permissao: Permissao) {
+  const user = await exigirMaster();
+  const sessao = await getSessaoEquipe();
+  if (!temPermissao(sessao, permissao)) redirect("/master");
+  return user;
+}
+
+/** Garante nível admin (gestão de equipe); monitor volta pro hub. */
+export async function exigirAdmin() {
+  const user = await exigirMaster();
+  const sessao = await getSessaoEquipe();
+  if (sessao?.nivel !== "admin") redirect("/master");
   return user;
 }

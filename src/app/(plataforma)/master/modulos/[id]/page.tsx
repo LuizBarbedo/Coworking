@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { exigirMaster } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   atualizarModulo,
@@ -21,7 +21,7 @@ export default async function ModuloMasterPage({
 }: {
   params: Promise<Params>;
 }) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const { id } = await params;
   const admin = createSupabaseAdminClient();
 

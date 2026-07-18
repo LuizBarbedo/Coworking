@@ -1,7 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { exigirMaster } from "@/lib/auth";
+import { exigirMaster, getSessaoEquipe } from "@/lib/auth";
+import { podeVerComoAluno, temPermissao } from "@/lib/permissoes";
 import { logout } from "@/app/(plataforma)/actions";
+import { NavMaster, type AbaMaster } from "@/components/master/nav-master";
 import { TemaToggle } from "@/components/ui/tema-toggle";
 import { SomToggle } from "@/components/ui/som-toggle";
 import { BotaoTour } from "@/components/tour/botao-tour";
@@ -14,6 +16,17 @@ export default async function MasterLayout({
   children: React.ReactNode;
 }) {
   await exigirMaster();
+  const sessao = await getSessaoEquipe();
+
+  const abas: AbaMaster[] = [];
+  if (temPermissao(sessao, "editar_conteudo"))
+    abas.push({ href: "/master", rotulo: "Conteúdo" });
+  if (temPermissao(sessao, "ver_relatorios"))
+    abas.push({ href: "/master/relatorios", rotulo: "Relatórios" });
+  if (temPermissao(sessao, "moderar_forum"))
+    abas.push({ href: "/master/forum", rotulo: "Fórum" });
+  if (sessao?.nivel === "admin")
+    abas.push({ href: "/master/equipe", rotulo: "Equipe" });
 
   return (
     <ContextoIAProvider>
@@ -34,12 +47,14 @@ export default async function MasterLayout({
             </span>
           </Link>
           <div className="flex items-center gap-3 text-sm">
-            <Link
-              href="/painel"
-              className="text-brand-100 transition hover:text-white"
-            >
-              Ver como aluno
-            </Link>
+            {podeVerComoAluno(sessao) ? (
+              <Link
+                href="/painel"
+                className="text-brand-100 transition hover:text-white"
+              >
+                Ver como aluno
+              </Link>
+            ) : null}
             <BotaoTour perfil="master" className="border-white/20 text-white/70 hover:text-white hover:border-white/40" />
             <SomToggle className="border-white/20 text-white/70 hover:text-white hover:border-white/40" />
             <TemaToggle className="border-white/20 text-white/70 hover:text-white hover:border-white/40" />
@@ -55,7 +70,10 @@ export default async function MasterLayout({
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">{children}</div>
+      <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
+        <NavMaster abas={abas} />
+        <div className={abas.length >= 2 ? "pt-6" : undefined}>{children}</div>
+      </div>
       <AssistenteFlutuante />
     </div>
     </ContextoIAProvider>

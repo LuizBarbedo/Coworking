@@ -1,14 +1,20 @@
-// Exportação CSV do painel: mesma senha do /relatorios (cookie httpOnly).
+// Exportação CSV do painel: aceita a senha do /relatorios (cookie httpOnly)
+// OU sessão de equipe com a permissão ver_relatorios (aba da administração).
 // ?tipo=origens (padrão) ou ?tipo=serie; ?dias=7|30|90.
 
 import { painelAutenticado } from "@/lib/painel-auth";
+import { getSessaoEquipe } from "@/lib/auth";
+import { temPermissao } from "@/lib/permissoes";
 import { obterMetricas } from "@/lib/metricas";
 import { gerarCsvOrigens, gerarCsvSerie } from "@/lib/csv-relatorio";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  if (!(await painelAutenticado())) {
+  const autorizado =
+    (await painelAutenticado()) ||
+    temPermissao(await getSessaoEquipe(), "ver_relatorios");
+  if (!autorizado) {
     return new Response("Não autorizado", { status: 401 });
   }
 

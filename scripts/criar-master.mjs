@@ -42,7 +42,7 @@ const existente = lista?.users?.find((u) => u.email?.toLowerCase() === email);
 if (existente) {
   const { error } = await admin.auth.admin.updateUserById(existente.id, {
     password: senha,
-    app_metadata: { role: "master" },
+    app_metadata: { role: "master", nivel: "admin" },
     user_metadata: { ...existente.user_metadata, nome },
   });
   if (error) {
@@ -55,7 +55,7 @@ if (existente) {
     email,
     password: senha,
     email_confirm: true,
-    app_metadata: { role: "master" },
+    app_metadata: { role: "master", nivel: "admin" },
     user_metadata: { nome },
   });
   if (error) {
@@ -66,5 +66,5 @@ if (existente) {
 }
 
 console.log("   E-mail: ", email);
-console.log("   Papel:  ", "master (app_metadata.role)");
+console.log("   Papel:  ", "master, nível admin (app_metadata)");
 console.log("\nEntre em http://localhost:3000/login com esse e-mail e senha.\n");

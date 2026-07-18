@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { exigirMaster } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { LinhaEditavel } from "@/components/master/linha-editavel";
 import { BlocoAdicionar } from "@/components/master/bloco-adicionar";
@@ -41,7 +41,7 @@ export default async function DisciplinaMasterPage({
 }: {
   params: Promise<Params>;
 }) {
-  await exigirMaster();
+  await exigirPermissao("editar_conteudo");
   const { id } = await params;
   const admin = createSupabaseAdminClient();
 
