@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { painelAutenticado } from "@/lib/painel-auth";
 import { obterMetricas } from "@/lib/metricas";
+import { compararPeriodos, type Variacao } from "@/lib/variacao";
 import { sairPainel } from "@/app/(painel)/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SenhaForm } from "@/components/painel/senha-form";
@@ -30,22 +31,45 @@ function formatarUltima(iso: string | null): string {
   }).format(new Date(iso));
 }
 
+const CORES_VARIACAO = {
+  alta: "text-emerald-600 dark:text-emerald-400",
+  queda: "text-red-600 dark:text-red-400",
+  estavel: "text-slate-400",
+} as const;
+
 function Cartao({
   rotulo,
   valor,
   detalhe,
+  variacao,
+  referencia,
 }: {
   rotulo: string;
   valor: number;
   detalhe?: string;
+  /** Comparação com o período anterior — some sem a migração 0014. */
+  variacao?: Variacao | null;
+  referencia?: string;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
       <p className="text-sm font-medium text-slate-500">{rotulo}</p>
-      <Contador
-        valor={valor}
-        className="mt-2 block font-display text-3xl font-bold text-brand-900 dark:text-brand-100"
-      />
+      <div className="mt-2 flex items-baseline gap-2">
+        <Contador
+          valor={valor}
+          className="block font-display text-3xl font-bold text-brand-900 dark:text-brand-100"
+        />
+        {variacao ? (
+          <span
+            className={`text-xs font-medium ${CORES_VARIACAO[variacao.direcao]}`}
+          >
+            {variacao.direcao === "alta" ? "▲ " : null}
+            {variacao.direcao === "queda" ? "▼ " : null}
+            {variacao.texto}
+            {referencia ? ` vs. ${referencia}` : null}
+          </span>
+        ) : null}
+      </div>
       {detalhe ? <p className="mt-1 text-xs text-slate-400">{detalhe}</p> : null}
     </div>
   );
@@ -149,11 +173,18 @@ export default async function RelatoriosPage({
             rotulo="Hoje"
             valor={metricas.hoje}
             detalhe="Novas inscrições de hoje"
+            variacao={compararPeriodos(metricas.hoje, metricas.ontem)}
+            referencia="ontem"
           />
           <Cartao
             rotulo="Últimos 7 dias"
             valor={metricas.semana}
             detalhe="Inclui o dia de hoje"
+            variacao={compararPeriodos(
+              metricas.semana,
+              metricas.semana_anterior,
+            )}
+            referencia="semana anterior"
           />
         </div>
 
