@@ -10,6 +10,7 @@ import { exigirAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { moderarConteudo } from "@/lib/forum/moderacao";
+import { notificarNovaResposta } from "@/lib/forum/notificacoes";
 import { validarPost, validarResposta } from "@/lib/forum/validar-post";
 import { podePostar } from "@/lib/forum/rate-limit";
 
@@ -184,8 +185,83 @@ export async function criarResposta(
     disciplinaTitulo: disciplina?.titulo ?? null,
   });
   await aplicarVeredito("forum_respostas", resposta.id, veredito);
+  if (veredito.veredito === "aprovado") {
+    await notificarNovaResposta(postId, aluno.id);
+  }
 
   revalidatePath(`/forum/${postId}`);
+  return undefined;
+}
+
+/**
+ * Recurso do autor: edita um post rejeitado e reenvia pra moderação —
+ * volta a pendente e passa pela IA de novo. Escrita via service_role
+ * (aluno não tem policy de update), com a autoria checada aqui.
+ */
+export async function reenviarPost(
+  _prev: ForumState,
+  formData: FormData,
+): Promise<ForumState> {
+  const aluno = await exigirAluno();
+  const postId = String(formData.get("postId") ?? "");
+  const titulo = String(formData.get("titulo") ?? "").trim();
+  const corpo = String(formData.get("corpo") ?? "").trim() || null;
+  if (!postId) return { error: "Post inválido." };
+
+  const admin = createSupabaseAdminClient();
+  const { data: post } = await admin
+    .from("forum_posts")
+    .select("autor_id, status, tipo, disciplina_id, disciplinas ( titulo )")
+    .eq("id", postId)
+    .single();
+  if (!post || post.autor_id !== aluno.id) {
+    return { error: "Post não encontrado." };
+  }
+  if (post.status !== "rejeitado") {
+    return { error: "Só publicações rejeitadas podem ser reenviadas." };
+  }
+
+  const tipo = post.tipo as "duvida" | "enquete";
+  const { data: opcoesAtuais } = await admin
+    .from("forum_enquete_opcoes")
+    .select("texto")
+    .eq("post_id", postId)
+    .order("ordem", { ascending: true });
+  const opcoes = (opcoesAtuais ?? []).map((o) => o.texto as string);
+
+  const invalido = validarPost({ tipo, titulo, corpo, opcoes });
+  if (invalido) return { error: invalido };
+  if (!podePostar(await contarPublicacoesRecentes(aluno.id))) {
+    return { error: "Calma lá! Você atingiu o limite de publicações por hora." };
+  }
+
+  const { error } = await admin
+    .from("forum_posts")
+    .update({
+      titulo,
+      corpo,
+      status: "pendente",
+      veredito_ia: null,
+      motivo_ia: null,
+      moderado_por: null,
+      moderado_em: null,
+      motivo_rejeicao: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", postId);
+  if (error) return { error: "Não foi possível reenviar. Tente de novo." };
+
+  const disciplina = post.disciplinas as unknown as { titulo: string } | null;
+  const veredito = await moderarConteudo({
+    titulo,
+    corpo,
+    opcoes,
+    disciplinaTitulo: disciplina?.titulo ?? null,
+  });
+  await aplicarVeredito("forum_posts", postId, veredito);
+
+  revalidatePath(`/forum/${postId}`);
+  revalidatePath("/forum");
   return undefined;
 }
 

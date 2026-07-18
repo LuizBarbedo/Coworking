@@ -12,6 +12,7 @@ import {
 import { BadgeSolucao, BadgeStatus, BadgeTipo } from "@/components/forum/badges";
 import { BotaoUtil } from "@/components/forum/botao-util";
 import { Enquete, type OpcaoEnquete } from "@/components/forum/enquete";
+import { FormReenviar } from "@/components/forum/form-reenviar";
 import { FormResposta } from "@/components/forum/form-resposta";
 import { MarcarSolucao } from "@/components/forum/marcar-solucao";
 
@@ -141,6 +142,11 @@ export default async function PostPage({
             <>
               Sua publicação não foi aprovada.
               {post.motivo_rejeicao ? ` Motivo: ${post.motivo_rejeicao}` : null}
+              <FormReenviar
+                postId={post.id}
+                titulo={post.titulo}
+                corpo={post.corpo}
+              />
             </>
           )}
         </div>

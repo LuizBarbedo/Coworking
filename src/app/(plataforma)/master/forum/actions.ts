@@ -6,6 +6,10 @@
 import { revalidatePath } from "next/cache";
 import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  notificarNovaResposta,
+  notificarPostAprovado,
+} from "@/lib/forum/notificacoes";
 
 export type ModeracaoState = { ok: string } | { error: string } | undefined;
 
@@ -44,6 +48,22 @@ async function moderar(
     .eq("id", item.id)
     .eq("status", "pendente");
   if (error) return { error: "Não foi possível moderar o item." };
+
+  // Aprovação humana notifica o interessado (best-effort).
+  if (status === "aprovado") {
+    if (item.tipo === "post") {
+      await notificarPostAprovado(item.id);
+    } else {
+      const { data: resposta } = await admin
+        .from("forum_respostas")
+        .select("post_id, autor_id")
+        .eq("id", item.id)
+        .single();
+      if (resposta) {
+        await notificarNovaResposta(resposta.post_id, resposta.autor_id);
+      }
+    }
+  }
 
   revalidatePath("/master/forum");
   revalidatePath("/forum");

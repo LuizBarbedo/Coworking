@@ -26,6 +26,28 @@ function getTransporter() {
   return transporter;
 }
 
+/** Aviso curto do fórum (aprovação, resposta nova) com link pro post. */
+export async function enviarEmailForum(dados: {
+  nome: string;
+  email: string;
+  assunto: string;
+  corpo: string;
+  link: string;
+}) {
+  const remetente = process.env.GMAIL_USER;
+
+  await getTransporter().sendMail({
+    from: `"Coworking Social" <${remetente}>`,
+    to: dados.email,
+    subject: `${dados.assunto} — Fórum CSMG`,
+    html: `
+      <p>Olá, ${dados.nome}!</p>
+      <p>${dados.corpo}</p>
+      <p><a href="${dados.link}">Abrir no fórum</a></p>
+    `,
+  });
+}
+
 /** Convite de aluno cadastrado manualmente: matrícula + link do 1º acesso. */
 export async function enviarEmailConviteAluno(dados: {
   nome: string;
