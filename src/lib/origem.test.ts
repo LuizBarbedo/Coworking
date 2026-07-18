@@ -19,6 +19,15 @@ describe("extrairOrigem", () => {
     expect(extrairOrigem(params, "").source).toBe("instagram");
   });
 
+  it("decodifica UTM que chegou duplamente encodada (links da Meta)", () => {
+    // O gerenciador de anúncios encoda os colchetes; a URL final chega com
+    // %255b, que o URLSearchParams só decodifica uma vez (%5b).
+    const params = new URLSearchParams(
+      "?utm_campaign=%255bNome-da-Campanha%255d",
+    );
+    expect(extrairOrigem(params, "").campaign).toBe("[nome-da-campanha]");
+  });
+
   it("usa o referrer como fallback de source quando não há UTMs", () => {
     const origem = extrairOrigem(
       new URLSearchParams(""),
@@ -76,6 +85,10 @@ describe("sanitizarOrigem", () => {
         campaign: undefined as unknown as string | null,
       }),
     ).toEqual({ source: null, medium: null, campaign: null });
+  });
+
+  it("mantém o valor original quando o percent-encoding é inválido", () => {
+    expect(sanitizarOrigem({ campaign: "50%off" }).campaign).toBe("50%off");
   });
 
   it("aceita entrada nula ou indefinida", () => {
