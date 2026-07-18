@@ -2,7 +2,12 @@ import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export type PontoSerie = { dia: string; total: number };
+export type PontoSerie = {
+  dia: string;
+  total: number;
+  /** Visitas do dia — ausente enquanto a migração 0014 não for aplicada. */
+  visitas?: number;
+};
 
 export type OrigemAgregada = {
   source: string | null;
@@ -17,6 +22,10 @@ export type Metricas = {
   total: number;
   hoje: number;
   semana: number;
+  /** Inscrições de ontem — ausente enquanto a migração 0014 não for aplicada. */
+  ontem?: number;
+  /** Inscrições de 8 a 14 dias atrás — ausente antes da migração 0014. */
+  semana_anterior?: number;
   ultima: string | null;
   serie: PontoSerie[];
   /** Ausente enquanto a migração 0012 não for aplicada. */

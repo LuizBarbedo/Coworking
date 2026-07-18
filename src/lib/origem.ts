@@ -16,9 +16,22 @@ export const ORIGEM_VAZIA: Origem = {
 
 const TAMANHO_MAX = 80;
 
+/**
+ * Desfaz um nível de percent-encoding: links da Meta chegam com a UTM
+ * duplamente encodada (%255b → %5b), e o URLSearchParams só desfaz o primeiro.
+ * Encoding inválido (ex.: "50%off") mantém o valor como veio.
+ */
+export function decodificarRotulo(valor: string): string {
+  try {
+    return decodeURIComponent(valor);
+  } catch {
+    return valor;
+  }
+}
+
 function limpar(valor: unknown): string | null {
   if (typeof valor !== "string") return null;
-  const limpo = valor
+  const limpo = decodificarRotulo(valor)
     .replace(/[\p{Cc}\p{Cf}]/gu, "")
     .trim()
     .toLowerCase()

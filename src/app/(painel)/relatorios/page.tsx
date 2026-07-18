@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { painelAutenticado } from "@/lib/painel-auth";
-import { formatarTaxaConversao } from "@/lib/conversao";
-import { obterMetricas, type OrigemAgregada } from "@/lib/metricas";
+import { obterMetricas } from "@/lib/metricas";
+import { compararPeriodos, type Variacao } from "@/lib/variacao";
 import { sairPainel } from "@/app/(painel)/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SenhaForm } from "@/components/painel/senha-form";
 import { GraficoEvolucao } from "@/components/painel/grafico-evolucao";
+import { TabelaOrigens } from "@/components/painel/tabela-origens";
+import { GeradorUtm } from "@/components/painel/gerador-utm";
 import { TemaToggle } from "@/components/ui/tema-toggle";
 import { Contador } from "@/components/ui/contador";
 
@@ -30,22 +32,45 @@ function formatarUltima(iso: string | null): string {
   }).format(new Date(iso));
 }
 
+const CORES_VARIACAO = {
+  alta: "text-emerald-600 dark:text-emerald-400",
+  queda: "text-red-600 dark:text-red-400",
+  estavel: "text-slate-400",
+} as const;
+
 function Cartao({
   rotulo,
   valor,
   detalhe,
+  variacao,
+  referencia,
 }: {
   rotulo: string;
   valor: number;
   detalhe?: string;
+  /** Comparação com o período anterior — some sem a migração 0014. */
+  variacao?: Variacao | null;
+  referencia?: string;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
       <p className="text-sm font-medium text-slate-500">{rotulo}</p>
-      <Contador
-        valor={valor}
-        className="mt-2 block font-display text-3xl font-bold text-brand-900 dark:text-brand-100"
-      />
+      <div className="mt-2 flex items-baseline gap-2">
+        <Contador
+          valor={valor}
+          className="block font-display text-3xl font-bold text-brand-900 dark:text-brand-100"
+        />
+        {variacao ? (
+          <span
+            className={`text-xs font-medium ${CORES_VARIACAO[variacao.direcao]}`}
+          >
+            {variacao.direcao === "alta" ? "▲ " : null}
+            {variacao.direcao === "queda" ? "▼ " : null}
+            {variacao.texto}
+            {referencia ? ` vs. ${referencia}` : null}
+          </span>
+        ) : null}
+      </div>
       {detalhe ? <p className="mt-1 text-xs text-slate-400">{detalhe}</p> : null}
     </div>
   );
@@ -78,113 +103,6 @@ function FiltroPeriodo({ dias }: { dias: number }) {
         </Link>
       ))}
     </nav>
-  );
-}
-
-function rotuloOrigem(valor: string | null, vazio: string): string {
-  return valor ?? vazio;
-}
-
-function TabelaOrigens({
-  origens,
-  dias,
-  visitasPeriodo,
-}: {
-  origens: OrigemAgregada[];
-  dias: number;
-  visitasPeriodo?: number;
-}) {
-  const totalPeriodo = origens.reduce((soma, o) => soma + o.total, 0);
-  // Antes da migração 0013 não há contagem de visitas — esconde as colunas.
-  const medeVisitas = visitasPeriodo !== undefined;
-  return (
-    <section className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-brand-900 dark:text-brand-100">
-        Origem do tráfego
-      </h3>
-      <p className="mt-1 text-xs text-slate-400">
-        Últimos {dias} dias por UTM da campanha (anúncios da Meta, links
-        divulgados). Sem UTM = acesso direto ou orgânico.
-        {medeVisitas
-          ? " Conversão = inscrições ÷ visitas."
-          : null}
-      </p>
-      {origens.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">
-          Nenhuma visita ou inscrição no período.
-        </p>
-      ) : (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
-                <th className="py-2 pr-4 font-medium">Fonte</th>
-                <th className="py-2 pr-4 font-medium">Meio</th>
-                <th className="py-2 pr-4 font-medium">Campanha</th>
-                {medeVisitas ? (
-                  <th className="py-2 pr-4 text-right font-medium">Visitas</th>
-                ) : null}
-                <th className="py-2 text-right font-medium">Inscrições</th>
-                {medeVisitas ? (
-                  <th className="py-2 pl-4 text-right font-medium">
-                    Conversão
-                  </th>
-                ) : null}
-              </tr>
-            </thead>
-            <tbody>
-              {origens.map((o, i) => (
-                <tr
-                  key={`${o.source}-${o.medium}-${o.campaign}-${i}`}
-                  className="border-b border-slate-100 last:border-0"
-                >
-                  <td className="py-2 pr-4 font-medium text-brand-900 dark:text-brand-100">
-                    {rotuloOrigem(o.source, "direto / orgânico")}
-                  </td>
-                  <td className="py-2 pr-4 text-slate-500">
-                    {rotuloOrigem(o.medium, "—")}
-                  </td>
-                  <td className="py-2 pr-4 text-slate-500">
-                    {rotuloOrigem(o.campaign, "—")}
-                  </td>
-                  {medeVisitas ? (
-                    <td className="py-2 pr-4 text-right tabular-nums text-slate-500">
-                      {o.visitas ?? 0}
-                    </td>
-                  ) : null}
-                  <td className="py-2 text-right tabular-nums text-brand-900 dark:text-brand-100">
-                    {o.total}
-                  </td>
-                  {medeVisitas ? (
-                    <td className="py-2 pl-4 text-right tabular-nums text-slate-500">
-                      {formatarTaxaConversao(o.visitas, o.total)}
-                    </td>
-                  ) : null}
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="text-xs text-slate-400">
-                <td className="pt-2" colSpan={3}>
-                  Total no período
-                </td>
-                {medeVisitas ? (
-                  <td className="pt-2 text-right tabular-nums">
-                    {visitasPeriodo}
-                  </td>
-                ) : null}
-                <td className="pt-2 text-right tabular-nums">{totalPeriodo}</td>
-                {medeVisitas ? (
-                  <td className="pt-2 pl-4 text-right tabular-nums">
-                    {formatarTaxaConversao(visitasPeriodo, totalPeriodo)}
-                  </td>
-                ) : null}
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      )}
-    </section>
   );
 }
 
@@ -256,11 +174,18 @@ export default async function RelatoriosPage({
             rotulo="Hoje"
             valor={metricas.hoje}
             detalhe="Novas inscrições de hoje"
+            variacao={compararPeriodos(metricas.hoje, metricas.ontem)}
+            referencia="ontem"
           />
           <Cartao
             rotulo="Últimos 7 dias"
             valor={metricas.semana}
             detalhe="Inclui o dia de hoje"
+            variacao={compararPeriodos(
+              metricas.semana,
+              metricas.semana_anterior,
+            )}
+            referencia="semana anterior"
           />
         </div>
 
@@ -273,6 +198,28 @@ export default async function RelatoriosPage({
             visitasPeriodo={metricas.visitas_periodo}
           />
         ) : null}
+
+        <GeradorUtm
+          enderecoBase={`https://${process.env.DOMINIO_LANDING ?? "coworkingsocial.com.br"}/`}
+        />
+
+        <p className="text-xs text-slate-400">
+          Exportar CSV:{" "}
+          <a
+            href={`/relatorios/exportar?tipo=origens&dias=${dias}`}
+            className="underline transition hover:text-brand-900 dark:hover:text-brand-100"
+          >
+            origens do tráfego
+          </a>{" "}
+          ·{" "}
+          <a
+            href={`/relatorios/exportar?tipo=serie&dias=${dias}`}
+            className="underline transition hover:text-brand-900 dark:hover:text-brand-100"
+          >
+            série diária
+          </a>{" "}
+          — abre direto no Excel/planilha.
+        </p>
       </div>
     </main>
   );
