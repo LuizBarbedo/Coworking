@@ -8,6 +8,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { SenhaForm } from "@/components/painel/senha-form";
 import { GraficoEvolucao } from "@/components/painel/grafico-evolucao";
 import { TabelaOrigens } from "@/components/painel/tabela-origens";
+import { GeradorUtm } from "@/components/painel/gerador-utm";
 import { TemaToggle } from "@/components/ui/tema-toggle";
 import { Contador } from "@/components/ui/contador";
 
@@ -197,6 +198,10 @@ export default async function RelatoriosPage({
             visitasPeriodo={metricas.visitas_periodo}
           />
         ) : null}
+
+        <GeradorUtm
+          enderecoBase={`https://${process.env.DOMINIO_LANDING ?? "coworkingsocial.com.br"}/`}
+        />
 
         <p className="text-xs text-slate-400">
           Exportar CSV:{" "}
