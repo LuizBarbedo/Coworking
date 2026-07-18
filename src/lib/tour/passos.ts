@@ -78,6 +78,21 @@ const TOURS: Record<PerfilTour, PassoTour[]> = {
         "E este assistente te acompanha em todas as telas — é só chamar quando bater uma dúvida.",
       audio: "/tour/aluno/assistente.mp3",
     },
+    {
+      seletor: "forum",
+      titulo: "Fórum da turma",
+      descricao:
+        "No fórum você tira dúvidas com os colegas, abre enquetes e vota nas respostas mais úteis. Vamos dar uma olhada.",
+      audio: "/tour/aluno/forum.mp3",
+    },
+    {
+      seletor: "forum-novo",
+      linkDe: "forum",
+      titulo: "Publique sua dúvida",
+      descricao:
+        "É por aqui que você cria uma dúvida ou enquete. Toda publicação passa por uma moderação rapidinha antes de ir pro ar.",
+      audio: "/tour/aluno/forum-novo.mp3",
+    },
   ],
   master: [
     {
@@ -136,6 +151,13 @@ const TOURS: Record<PerfilTour, PassoTour[]> = {
       descricao:
         "O assistente também fica disponível para você testar as respostas.",
       audio: "/tour/master/assistente.mp3",
+    },
+    {
+      seletor: "master-forum",
+      titulo: "Moderação do fórum",
+      descricao:
+        "As publicações dos alunos que a IA marcar pra revisão caem nesta aba — aprove ou rejeite com um motivo.",
+      audio: "/tour/master/forum.mp3",
     },
   ],
 };

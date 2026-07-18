@@ -88,6 +88,20 @@ NARRACAO = [
     ("master", "assistente",
      "O assistente também fica à sua disposição, pra você testar as "
      "respostas antes de liberar para os alunos. Bom trabalho!"),
+    # --- Fórum ---
+    ("aluno", "forum",
+     "Ah, e tem mais! Este aqui é o fórum da turma. Nele você tira "
+     "dúvidas com os colegas, abre enquetes e vota nas respostas mais "
+     "úteis. Vem ver!"),
+    ("aluno", "forum-novo",
+     "E é por este botão que você cria a sua publicação: uma dúvida ou "
+     "uma enquete. Só um detalhe: toda publicação passa por uma "
+     "moderação rapidinha antes de ir pro ar, tá? Participe bastante — "
+     "a comunidade fica melhor com você!"),
+    ("master", "forum",
+     "E esta é a aba de moderação do fórum. As publicações dos alunos "
+     "que a inteligência artificial marcar pra revisão caem aqui — você "
+     "aprova, ou rejeita com um motivo."),
 ]
 
 
@@ -118,6 +132,11 @@ def main() -> None:
         destino = base / perfil
         destino.mkdir(parents=True, exist_ok=True)
         arquivo = destino / f"{passo}.mp3"
+        # Não regenera clipe existente (mantém as vozes já publicadas e o
+        # custo baixo) — apague o .mp3 pra forçar uma nova gravação.
+        if arquivo.exists():
+            print(f"mantido {arquivo}")
+            continue
         arquivo.write_bytes(sintetizar(texto, chave))
         print(f"salvo {arquivo}")
 

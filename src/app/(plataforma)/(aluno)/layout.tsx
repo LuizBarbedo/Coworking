@@ -48,13 +48,16 @@ export default async function AlunoLayout({
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/forum"
-              data-tour="forum"
-              className="text-sm font-medium text-slate-600 transition hover:text-brand-900 dark:text-slate-300 dark:hover:text-brand-100"
-            >
-              Fórum
-            </Link>
+            {/* Wrapper com data-tour: o tour navega pelo 1º link DE DENTRO
+                do contêiner, então o atributo não pode ficar no próprio <a>. */}
+            <span data-tour="forum">
+              <Link
+                href="/forum"
+                className="text-sm font-medium text-slate-600 transition hover:text-brand-900 dark:text-slate-300 dark:hover:text-brand-100"
+              >
+                Fórum
+              </Link>
+            </span>
             {ehEquipe ? (
               <Link
                 href="/master"
