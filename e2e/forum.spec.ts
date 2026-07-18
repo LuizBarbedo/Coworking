@@ -57,6 +57,8 @@ test.describe("fórum com moderação prévia", () => {
     page,
     browser,
   }) => {
+    // Fluxo longo: 3 sessões e 2 moderações de IA reais (até 20s cada).
+    test.setTimeout(180_000);
     // Aluno do setup (sessão compartilhada) publica o spam.
     await page.goto("/forum/novo");
     await page.fill("#post-titulo", SPAM.titulo);
@@ -72,7 +74,10 @@ test.describe("fórum com moderação prévia", () => {
     const outroEmail = emailDeTeste("forum-leitor");
     const outraSenha = `E2e!${Date.now()}`;
     await criarAlunoAtivado(outroEmail, outraSenha);
-    const contextoLeitor = await browser.newContext();
+    // newContext herda o storageState do test.use — zera pra logar de novo.
+    const contextoLeitor = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
     const paginaLeitor = await contextoLeitor.newPage();
     await logarNumaNovaSessao(paginaLeitor, outroEmail, outraSenha);
     await paginaLeitor.goto("/forum");
@@ -86,7 +91,9 @@ test.describe("fórum com moderação prévia", () => {
     const modEmail = emailDeTeste("forum-mod");
     const modSenha = `E2e!${Date.now()}`;
     await criarMembroEquipe(modEmail, modSenha, "monitor", ["moderar_forum"]);
-    const contextoMod = await browser.newContext();
+    const contextoMod = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
     const paginaMod = await contextoMod.newPage();
     await logarNumaNovaSessao(paginaMod, modEmail, modSenha);
     await paginaMod.waitForURL(/\/master\/forum/, { timeout: 30_000 });
