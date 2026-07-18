@@ -28,6 +28,7 @@ export function NavMaster({ abas }: { abas: AbaMaster[] }) {
           <Link
             key={aba.href}
             href={aba.href}
+            data-tour={aba.href === "/master/forum" ? "master-forum" : undefined}
             aria-current={ativo ? "page" : undefined}
             className={`-mb-px whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
               ativo
