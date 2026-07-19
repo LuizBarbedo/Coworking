@@ -19,6 +19,7 @@ import {
 import { isValidCPF, unmaskCPF } from "@/lib/cpf";
 import { isValidPhone, unmaskPhone } from "@/lib/phone";
 import { urlDaPlataforma } from "@/lib/urls";
+import { registrarConviteIndividual } from "@/lib/convites";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -206,7 +207,7 @@ export async function cadastrarAluno(
   const { data, error } = await admin
     .from("inscricoes")
     .insert({ nome, cpf, email, telefone, selecionado: true })
-    .select("matricula")
+    .select("id, matricula")
     .single();
 
   if (error) {
@@ -220,13 +221,21 @@ export async function cadastrarAluno(
 
   revalidatePath("/master/equipe");
   const linkPrimeiroAcesso = `${urlDaPlataforma()}/primeiro-acesso`;
+  const inscricaoId = (data as { id?: string }).id ?? null;
   try {
     await enviarEmailConviteAluno({
       nome,
       email,
       matricula: data.matricula as string,
     });
-  } catch {
+    await registrarConviteIndividual({ inscricaoId, email, ok: true });
+  } catch (erro) {
+    await registrarConviteIndividual({
+      inscricaoId,
+      email,
+      ok: false,
+      erro: erro instanceof Error ? erro.message.slice(0, 500) : "erro",
+    });
     return {
       ok: `Aluno cadastrado (matrícula ${data.matricula}), mas o e-mail falhou — mande o link direto com a matrícula:`,
       link: linkPrimeiroAcesso,
@@ -249,7 +258,7 @@ export async function reenviarConviteAluno(
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("inscricoes")
-    .select("nome, email, matricula, ativado_em, selecionado")
+    .select("id, nome, email, matricula, ativado_em, selecionado")
     .eq("id", inscricaoId)
     .single();
 
@@ -263,7 +272,18 @@ export async function reenviarConviteAluno(
       email: data.email,
       matricula: data.matricula,
     });
-  } catch {
+    await registrarConviteIndividual({
+      inscricaoId: data.id,
+      email: data.email,
+      ok: true,
+    });
+  } catch (erro) {
+    await registrarConviteIndividual({
+      inscricaoId: data.id,
+      email: data.email,
+      ok: false,
+      erro: erro instanceof Error ? erro.message.slice(0, 500) : "erro",
+    });
     return { error: "Falha ao enviar o e-mail do convite." };
   }
   return { ok: `Convite reenviado pra ${data.email}.` };

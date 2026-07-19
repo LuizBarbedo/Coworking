@@ -27,6 +27,8 @@ export default async function MasterLayout({
     abas.push({ href: "/master/forum", rotulo: "Fórum de dúvidas" });
   if (sessao?.nivel === "admin")
     abas.push({ href: "/master/equipe", rotulo: "Equipe" });
+  if (sessao?.nivel === "admin")
+    abas.push({ href: "/master/emails", rotulo: "E-mails" });
 
   return (
     <ContextoIAProvider>
