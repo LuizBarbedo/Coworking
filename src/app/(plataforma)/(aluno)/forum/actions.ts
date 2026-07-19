@@ -7,6 +7,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { exigirAluno, getSessaoEquipe } from "@/lib/auth";
+import { registrarEvento } from "@/lib/auditoria";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { moderarConteudo } from "@/lib/forum/moderacao";
@@ -151,6 +152,13 @@ export async function criarPost(
     await aplicarVeredito("forum_posts", post.id, veredito);
   }
 
+  await registrarEvento({
+    acao: "forum.post_criado",
+    atorId: aluno.id,
+    atorPapel: ehEquipe ? "equipe" : "aluno",
+    alvoTipo: "post",
+    alvoId: post.id,
+  });
   revalidatePath("/forum");
   redirect(`/forum/${post.id}`);
 }
@@ -211,6 +219,13 @@ export async function criarResposta(
     }
   }
 
+  await registrarEvento({
+    acao: "forum.resposta_criada",
+    atorId: aluno.id,
+    atorPapel: ehEquipe ? "equipe" : "aluno",
+    alvoTipo: "resposta",
+    alvoId: resposta.id,
+  });
   revalidatePath(`/forum/${postId}`);
   return {
     ok: ehEquipe
@@ -285,6 +300,12 @@ export async function editarPost(
     .eq("id", postId);
   if (error) return { error: "Não foi possível salvar a edição." };
 
+  await registrarEvento({
+    acao: "forum.post_editado",
+    atorId: aluno.id,
+    alvoTipo: "post",
+    alvoId: postId,
+  });
   revalidatePath(`/forum/${postId}`);
   revalidatePath("/forum");
   return { ok: "Edição salva." };
@@ -369,6 +390,12 @@ export async function apagarPost(
   const { error } = await admin.from("forum_posts").delete().eq("id", postId);
   if (error) return { error: "Não foi possível apagar a publicação." };
 
+  await registrarEvento({
+    acao: "forum.post_apagado",
+    atorId: aluno.id,
+    alvoTipo: "post",
+    alvoId: postId,
+  });
   revalidatePath("/forum");
   redirect("/forum");
 }

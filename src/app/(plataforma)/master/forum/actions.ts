@@ -6,6 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { registrarEvento } from "@/lib/auditoria";
 import {
   notificarNovaResposta,
   notificarPostAprovado,
@@ -65,6 +66,14 @@ async function moderar(
     }
   }
 
+  await registrarEvento({
+    acao: status === "aprovado" ? "moderacao.aprovado" : "moderacao.rejeitado",
+    atorId: moderador.id,
+    atorPapel: "equipe",
+    alvoTipo: item.tipo,
+    alvoId: item.id,
+    detalhes: status === "rejeitado" && motivo ? { motivo } : null,
+  });
   revalidatePath("/master/forum");
   revalidatePath("/forum");
   return {

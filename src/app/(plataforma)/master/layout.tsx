@@ -29,6 +29,7 @@ export default async function MasterLayout({
     abas.push({ href: "/master/alunos", rotulo: "Alunos" });
     abas.push({ href: "/master/equipe", rotulo: "Equipe" });
     abas.push({ href: "/master/emails", rotulo: "E-mails" });
+    abas.push({ href: "/master/eventos", rotulo: "Eventos" });
   }
 
   return (

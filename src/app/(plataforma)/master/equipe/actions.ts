@@ -20,6 +20,7 @@ import { isValidCPF, unmaskCPF } from "@/lib/cpf";
 import { isValidPhone, unmaskPhone } from "@/lib/phone";
 import { urlDaPlataforma } from "@/lib/urls";
 import { registrarConviteIndividual } from "@/lib/convites";
+import { registrarEvento } from "@/lib/auditoria";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -57,7 +58,7 @@ export async function cadastrarMonitor(
   _prev: EquipeState,
   formData: FormData,
 ): Promise<EquipeState> {
-  await exigirAdmin();
+  const executor = await exigirAdmin();
 
   const nome = String(formData.get("nome") ?? "").trim();
   const email = String(formData.get("email") ?? "")
@@ -84,6 +85,12 @@ export async function cadastrarMonitor(
     };
   }
 
+  await registrarEvento({
+    acao: "equipe.monitor_criado",
+    atorId: executor.id,
+    atorPapel: "equipe",
+    detalhes: { email, permissoes },
+  });
   revalidatePath("/master/equipe");
   const link = await montarLinkConvite(admin, email);
   if (!link) {
@@ -136,7 +143,7 @@ export async function atualizarPermissoesMonitor(
   _prev: EquipeState,
   formData: FormData,
 ): Promise<EquipeState> {
-  await exigirAdmin();
+  const executor = await exigirAdmin();
   const userId = String(formData.get("userId") ?? "");
   const permissoes = lerPermissoesDoForm(formData);
   if (!userId) return { error: "Conta inválida." };
@@ -154,6 +161,14 @@ export async function atualizarPermissoesMonitor(
   });
   if (erroUpdate) return { error: "Não foi possível salvar as permissões." };
 
+  await registrarEvento({
+    acao: "equipe.permissoes_alteradas",
+    atorId: executor.id,
+    atorPapel: "equipe",
+    alvoTipo: "usuario",
+    alvoId: userId,
+    detalhes: { permissoes },
+  });
   revalidatePath("/master/equipe");
   return { ok: "Permissões salvas." };
 }
@@ -162,7 +177,7 @@ export async function removerMonitor(
   _prev: EquipeState,
   formData: FormData,
 ): Promise<EquipeState> {
-  await exigirAdmin();
+  const executor = await exigirAdmin();
   const userId = String(formData.get("userId") ?? "");
   if (!userId) return { error: "Conta inválida." };
 
@@ -179,6 +194,13 @@ export async function removerMonitor(
   });
   if (erroUpdate) return { error: "Não foi possível remover o monitor." };
 
+  await registrarEvento({
+    acao: "equipe.monitor_removido",
+    atorId: executor.id,
+    atorPapel: "equipe",
+    alvoTipo: "usuario",
+    alvoId: userId,
+  });
   revalidatePath("/master/equipe");
   return { ok: "Monitor removido da equipe." };
 }

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { registrarEvento } from "@/lib/auditoria";
 
 export type AuthState = { error?: string } | undefined;
 
@@ -24,12 +25,16 @@ export async function login(
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
     return { error: "E-mail ou senha incorretos." };
   }
 
+  await registrarEvento({ acao: "sessao.login", atorId: data.user?.id });
   redirect(redirectTo.startsWith("/") ? redirectTo : "/painel");
 }
 
@@ -114,6 +119,11 @@ export async function primeiroAcesso(
     .from("inscricoes")
     .update({ ativado_em: new Date().toISOString() })
     .eq("id", inscricao.id);
+  await registrarEvento({
+    acao: "conta.ativada",
+    alvoTipo: "inscricao",
+    alvoId: inscricao.id,
+  });
 
   // Já autentica o aluno e grava a sessão nos cookies.
   const supabase = await createSupabaseServerClient();
@@ -133,6 +143,10 @@ export async function primeiroAcesso(
 /** Encerra a sessão do aluno. */
 export async function logout() {
   const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   await supabase.auth.signOut();
+  await registrarEvento({ acao: "sessao.logout", atorId: user?.id });
   redirect("/login");
 }

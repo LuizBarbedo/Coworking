@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { exigirAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { registrarEvento } from "@/lib/auditoria";
 
 export type MarcarState = { ok: true } | { error: string } | undefined;
 
@@ -27,6 +28,12 @@ export async function marcarAulaAssistida(
 
   if (error) return { error: "Não foi possível registrar o progresso." };
 
+  await registrarEvento({
+    acao: "aula.assistida",
+    atorId: aluno.id,
+    alvoTipo: "aula",
+    alvoId: aulaId,
+  });
   if (caminho.startsWith("/")) revalidatePath(caminho);
   revalidatePath("/painel");
   return { ok: true };
@@ -45,7 +52,7 @@ export async function submeterQuiz(
   _prev: QuizState,
   formData: FormData,
 ): Promise<QuizState> {
-  await exigirAluno();
+  const aluno = await exigirAluno();
 
   const quizId = String(formData.get("quizId") ?? "");
   if (!quizId) return { error: "Avaliação inválida." };
@@ -73,6 +80,16 @@ export async function submeterQuiz(
   const resultado = Array.isArray(data) ? data[0] : data;
   if (!resultado) return { error: "Não foi possível corrigir a avaliação." };
 
+  await registrarEvento({
+    acao: "quiz.tentativa",
+    atorId: aluno.id,
+    alvoTipo: "quiz",
+    alvoId: quizId,
+    detalhes: {
+      nota: Number(resultado.nota),
+      aprovado: Boolean(resultado.aprovado),
+    },
+  });
   // Atualiza o painel (progresso/declaração) na próxima visita.
   revalidatePath("/painel");
 

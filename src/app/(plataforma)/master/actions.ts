@@ -15,6 +15,7 @@ import {
 } from "@/lib/r2";
 import { classificarVideo, resolverVideoAoAtualizar } from "@/lib/video";
 import { timestampDeSaoPaulo } from "@/lib/datas";
+import { registrarEvento } from "@/lib/auditoria";
 
 /**
  * Reconstrói o índice do assistente de IA da disciplina. Best-effort: uma falha
@@ -172,7 +173,7 @@ export async function atualizarModulo(
   _prev: AcaoState,
   formData: FormData,
 ): Promise<AcaoState> {
-  await exigirPermissao("editar_conteudo");
+  const editor = await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
@@ -218,6 +219,14 @@ export async function atualizarModulo(
     return { error: "Não foi possível salvar o módulo." };
   }
 
+  await registrarEvento({
+    acao: "conteudo.modulo_salvo",
+    atorId: editor.id,
+    atorPapel: "equipe",
+    alvoTipo: "modulo",
+    alvoId: id,
+    detalhes: { publicado: Boolean(dados.publicado) },
+  });
   revalidatePath(`/master/modulos/${id}`);
   revalidatePath("/master");
   return { ok: "Módulo salvo." };
@@ -227,12 +236,19 @@ export async function excluirModulo(
   _prev: AcaoState,
   formData: FormData,
 ): Promise<AcaoState> {
-  await exigirPermissao("editar_conteudo");
+  const editor = await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "Módulo inválido." };
   const { error } = await admin.from("modulos").delete().eq("id", id);
   if (error) return { error: "Não foi possível excluir o módulo." };
+  await registrarEvento({
+    acao: "conteudo.modulo_excluido",
+    atorId: editor.id,
+    atorPapel: "equipe",
+    alvoTipo: "modulo",
+    alvoId: id,
+  });
   revalidatePath("/master");
   redirect("/master");
 }
