@@ -47,7 +47,6 @@ export function RegistrationForm() {
     capturarOrigem();
   }, []);
   const [fieldError, setFieldError] = useState<{ field?: FieldKey; message: string } | null>(null);
-  const [matricula, setMatricula] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const update = (field: FieldKey, raw: string) => {
@@ -61,7 +60,6 @@ export function RegistrationForm() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFieldError(null);
-    setMatricula(null);
 
     startTransition(async () => {
       const result = await registerInscription({
@@ -69,45 +67,21 @@ export function RegistrationForm() {
         origem: capturarOrigem(),
       });
       if (result.ok) {
-        setMatricula(result.matricula);
-        setValues(initialValues);
+        // Página de destino dedicada: o Google Ads (e um futuro pixel da
+        // Meta) conta a conversão pelo carregamento da URL. Navegação de
+        // página cheia DE PROPÓSITO — garante o page_view da tag; a
+        // matrícula vai por sessionStorage, nunca pela URL.
+        try {
+          sessionStorage.setItem("csmg-matricula", result.matricula);
+        } catch {
+          // sem storage, a página mostra a mensagem genérica (vai por e-mail)
+        }
+        window.location.assign("/inscricao-realizada");
         return;
       }
       setFieldError({ field: result.field, message: result.error });
     });
   };
-
-  if (matricula) {
-    return (
-      <div className="animate-escalar rounded-2xl border border-brand-200 bg-superficie p-8 shadow-sm dark:border-brand-700">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
-          Inscrição recebida!
-        </h2>
-        <p className="mt-3 text-brand-800/80 dark:text-brand-100/80">
-          Em breve você receberá no seu e-mail os próximos passos para acessar
-          os cursos.
-        </p>
-        <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-700 dark:bg-brand-900/40">
-          <p className="text-xs font-medium uppercase tracking-wide text-brand-800/70 dark:text-brand-100/70">
-            Seu número de matrícula
-          </p>
-          <p className="mt-2 inline-block rounded-lg bg-ambar-100/60 px-3 py-2 font-display text-2xl font-bold tracking-wide text-brand-900 dark:bg-brand-800 dark:text-brand-100">
-            {matricula}
-          </p>
-          <p className="mt-2 text-xs text-brand-800/70 dark:text-brand-100/70">
-            Guarde este número: ele identifica você na plataforma.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setMatricula(null)}
-          className="mt-6 text-sm font-medium text-brand-700 underline-offset-4 transition hover:underline dark:text-brand-300"
-        >
-          Fazer outra inscrição
-        </button>
-      </div>
-    );
-  }
 
   return (
     <form

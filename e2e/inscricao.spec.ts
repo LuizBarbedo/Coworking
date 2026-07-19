@@ -47,13 +47,13 @@ test.describe("inscrição na landing", () => {
     await page.fill("#telefone", "(21) 99999-8888");
     await page.getByRole("button", { name: /quero me inscrever/i }).click();
 
-    await expect(page.getByText("Inscrição recebida!")).toBeVisible({
-      timeout: 20_000,
-    });
+    // Sucesso navega pra página de conversão (o Google Ads conta a URL).
+    await page.waitForURL(/\/inscricao-realizada/, { timeout: 20_000 });
+    await expect(page.getByText("Inscrição recebida!")).toBeVisible();
     await expect(page.getByText(/seu número de matrícula/i)).toBeVisible();
 
     // Mesmo CPF/e-mail de novo → recusa com a mensagem certa.
-    await page.getByRole("button", { name: /fazer outra inscrição/i }).click();
+    await page.goto(URL_LANDING);
     await page.fill("#nome", "Aluno E2E Inscrição");
     await page.fill("#cpf", mascararCpf(cpf));
     await page.fill("#email", email);
