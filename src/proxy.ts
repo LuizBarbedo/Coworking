@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { bloquearRotaNaLanding } from "@/lib/lancamento";
+import {
+  bloquearRotaNaLanding,
+  raizDaPlataformaVaiProLogin,
+} from "@/lib/lancamento";
 
 // Rotas da área do aluno (exigem login). A inscrição pública ("/") fica de fora.
 const ROTAS_PROTEGIDAS = ["/painel", "/modulos", "/master"];
@@ -26,6 +29,19 @@ export async function proxy(request: NextRequest) {
   ) {
     const redirect = request.nextUrl.clone();
     redirect.pathname = "/";
+    redirect.search = "";
+    return NextResponse.redirect(redirect);
+  }
+
+  // Link do aluno (app.<domínio>): a raiz vai direto pro login.
+  if (
+    raizDaPlataformaVaiProLogin(host, request.nextUrl.pathname, {
+      DOMINIO_LANDING: process.env.DOMINIO_LANDING,
+      PLATAFORMA_LIBERADA: process.env.PLATAFORMA_LIBERADA,
+    })
+  ) {
+    const redirect = request.nextUrl.clone();
+    redirect.pathname = "/login";
     redirect.search = "";
     return NextResponse.redirect(redirect);
   }

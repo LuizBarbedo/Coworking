@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bloquearRotaNaLanding } from "./lancamento";
+import { bloquearRotaNaLanding, raizDaPlataformaVaiProLogin } from "./lancamento";
 
 const env = {
   DOMINIO_LANDING: "coworkingsocial.com.br",
@@ -65,5 +65,40 @@ describe("bloquearRotaNaLanding", () => {
   it("não bloqueia hosts que não são o domínio principal (dev, IP)", () => {
     expect(bloquearRotaNaLanding("localhost", "/login", env)).toBe(false);
     expect(bloquearRotaNaLanding("147.79.107.52", "/login", env)).toBe(false);
+  });
+});
+
+describe("raizDaPlataformaVaiProLogin", () => {
+  it("manda a raiz do subdomínio da plataforma pro login", () => {
+    expect(
+      raizDaPlataformaVaiProLogin("app.coworkingsocial.com.br", "/", env),
+    ).toBe(true);
+  });
+
+  it("não mexe em outras rotas do subdomínio", () => {
+    for (const rota of ["/login", "/painel", "/privacidade", "/forum"]) {
+      expect(
+        raizDaPlataformaVaiProLogin("app.coworkingsocial.com.br", rota, env),
+      ).toBe(false);
+    }
+  });
+
+  it("não mexe na raiz do domínio principal (landing) nem em dev", () => {
+    expect(
+      raizDaPlataformaVaiProLogin("coworkingsocial.com.br", "/", env),
+    ).toBe(false);
+    expect(raizDaPlataformaVaiProLogin("localhost", "/", env)).toBe(false);
+  });
+
+  it("segue valendo depois do lançamento e desliga sem DOMINIO_LANDING", () => {
+    expect(
+      raizDaPlataformaVaiProLogin("app.coworkingsocial.com.br", "/", {
+        ...env,
+        PLATAFORMA_LIBERADA: "sim",
+      }),
+    ).toBe(true);
+    expect(raizDaPlataformaVaiProLogin("app.coworkingsocial.com.br", "/", {})).toBe(
+      false,
+    );
   });
 });
