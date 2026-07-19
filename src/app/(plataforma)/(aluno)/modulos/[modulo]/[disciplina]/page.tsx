@@ -10,6 +10,8 @@ import { ListaAulas } from "@/components/ava/lista-aulas";
 import { AbasDisciplina } from "@/components/ava/abas-disciplina";
 import { QuizForm } from "@/components/ava/quiz-form";
 import { ChatIA } from "@/components/ava/chat-ia";
+import { NavSequencial } from "@/components/ava/nav-sequencial";
+import { vizinhasDe } from "@/lib/navegacao-curso";
 
 type Params = { modulo: string; disciplina: string };
 
@@ -59,7 +61,7 @@ export default async function DisciplinaPage({
   const { supabase, modulo, disciplina } = ctx;
   const caminho = `/modulos/${moduloSlug}/${disciplinaSlug}`;
 
-  const [{ data: aulas }, { data: materiais }, { data: quiz }] =
+  const [{ data: aulas }, { data: materiais }, { data: quiz }, { data: curriculo }] =
     await Promise.all([
       supabase
         .from("aulas")
@@ -78,7 +80,15 @@ export default async function DisciplinaPage({
         .select("id, titulo, nota_minima")
         .eq("disciplina_id", disciplina.id)
         .maybeSingle(),
+      // Currículo publicado inteiro (RLS filtra), pra navegação anterior/próxima.
+      supabase
+        .from("modulos")
+        .select("slug, titulo, disciplinas(slug, titulo, ordem)")
+        .order("ordem", { ascending: true })
+        .order("ordem", { ascending: true, referencedTable: "disciplinas" }),
     ]);
+
+  const vizinhas = vizinhasDe(curriculo ?? [], moduloSlug, disciplinaSlug);
 
   const aulaIds = (aulas ?? []).map((a) => a.id as string);
 
@@ -279,6 +289,8 @@ export default async function DisciplinaPage({
           }}
         />
       </div>
+
+      <NavSequencial {...vizinhas} />
     </div>
   );
 }
