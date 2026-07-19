@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { AcaoState } from "@/lib/acao";
 import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { reconstruirChunks } from "@/lib/ia/conhecimento";
@@ -96,12 +97,15 @@ async function proximaOrdem(
 
 
 // ─── módulos ─────────────────────────────────────────────────────────────────
-export async function criarModulo(formData: FormData) {
+export async function criarModulo(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const titulo = String(formData.get("titulo") ?? "").trim();
-  if (!titulo) return;
+  if (!titulo) return { error: "Dê um título ao módulo." };
   const descricao = String(formData.get("descricao") ?? "").trim() || null;
   const instrutor = String(formData.get("instrutor") ?? "").trim() || null;
 
@@ -112,21 +116,24 @@ export async function criarModulo(formData: FormData) {
     .select("id")
     .single();
 
-  if (error || !data) return;
+  if (error || !data) return { error: "Não foi possível criar o módulo." };
   revalidatePath("/master");
   redirect(`/master/modulos/${data.id}`);
 }
 
-export async function atualizarModulo(formData: FormData) {
+export async function atualizarModulo(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) return { error: "Módulo inválido." };
   const titulo = String(formData.get("titulo") ?? "").trim();
-  if (!titulo) return;
+  if (!titulo) return { error: "Dê um título ao módulo." };
 
-  await admin
+  const { error } = await admin
     .from("modulos")
     .update({
       titulo,
@@ -135,29 +142,38 @@ export async function atualizarModulo(formData: FormData) {
       publicado: formData.get("publicado") === "on",
     })
     .eq("id", id);
+  if (error) return { error: "Não foi possível salvar o módulo." };
 
   revalidatePath(`/master/modulos/${id}`);
   revalidatePath("/master");
+  return { ok: "Módulo salvo." };
 }
 
-export async function excluirModulo(formData: FormData) {
+export async function excluirModulo(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
-  await admin.from("modulos").delete().eq("id", id);
+  if (!id) return { error: "Módulo inválido." };
+  const { error } = await admin.from("modulos").delete().eq("id", id);
+  if (error) return { error: "Não foi possível excluir o módulo." };
   revalidatePath("/master");
   redirect("/master");
 }
 
 // ─── disciplinas ─────────────────────────────────────────────────────────────
-export async function criarDisciplina(formData: FormData) {
+export async function criarDisciplina(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const moduloId = String(formData.get("modulo_id") ?? "");
   const titulo = String(formData.get("titulo") ?? "").trim();
-  if (!moduloId || !titulo) return;
+  if (!moduloId || !titulo) return { error: "Dê um título à disciplina." };
 
   const slug = await slugDisciplinaUnico(admin, moduloId, slugify(titulo));
   const ordem = await proximaOrdem(admin, "disciplinas", "modulo_id", moduloId);
@@ -175,17 +191,21 @@ export async function criarDisciplina(formData: FormData) {
     .single();
 
   revalidatePath(`/master/modulos/${moduloId}`);
-  if (data) redirect(`/master/disciplinas/${data.id}`);
+  if (!data) return { error: "Não foi possível criar a disciplina." };
+  redirect(`/master/disciplinas/${data.id}`);
 }
 
-export async function atualizarDisciplina(formData: FormData) {
+export async function atualizarDisciplina(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const titulo = String(formData.get("titulo") ?? "").trim();
-  if (!id || !titulo) return;
+  if (!id || !titulo) return { error: "Dê um título à disciplina." };
 
-  await admin
+  const { error } = await admin
     .from("disciplinas")
     .update({
       titulo,
@@ -193,37 +213,47 @@ export async function atualizarDisciplina(formData: FormData) {
       publicado: formData.get("publicado") === "on",
     })
     .eq("id", id);
+  if (error) return { error: "Não foi possível salvar a disciplina." };
 
   await reindexarIA(admin, id);
   revalidatePath(`/master/disciplinas/${id}`);
+  return { ok: "Disciplina salva." };
 }
 
-export async function excluirDisciplina(formData: FormData) {
+export async function excluirDisciplina(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const moduloId = String(formData.get("modulo_id") ?? "");
-  if (!id) return;
-  await admin.from("disciplinas").delete().eq("id", id);
+  if (!id) return { error: "Disciplina inválida." };
+  const { error } = await admin.from("disciplinas").delete().eq("id", id);
+  if (error) return { error: "Não foi possível excluir a disciplina." };
   revalidatePath(`/master/modulos/${moduloId}`);
   if (moduloId) redirect(`/master/modulos/${moduloId}`);
+  return { ok: "Disciplina excluída." };
 }
 
 // ─── aulas ───────────────────────────────────────────────────────────────────
-export async function criarAula(formData: FormData) {
+export async function criarAula(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   const titulo = String(formData.get("titulo") ?? "").trim();
-  if (!disciplinaId || !titulo) return;
+  if (!disciplinaId || !titulo) return { error: "Dê um título à aula." };
 
   const { provider, uid } = classificarVideo(
     String(formData.get("video_link") ?? ""),
   );
   const ordem = await proximaOrdem(admin, "aulas", "disciplina_id", disciplinaId);
 
-  await admin.from("aulas").insert({
+  const { error } = await admin.from("aulas").insert({
     disciplina_id: disciplinaId,
     titulo,
     descricao: String(formData.get("descricao") ?? "").trim() || null,
@@ -231,9 +261,11 @@ export async function criarAula(formData: FormData) {
     video_uid: uid,
     ordem,
   });
+  if (error) return { error: "Não foi possível adicionar a aula." };
 
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Aula adicionada." };
 }
 
 /**
@@ -271,14 +303,17 @@ export async function criarAulaComId(
   return { id: data.id as string };
 }
 
-export async function atualizarAula(formData: FormData) {
+export async function atualizarAula(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   const titulo = String(formData.get("titulo") ?? "").trim();
-  if (!id || !titulo) return;
+  if (!id || !titulo) return { error: "Dê um título à aula." };
 
   // Link vazio não pode apagar um vídeo hospedado (r2) — o campo de link
   // fica em branco nessas aulas e "salvar" não significa "remover o vídeo".
@@ -293,7 +328,7 @@ export async function atualizarAula(formData: FormData) {
       undefined,
   );
 
-  await admin
+  const { error } = await admin
     .from("aulas")
     .update({
       titulo,
@@ -302,20 +337,27 @@ export async function atualizarAula(formData: FormData) {
       video_uid,
     })
     .eq("id", id);
+  if (error) return { error: "Não foi possível salvar a aula." };
 
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Aula salva." };
 }
 
-export async function excluirAula(formData: FormData) {
+export async function excluirAula(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
-  if (!id) return;
-  await admin.from("aulas").delete().eq("id", id);
+  if (!id) return { error: "Aula inválida." };
+  const { error } = await admin.from("aulas").delete().eq("id", id);
+  if (error) return { error: "Não foi possível excluir a aula." };
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Aula excluída." };
 }
 
 // ─── upload de vídeo (Cloudflare R2 + transcodificação) ───────────────────────
@@ -401,14 +443,19 @@ export async function finalizarUploadVideo(
 }
 
 // ─── materiais ───────────────────────────────────────────────────────────────
-export async function criarMaterial(formData: FormData) {
+export async function criarMaterial(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   const titulo = String(formData.get("titulo") ?? "").trim();
   const url = String(formData.get("url") ?? "").trim();
-  if (!disciplinaId || !titulo || !url) return;
+  if (!disciplinaId || !titulo || !url) {
+    return { error: "Preencha o título e o link do material." };
+  }
 
   const ordem = await proximaOrdem(
     admin,
@@ -416,19 +463,24 @@ export async function criarMaterial(formData: FormData) {
     "disciplina_id",
     disciplinaId,
   );
-  await admin.from("materiais").insert({
+  const { error } = await admin.from("materiais").insert({
     disciplina_id: disciplinaId,
     titulo,
     tipo: String(formData.get("tipo") ?? "pdf").trim() || "pdf",
     url,
     ordem,
   });
+  if (error) return { error: "Não foi possível adicionar o material." };
 
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Material adicionado." };
 }
 
-export async function atualizarMaterial(formData: FormData) {
+export async function atualizarMaterial(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
@@ -436,9 +488,11 @@ export async function atualizarMaterial(formData: FormData) {
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   const titulo = String(formData.get("titulo") ?? "").trim();
   const url = String(formData.get("url") ?? "").trim();
-  if (!id || !titulo || !url) return;
+  if (!id || !titulo || !url) {
+    return { error: "Preencha o título e o link do material." };
+  }
 
-  await admin
+  const { error } = await admin
     .from("materiais")
     .update({
       titulo,
@@ -446,20 +500,27 @@ export async function atualizarMaterial(formData: FormData) {
       url,
     })
     .eq("id", id);
+  if (error) return { error: "Não foi possível salvar o material." };
 
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Material salvo." };
 }
 
-export async function excluirMaterial(formData: FormData) {
+export async function excluirMaterial(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
-  if (!id) return;
-  await admin.from("materiais").delete().eq("id", id);
+  if (!id) return { error: "Material inválido." };
+  const { error } = await admin.from("materiais").delete().eq("id", id);
+  if (error) return { error: "Não foi possível excluir o material." };
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Material excluído." };
 }
 
 // ─── quiz (avaliação) ────────────────────────────────────────────────────────
@@ -479,31 +540,41 @@ async function garantirQuiz(admin: Admin, disciplinaId: string): Promise<string>
   return data!.id as string;
 }
 
-export async function atualizarQuiz(formData: FormData) {
+export async function atualizarQuiz(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
-  if (!disciplinaId) return;
+  if (!disciplinaId) return { error: "Disciplina inválida." };
   const quizId = await garantirQuiz(admin, disciplinaId);
   const nota = Number(formData.get("nota_minima") ?? 70);
-  await admin
+  const { error } = await admin
     .from("quizzes")
     .update({
       titulo: String(formData.get("titulo") ?? "Avaliação final").trim(),
       nota_minima: Number.isFinite(nota) ? Math.max(0, Math.min(100, nota)) : 70,
     })
     .eq("id", quizId);
+  if (error) return { error: "Não foi possível salvar a avaliação." };
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Avaliação salva." };
 }
 
-export async function criarPergunta(formData: FormData) {
+export async function criarPergunta(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   const enunciado = String(formData.get("enunciado") ?? "").trim();
   const correta = String(formData.get("correta") ?? ""); // 'a'..'e'
-  if (!disciplinaId || !enunciado || !correta) return;
+  if (!disciplinaId || !enunciado || !correta) {
+    return { error: "Preencha o enunciado e marque a alternativa correta." };
+  }
 
   // Alternativas não vazias, na ordem A..E.
   const letras = ["a", "b", "c", "d", "e"];
@@ -514,8 +585,12 @@ export async function criarPergunta(formData: FormData) {
     }))
     .filter((a) => a.texto);
 
-  if (alternativas.length < 2) return; // precisa de ao menos 2 opções
-  if (!alternativas.some((a) => a.letra === correta)) return; // correta precisa ter texto
+  if (alternativas.length < 2) {
+    return { error: "A pergunta precisa de pelo menos 2 alternativas." };
+  }
+  if (!alternativas.some((a) => a.letra === correta)) {
+    return { error: "A alternativa correta precisa estar preenchida." };
+  }
 
   const quizId = await garantirQuiz(admin, disciplinaId);
   const ordem = await proximaOrdem(admin, "quiz_perguntas", "quiz_id", quizId);
@@ -525,9 +600,9 @@ export async function criarPergunta(formData: FormData) {
     .insert({ quiz_id: quizId, enunciado, ordem })
     .select("id")
     .single();
-  if (!pergunta) return;
+  if (!pergunta) return { error: "Não foi possível criar a pergunta." };
 
-  await admin.from("quiz_alternativas").insert(
+  const { error } = await admin.from("quiz_alternativas").insert(
     alternativas.map((a, i) => ({
       pergunta_id: pergunta.id,
       texto: a.texto,
@@ -535,11 +610,16 @@ export async function criarPergunta(formData: FormData) {
       ordem: i + 1,
     })),
   );
+  if (error) return { error: "Não foi possível salvar as alternativas." };
 
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Pergunta adicionada." };
 }
 
-export async function atualizarPergunta(formData: FormData) {
+export async function atualizarPergunta(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
@@ -547,7 +627,9 @@ export async function atualizarPergunta(formData: FormData) {
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
   const enunciado = String(formData.get("enunciado") ?? "").trim();
   const correta = String(formData.get("correta") ?? "");
-  if (!id || !enunciado || !correta) return;
+  if (!id || !enunciado || !correta) {
+    return { error: "Preencha o enunciado e marque a alternativa correta." };
+  }
 
   const letras = ["a", "b", "c", "d", "e"];
   const alternativas = letras
@@ -557,13 +639,17 @@ export async function atualizarPergunta(formData: FormData) {
     }))
     .filter((a) => a.texto);
 
-  if (alternativas.length < 2) return;
-  if (!alternativas.some((a) => a.letra === correta)) return;
+  if (alternativas.length < 2) {
+    return { error: "A pergunta precisa de pelo menos 2 alternativas." };
+  }
+  if (!alternativas.some((a) => a.letra === correta)) {
+    return { error: "A alternativa correta precisa estar preenchida." };
+  }
 
   await admin.from("quiz_perguntas").update({ enunciado }).eq("id", id);
   // Substitui as alternativas por completo (mais simples e consistente).
   await admin.from("quiz_alternativas").delete().eq("pergunta_id", id);
-  await admin.from("quiz_alternativas").insert(
+  const { error } = await admin.from("quiz_alternativas").insert(
     alternativas.map((a, i) => ({
       pergunta_id: id,
       texto: a.texto,
@@ -571,18 +657,25 @@ export async function atualizarPergunta(formData: FormData) {
       ordem: i + 1,
     })),
   );
+  if (error) return { error: "Não foi possível salvar as alternativas." };
 
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Pergunta salva." };
 }
 
-export async function excluirPergunta(formData: FormData) {
+export async function excluirPergunta(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
-  if (!id) return;
-  await admin.from("quiz_perguntas").delete().eq("id", id);
+  if (!id) return { error: "Pergunta inválida." };
+  const { error } = await admin.from("quiz_perguntas").delete().eq("id", id);
+  if (error) return { error: "Não foi possível excluir a pergunta." };
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Pergunta excluída." };
 }
 
 // ─── base de conhecimento da IA ────────────────────────────────────────────────
@@ -669,14 +762,22 @@ async function prepararConhecimento(
   return { titulo, conteudo, meta };
 }
 
-export async function criarConhecimento(formData: FormData) {
+export async function criarConhecimento(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
-  if (!disciplinaId) return;
+  if (!disciplinaId) return { error: "Disciplina inválida." };
   const dados = await prepararConhecimento(admin, disciplinaId, formData);
-  if (!dados) return;
+  if (!dados) {
+    return {
+      error:
+        "Dê um título e um conteúdo (texto ou arquivo) — se enviou arquivo, o upload pode ter falhado.",
+    };
+  }
 
   const ordem = await proximaOrdem(
     admin,
@@ -684,27 +785,37 @@ export async function criarConhecimento(formData: FormData) {
     "disciplina_id",
     disciplinaId,
   );
-  await admin.from("disciplina_conhecimento").insert({
+  const { error } = await admin.from("disciplina_conhecimento").insert({
     disciplina_id: disciplinaId,
     titulo: dados.titulo,
     conteudo: dados.conteudo,
     ordem,
     ...(dados.meta ?? {}),
   });
+  if (error) return { error: "Não foi possível adicionar o documento." };
 
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Documento adicionado à base da IA." };
 }
 
-export async function atualizarConhecimento(formData: FormData) {
+export async function atualizarConhecimento(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
 
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
-  if (!id) return;
+  if (!id) return { error: "Documento inválido." };
   const dados = await prepararConhecimento(admin, disciplinaId, formData);
-  if (!dados) return;
+  if (!dados) {
+    return {
+      error:
+        "Dê um título e um conteúdo (texto ou arquivo) — se enviou arquivo, o upload pode ter falhado.",
+    };
+  }
 
   // Anexou um arquivo novo? Remove o antigo do Storage antes de substituir.
   if (dados.meta) {
@@ -719,7 +830,7 @@ export async function atualizarConhecimento(formData: FormData) {
     );
   }
 
-  await admin
+  const { error } = await admin
     .from("disciplina_conhecimento")
     .update({
       titulo: dados.titulo,
@@ -728,17 +839,22 @@ export async function atualizarConhecimento(formData: FormData) {
       ...(dados.meta ?? {}),
     })
     .eq("id", id);
+  if (error) return { error: "Não foi possível salvar o documento." };
 
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Documento atualizado." };
 }
 
-export async function excluirConhecimento(formData: FormData) {
+export async function excluirConhecimento(
+  _prev: AcaoState,
+  formData: FormData,
+): Promise<AcaoState> {
   await exigirPermissao("editar_conteudo");
   const admin = createSupabaseAdminClient();
   const id = String(formData.get("id") ?? "");
   const disciplinaId = String(formData.get("disciplina_id") ?? "");
-  if (!id) return;
+  if (!id) return { error: "Documento inválido." };
 
   const { data: linha } = await admin
     .from("disciplina_conhecimento")
@@ -746,8 +862,13 @@ export async function excluirConhecimento(formData: FormData) {
     .eq("id", id)
     .maybeSingle();
 
-  await admin.from("disciplina_conhecimento").delete().eq("id", id);
+  const { error } = await admin
+    .from("disciplina_conhecimento")
+    .delete()
+    .eq("id", id);
+  if (error) return { error: "Não foi possível excluir o documento." };
   await removerArquivoConhecimento(admin, linha?.arquivo_path as string | null);
   await reindexarIA(admin, disciplinaId);
   revalidatePath(`/master/disciplinas/${disciplinaId}`);
+  return { ok: "Documento excluído." };
 }

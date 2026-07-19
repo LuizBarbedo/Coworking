@@ -1,3 +1,4 @@
+import { FormAcao } from "@/components/ui/form-acao";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -89,7 +90,7 @@ export default async function MasterHome() {
         {/* Criar módulo */}
         <div className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
           <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Novo módulo</h2>
-          <form action={criarModulo} className="mt-4 space-y-3">
+          <FormAcao action={criarModulo} className="mt-4 space-y-3">
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
                 Título
@@ -114,7 +115,7 @@ export default async function MasterHome() {
             >
               Criar módulo
             </button>
-          </form>
+          </FormAcao>
         </div>
       </div>
     </div>

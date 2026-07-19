@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
+import { useActionState, useRef } from "react";
 import {
   criarResposta,
   type ForumState,
 } from "@/app/(plataforma)/(aluno)/forum/actions";
+import { useFeedbackDeAcao } from "@/components/ui/form-acao";
 
 export function FormResposta({ postId }: { postId: string }) {
   const [state, action, pending] = useActionState<ForumState, FormData>(
@@ -12,11 +13,11 @@ export function FormResposta({ postId }: { postId: string }) {
     undefined,
   );
   const formRef = useRef<HTMLFormElement>(null);
-
-  // Sucesso (state undefined após envio) limpa o campo.
-  useEffect(() => {
-    if (state === undefined) formRef.current?.reset();
-  }, [state]);
+  // Sucesso vira toast ("enviada — em análise") e limpa o campo.
+  useFeedbackDeAcao(state, {
+    toastErro: false,
+    aoSucesso: () => formRef.current?.reset(),
+  });
 
   return (
     <form ref={formRef} action={action} className="space-y-2">

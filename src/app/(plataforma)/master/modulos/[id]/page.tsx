@@ -1,3 +1,4 @@
+import { FormAcao } from "@/components/ui/form-acao";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -87,7 +88,7 @@ export default async function ModuloMasterPage({
 
           <div className="mt-6 rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
             <h3 className="font-display font-semibold text-brand-900 dark:text-brand-100">Nova disciplina</h3>
-            <form action={criarDisciplina} className="mt-4 space-y-3">
+            <FormAcao action={criarDisciplina} className="mt-4 space-y-3">
               <input type="hidden" name="modulo_id" value={modulo.id} />
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -107,7 +108,7 @@ export default async function ModuloMasterPage({
               >
                 Criar disciplina
               </button>
-            </form>
+            </FormAcao>
           </div>
         </div>
 
@@ -115,7 +116,7 @@ export default async function ModuloMasterPage({
         <div className="space-y-4">
           <div className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
             <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Editar módulo</h2>
-            <form action={atualizarModulo} className="mt-4 space-y-3">
+            <FormAcao action={atualizarModulo} className="mt-4 space-y-3">
               <input type="hidden" name="id" value={modulo.id} />
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -164,10 +165,10 @@ export default async function ModuloMasterPage({
               >
                 Salvar
               </button>
-            </form>
+            </FormAcao>
           </div>
 
-          <form action={excluirModulo}>
+          <FormAcao action={excluirModulo}>
             <input type="hidden" name="id" value={modulo.id} />
             <button
               type="submit"
@@ -175,7 +176,7 @@ export default async function ModuloMasterPage({
             >
               Excluir módulo
             </button>
-          </form>
+          </FormAcao>
         </div>
       </div>
     </div>

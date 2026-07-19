@@ -1,3 +1,5 @@
+import { FormAcao } from "@/components/ui/form-acao";
+import type { AcaoState } from "@/lib/acao";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -156,7 +158,7 @@ export default async function DisciplinaMasterPage({
       {/* Editar disciplina */}
       <section className={cardClass}>
         <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Dados da disciplina</h2>
-        <form action={atualizarDisciplina} className="mt-4 grid gap-3 sm:grid-cols-2">
+        <FormAcao action={atualizarDisciplina} className="mt-4 grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="id" value={disciplina.id} />
           <div className="sm:col-span-2">
             <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -194,7 +196,7 @@ export default async function DisciplinaMasterPage({
               Salvar
             </button>
           </div>
-        </form>
+        </FormAcao>
       </section>
 
       {/* Aulas */}
@@ -231,7 +233,7 @@ export default async function DisciplinaMasterPage({
                     />
                   }
                   formulario={
-                    <form
+                    <FormAcao
                       action={atualizarAula}
                       className="grid gap-2 sm:grid-cols-2"
                     >
@@ -279,7 +281,7 @@ export default async function DisciplinaMasterPage({
                           status={a.video_status as string | null}
                         />
                       </div>
-                    </form>
+                    </FormAcao>
                   }
                 />
               </li>
@@ -320,7 +322,7 @@ export default async function DisciplinaMasterPage({
                     />
                   }
                   formulario={
-                    <form
+                    <FormAcao
                       action={atualizarMaterial}
                       className="grid gap-2 sm:grid-cols-4"
                     >
@@ -355,7 +357,7 @@ export default async function DisciplinaMasterPage({
                           Salvar material
                         </button>
                       </div>
-                    </form>
+                    </FormAcao>
                   }
                 />
               </li>
@@ -366,7 +368,7 @@ export default async function DisciplinaMasterPage({
         )}
 
         <BlocoAdicionar rotulo="Adicionar material">
-          <form action={criarMaterial} className="grid gap-3 sm:grid-cols-4">
+          <FormAcao action={criarMaterial} className="grid gap-3 sm:grid-cols-4">
             <input type="hidden" name="disciplina_id" value={disciplina.id} />
             <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -391,7 +393,7 @@ export default async function DisciplinaMasterPage({
                 Adicionar material
               </button>
             </div>
-          </form>
+          </FormAcao>
         </BlocoAdicionar>
       </section>
 
@@ -452,7 +454,7 @@ export default async function DisciplinaMasterPage({
                     />
                   }
                   formulario={
-                    <form action={atualizarConhecimento} className="grid gap-2">
+                    <FormAcao action={atualizarConhecimento} className="grid gap-2">
                       <input type="hidden" name="id" value={k.id as string} />
                       <input
                         type="hidden"
@@ -489,7 +491,7 @@ export default async function DisciplinaMasterPage({
                           Salvar conteúdo
                         </BotaoEnviar>
                       </div>
-                    </form>
+                    </FormAcao>
                   }
                 />
               </li>
@@ -506,7 +508,7 @@ export default async function DisciplinaMasterPage({
         )}
 
         <BlocoAdicionar rotulo="Adicionar conteúdo">
-          <form action={criarConhecimento} className="grid gap-3">
+          <FormAcao action={criarConhecimento} className="grid gap-3">
             <input type="hidden" name="disciplina_id" value={disciplina.id} />
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -549,7 +551,7 @@ export default async function DisciplinaMasterPage({
                 Adicionar conteúdo
               </BotaoEnviar>
             </div>
-          </form>
+          </FormAcao>
         </BlocoAdicionar>
       </section>
 
@@ -557,7 +559,7 @@ export default async function DisciplinaMasterPage({
       <section className={cardClass} data-tour="master-avaliacao">
         <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Avaliação final</h2>
 
-        <form
+        <FormAcao
           action={atualizarQuiz}
           className="mt-3 flex flex-wrap items-end gap-3"
         >
@@ -588,7 +590,7 @@ export default async function DisciplinaMasterPage({
           <button type="submit" className={btnPrimario}>
             Salvar avaliação
           </button>
-        </form>
+        </FormAcao>
 
         {/* Perguntas existentes */}
         {perguntas && perguntas.length > 0 ? (
@@ -629,7 +631,7 @@ export default async function DisciplinaMasterPage({
                     />
                   }
                   formulario={
-                    <form action={atualizarPergunta}>
+                    <FormAcao action={atualizarPergunta}>
                       <input type="hidden" name="id" value={p.id} />
                       <input
                         type="hidden"
@@ -677,7 +679,7 @@ export default async function DisciplinaMasterPage({
                           Salvar pergunta
                         </button>
                       </div>
-                    </form>
+                    </FormAcao>
                   }
                 />
               </li>
@@ -691,7 +693,7 @@ export default async function DisciplinaMasterPage({
 
         {/* Nova pergunta */}
         <BlocoAdicionar rotulo="Adicionar pergunta">
-          <form action={criarPergunta}>
+          <FormAcao action={criarPergunta}>
             <input type="hidden" name="disciplina_id" value={disciplina.id} />
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -734,12 +736,12 @@ export default async function DisciplinaMasterPage({
                 Adicionar pergunta
               </button>
             </div>
-          </form>
+          </FormAcao>
         </BlocoAdicionar>
       </section>
 
       {/* Excluir disciplina */}
-      <form action={excluirDisciplina}>
+      <FormAcao action={excluirDisciplina}>
         <input type="hidden" name="id" value={disciplina.id} />
         <input type="hidden" name="modulo_id" value={disciplina.modulo_id} />
         <button
@@ -748,7 +750,7 @@ export default async function DisciplinaMasterPage({
         >
           Excluir disciplina
         </button>
-      </form>
+      </FormAcao>
     </div>
   );
 }
@@ -759,12 +761,12 @@ function FormExcluir({
   id,
   disciplinaId,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (prev: AcaoState, formData: FormData) => Promise<AcaoState>;
   id: string;
   disciplinaId: string;
 }) {
   return (
-    <form action={action}>
+    <FormAcao action={action}>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="disciplina_id" value={disciplinaId} />
       <button
@@ -773,6 +775,6 @@ function FormExcluir({
       >
         Excluir
       </button>
-    </form>
+    </FormAcao>
   );
 }

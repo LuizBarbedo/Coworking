@@ -5,6 +5,7 @@ import {
   marcarSolucao,
   type ForumState,
 } from "@/app/(plataforma)/(aluno)/forum/actions";
+import { useFeedbackDeAcao } from "@/components/ui/form-acao";
 
 export function MarcarSolucao({
   postId,
@@ -17,6 +18,7 @@ export function MarcarSolucao({
     marcarSolucao,
     undefined,
   );
+  useFeedbackDeAcao(state, { toastErro: false });
 
   return (
     <form action={action} className="inline-flex items-center gap-2">

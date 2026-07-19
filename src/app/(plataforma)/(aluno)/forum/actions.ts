@@ -14,7 +14,7 @@ import { notificarNovaResposta } from "@/lib/forum/notificacoes";
 import { validarPost, validarResposta } from "@/lib/forum/validar-post";
 import { podePostar } from "@/lib/forum/rate-limit";
 
-export type ForumState = { error: string } | undefined;
+export type ForumState = { ok: string } | { error: string } | undefined;
 
 const UMA_HORA_MS = 60 * 60 * 1000;
 
@@ -212,7 +212,11 @@ export async function criarResposta(
   }
 
   revalidatePath(`/forum/${postId}`);
-  return undefined;
+  return {
+    ok: ehEquipe
+      ? "Resposta publicada."
+      : "Resposta enviada — aparece pra turma assim que a moderação aprovar.",
+  };
 }
 
 /**
@@ -283,7 +287,7 @@ export async function editarPost(
 
   revalidatePath(`/forum/${postId}`);
   revalidatePath("/forum");
-  return undefined;
+  return { ok: "Edição salva." };
 }
 
 /** Edição da própria resposta — mesmas regras do post. */
@@ -340,7 +344,7 @@ export async function editarResposta(
   if (error) return { error: "Não foi possível salvar a edição." };
 
   revalidatePath(`/forum/${postId}`);
-  return undefined;
+  return { ok: "Edição salva." };
 }
 
 /** Apaga o próprio post (respostas e votos caem junto, em cascata). */
@@ -396,7 +400,7 @@ export async function apagarResposta(
   if (error) return { error: "Não foi possível apagar a resposta." };
 
   if (postId) revalidatePath(`/forum/${postId}`);
-  return undefined;
+  return { ok: "Resposta apagada." };
 }
 
 /**
@@ -468,7 +472,7 @@ export async function reenviarPost(
 
   revalidatePath(`/forum/${postId}`);
   revalidatePath("/forum");
-  return undefined;
+  return { ok: "Reenviado pra moderação." };
 }
 
 export async function alternarVotoPost(
@@ -595,5 +599,5 @@ export async function marcarSolucao(
   if (error) return { error: "Não foi possível marcar a solução." };
 
   revalidatePath(`/forum/${postId}`);
-  return undefined;
+  return { ok: "Resposta marcada como solução." };
 }

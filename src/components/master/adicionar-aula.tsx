@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { criarAulaComId } from "@/app/(plataforma)/master/actions";
 import { enviarVideo } from "@/lib/video-upload";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
+import { useToast } from "@/components/ui/toast";
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200";
@@ -18,6 +19,7 @@ type Estado = "ocioso" | "salvando" | "enviando" | "erro";
  */
 export function AdicionarAula({ disciplinaId }: { disciplinaId: string }) {
   const router = useRouter();
+  const { mostrar } = useToast();
   const [estado, setEstado] = useState<Estado>("ocioso");
   const [pct, setPct] = useState(0);
   const [erro, setErro] = useState<string | null>(null);
@@ -55,10 +57,11 @@ export function AdicionarAula({ disciplinaId }: { disciplinaId: string }) {
       }
     }
 
-    // Sucesso: limpa e atualiza a lista.
+    // Sucesso: limpa, confirma e atualiza a lista.
     formRef.current?.reset();
     setNomeArquivo(null);
     setEstado("ocioso");
+    mostrar("Aula adicionada.");
     router.refresh();
   }
 

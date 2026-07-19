@@ -8,6 +8,7 @@ import {
   alternarVotoResposta,
   type ForumState,
 } from "@/app/(plataforma)/(aluno)/forum/actions";
+import { useFeedbackDeAcao } from "@/components/ui/form-acao";
 
 export function BotaoUtil({
   postId,
@@ -20,10 +21,12 @@ export function BotaoUtil({
   votos: number;
   votou: boolean;
 }) {
-  const [, action, pending] = useActionState<ForumState, FormData>(
+  const [state, action, pending] = useActionState<ForumState, FormData>(
     respostaId ? alternarVotoResposta : alternarVotoPost,
     undefined,
   );
+  // Voto que falhar avisa por toast (antes o erro era engolido em silêncio).
+  useFeedbackDeAcao(state);
 
   return (
     <form action={action} className="inline-flex">

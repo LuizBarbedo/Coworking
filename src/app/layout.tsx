@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
+import { ToasterProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 // Tipografia da identidade: Figtree no corpo (humanista, cordial) e
@@ -50,7 +51,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <script dangerouslySetInnerHTML={{ __html: scriptTema }} />
-        {children}
+        <ToasterProvider>{children}</ToasterProvider>
       </body>
     </html>
   );

@@ -11,6 +11,7 @@ import {
   editarResposta,
   type ForumState,
 } from "@/app/(plataforma)/(aluno)/forum/actions";
+import { useFeedbackDeAcao } from "@/components/ui/form-acao";
 
 const inputClass =
   "w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200";
@@ -32,6 +33,12 @@ export function EditarPublicacao({
     undefined,
   );
   const [aberto, setAberto] = useState(false);
+  // Toast de "Edição salva." + fecha o form; erro (ex.: recusa da IA, que
+  // pode ser longo) fica inline.
+  useFeedbackDeAcao(state, {
+    toastErro: false,
+    aoSucesso: () => setAberto(false),
+  });
 
   if (!aberto) {
     return (
@@ -108,6 +115,8 @@ export function ApagarPublicacao({
     undefined,
   );
   const [confirmando, setConfirmando] = useState(false);
+  // "Resposta apagada." vira toast (post apagado redireciona, sem estado).
+  useFeedbackDeAcao(state, { toastErro: false });
 
   if (!confirmando) {
     return (
