@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BotaoVoltar } from "@/components/ui/botao-voltar";
 import { exigirAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/perfil/avatar";
@@ -22,7 +23,9 @@ export default async function MeuPerfilPage() {
 
   return (
     <main className="animate-aparecer mx-auto w-full max-w-2xl flex-1 px-6 py-8">
-      <div className="flex items-end justify-between gap-4">
+      <BotaoVoltar href="/painel">Meus módulos</BotaoVoltar>
+
+      <div className="mt-4 flex items-end justify-between gap-4">
         <h1 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
           Meu perfil
         </h1>
