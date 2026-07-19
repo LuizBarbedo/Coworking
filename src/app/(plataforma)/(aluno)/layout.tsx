@@ -40,7 +40,7 @@ export default async function AlunoLayout({
     <ContextoIAProvider>
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-superficie/90 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
           <Link href="/painel" className="group flex items-center gap-2.5" data-tour="marca">
             <Image
               src="/logo-roda.svg"
@@ -56,7 +56,7 @@ export default async function AlunoLayout({
             </span>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
             {/* Wrapper com data-tour: o tour navega pelo 1º link DE DENTRO
                 do contêiner, então o atributo não pode ficar no próprio <a>. */}
             <span data-tour="forum">
@@ -64,7 +64,7 @@ export default async function AlunoLayout({
                 href="/forum"
                 className="text-sm font-medium text-slate-600 transition hover:text-brand-900 dark:text-slate-300 dark:hover:text-brand-100"
               >
-                Fórum de dúvidas
+                Fórum<span className="hidden sm:inline"> de dúvidas</span>
               </Link>
             </span>
             {ehEquipe ? (

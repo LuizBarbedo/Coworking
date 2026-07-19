@@ -35,7 +35,7 @@ export default async function MasterLayout({
     <ContextoIAProvider>
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <header className="border-b border-slate-200 bg-brand-900 text-white">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
           <Link href="/master" className="flex items-center gap-2.5 text-sm font-semibold">
             <Image
               src="/logo-roda.svg"
@@ -49,7 +49,7 @@ export default async function MasterLayout({
               Área do Master
             </span>
           </Link>
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm">
             {podeVerComoAluno(sessao) ? (
               <Link
                 href="/painel"
