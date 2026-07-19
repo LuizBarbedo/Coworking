@@ -19,6 +19,8 @@ export type CardModulo = {
   feitas?: number;
   total?: number;
   publicado: boolean;
+  /** Texto já formatado ("20/07 às 8h") de quando o módulo libera. */
+  disponivelEm?: string | null;
 };
 
 type Visualizacao = "miniaturas" | "lista";
@@ -55,10 +57,10 @@ function Capa({
   );
 }
 
-function SeloEmBreve() {
+function SeloEmBreve({ quando }: { quando?: string | null }) {
   return (
-    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-      Em breve
+    <span className="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+      {quando ? `Em breve · ${quando}` : "Em breve"}
     </span>
   );
 }
@@ -158,7 +160,7 @@ export function ListaModulos({ modulos }: { modulos: CardModulo[] }) {
                       <h2 className="font-semibold text-slate-600 dark:text-slate-300">
                         {m.titulo}
                       </h2>
-                      <SeloEmBreve />
+                      <SeloEmBreve quando={m.disponivelEm} />
                     </div>
                     {m.instrutor ? (
                       <p className="mt-0.5 text-sm text-slate-500">{m.instrutor}</p>
@@ -208,7 +210,7 @@ export function ListaModulos({ modulos }: { modulos: CardModulo[] }) {
                       <p className="truncate text-sm text-slate-500">{m.instrutor}</p>
                     ) : null}
                   </div>
-                  <SeloEmBreve />
+                  <SeloEmBreve quando={m.disponivelEm} />
                 </div>
               </li>
             ),

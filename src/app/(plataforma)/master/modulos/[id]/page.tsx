@@ -1,5 +1,6 @@
 import { FormAcao } from "@/components/ui/form-acao";
 import { BotaoVoltar } from "@/components/ui/botao-voltar";
+import { paraInputLocal } from "@/lib/datas";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -169,6 +170,23 @@ export default async function ModuloMasterPage({
                 <p className="mt-1 text-xs text-slate-500">
                   JPG/PNG/WebP até 5 MB. Aparece como thumbnail na lista de
                   módulos do aluno.
+                </p>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Disponibilizar em (opcional)
+                </label>
+                <input
+                  type="datetime-local"
+                  name="publicar_em"
+                  defaultValue={paraInputLocal(
+                    (modulo as { publicar_em?: string | null }).publicar_em,
+                  )}
+                  className={inputClass}
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  Horário de Brasília. Na hora marcada o módulo é publicado
+                  sozinho; limpe o campo pra cancelar o agendamento.
                 </p>
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-700">

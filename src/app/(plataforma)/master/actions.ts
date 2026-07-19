@@ -14,6 +14,7 @@ import {
   urlUploadOriginal,
 } from "@/lib/r2";
 import { classificarVideo, resolverVideoAoAtualizar } from "@/lib/video";
+import { timestampDeSaoPaulo } from "@/lib/datas";
 
 /**
  * Reconstrói o índice do assistente de IA da disciplina. Best-effort: uma falha
@@ -108,15 +109,33 @@ export async function criarModulo(
   if (!titulo) return { error: "Dê um título ao módulo." };
   const descricao = String(formData.get("descricao") ?? "").trim() || null;
   const instrutor = String(formData.get("instrutor") ?? "").trim() || null;
+  const publicarEm = timestampDeSaoPaulo(
+    String(formData.get("publicar_em") ?? ""),
+  );
 
   const slug = await slugModuloUnico(admin, slugify(titulo));
   const { data, error } = await admin
     .from("modulos")
-    .insert({ slug, titulo, descricao, instrutor, ordem: 0, publicado: false })
+    .insert({
+      slug,
+      titulo,
+      descricao,
+      instrutor,
+      ordem: 0,
+      publicado: false,
+      // Só entra quando preenchido: ambientes sem a 0019 seguem criando.
+      ...(publicarEm ? { publicar_em: publicarEm } : {}),
+    })
     .select("id")
     .single();
 
-  if (error || !data) return { error: "Não foi possível criar o módulo." };
+  if (error || !data) {
+    return {
+      error: publicarEm
+        ? "Não foi possível criar — a migração 0019 (agendamento) já foi aplicada no Supabase?"
+        : "Não foi possível criar o módulo.",
+    };
+  }
   revalidatePath("/master");
   redirect(`/master/modulos/${data.id}`);
 }
@@ -168,6 +187,13 @@ export async function atualizarModulo(
     publicado: formData.get("publicado") === "on",
   };
 
+  // O form de edição sempre manda o campo; campo limpo cancela o agendamento.
+  if (formData.has("publicar_em")) {
+    dados.publicar_em = timestampDeSaoPaulo(
+      String(formData.get("publicar_em") ?? ""),
+    );
+  }
+
   const capa = formData.get("capa");
   if (capa instanceof File && capa.size > 0) {
     const resultado = await subirCapaModulo(admin, id, capa);
@@ -177,11 +203,19 @@ export async function atualizarModulo(
 
   const { error } = await admin.from("modulos").update(dados).eq("id", id);
   if (error) {
-    return {
-      error: dados.capa_url
-        ? "Não foi possível salvar — a migração 0018 (capa dos módulos) já foi aplicada no Supabase?"
-        : "Não foi possível salvar o módulo.",
-    };
+    if (dados.capa_url) {
+      return {
+        error:
+          "Não foi possível salvar — a migração 0018 (capa dos módulos) já foi aplicada no Supabase?",
+      };
+    }
+    if (dados.publicar_em !== undefined) {
+      return {
+        error:
+          "Não foi possível salvar — a migração 0019 (agendamento) já foi aplicada no Supabase?",
+      };
+    }
+    return { error: "Não foi possível salvar o módulo." };
   }
 
   revalidatePath(`/master/modulos/${id}`);

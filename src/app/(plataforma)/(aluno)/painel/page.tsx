@@ -24,6 +24,26 @@ type Modulo = {
   ordem: number;
 };
 
+/** "2026-07-20T11:00:00Z" → "20/07 às 8h" (Brasília), pro selo Em breve. */
+function formatarDisponivelEm(iso: string): string {
+  const data = new Date(iso);
+  const dia = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+  }).format(data);
+  // "08:00" vira "8h"; "08:30" vira "8h30".
+  const hora = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "numeric",
+    minute: "2-digit",
+  })
+    .format(data)
+    .replace(":00", "h")
+    .replace(":", "h");
+  return `${dia} às ${hora}`;
+}
+
 export default async function PainelPage() {
   await exigirVisaoAluno();
   const supabase = await createSupabaseServerClient();
@@ -75,12 +95,17 @@ export default async function PainelPage() {
     const capaUrl = (m as { capa_url?: string | null }).capa_url ?? null;
     const publicado = publicadosPorId.get(m.id as string);
     if (!publicado) {
+      const agendado = (m as { publicar_em?: string | null }).publicar_em;
       return {
         id: m.id as string,
         titulo: m.titulo as string,
         instrutor: (m.instrutor as string | null) ?? null,
         capaUrl,
         publicado: false,
+        disponivelEm:
+          agendado && new Date(agendado) > new Date()
+            ? formatarDisponivelEm(agendado)
+            : null,
       };
     }
     const p = porModulo.get(m.id as string) ?? { total: 0, feitas: 0 };

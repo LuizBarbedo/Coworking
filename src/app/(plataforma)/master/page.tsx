@@ -109,6 +109,20 @@ export default async function MasterHome() {
               </label>
               <textarea name="descricao" rows={3} className={inputClass} />
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Disponibilizar em (opcional)
+              </label>
+              <input
+                type="datetime-local"
+                name="publicar_em"
+                className={inputClass}
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Horário de Brasília. Na hora marcada o módulo é publicado
+                sozinho; até lá os alunos veem o card &quot;Em breve&quot;.
+              </p>
+            </div>
             <button
               type="submit"
               className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98]"
