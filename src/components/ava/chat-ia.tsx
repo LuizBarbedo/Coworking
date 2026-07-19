@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { TextoComLinks } from "@/components/ava/texto-com-links";
 import { useChatIA } from "./use-chat-ia";
 
 /**
@@ -68,7 +69,13 @@ export function ChatIA({
                     : "bg-slate-100 text-slate-800"
                 }`}
               >
-                {msg.content || (
+                {msg.content ? (
+                  msg.role === "assistant" ? (
+                    <TextoComLinks texto={msg.content} />
+                  ) : (
+                    msg.content
+                  )
+                ) : (
                   <span className="inline-flex gap-1 text-slate-400">
                     <span className="animate-pulse">●</span>
                     <span className="animate-pulse [animation-delay:150ms]">●</span>
