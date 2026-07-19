@@ -50,3 +50,8 @@ envs-para-luiz.txt
 # Sessões geradas pelos testes E2E
 /e2e/.auth/
 prod-3000.log
+
+# Artefatos locais da VPS (conteúdo bruto do curso e capas geradas)
+conteudo/
+capas-geradas/
+.next-nova/
