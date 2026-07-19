@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { exigirVisaoAluno } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getProgressoCurso, resumo } from "@/lib/progresso";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { Contador } from "@/components/ui/contador";
 import { ModulosVazio } from "@/components/ilustracoes";
+import {
+  ListaModulos,
+  type CardModulo,
+} from "@/components/ava/lista-modulos";
 
 export const metadata: Metadata = {
   title: "Meu painel — CSMG",
@@ -30,6 +34,7 @@ export default async function PainelPage() {
     { data: aulas },
     { data: progresso },
     progressoCurso,
+    { data: todosModulos },
   ] = await Promise.all([
     supabase
       .from("modulos")
@@ -40,6 +45,13 @@ export default async function PainelPage() {
     supabase.from("aulas").select("id, disciplina_id"),
     supabase.from("progresso_aula").select("aula_id"),
     getProgressoCurso(supabase),
+    // Catálogo completo (service_role) pros teasers "Em breve": só título,
+    // instrutor e capa saem daqui — nenhum conteúdo de módulo oculto vaza.
+    // "*" tolera ambientes sem a migration 0018 (capa_url).
+    createSupabaseAdminClient()
+      .from("modulos")
+      .select("*")
+      .order("ordem", { ascending: true }),
   ]);
 
   // Mapeia aula → módulo (via disciplina) para o progresso por módulo.
@@ -57,7 +69,37 @@ export default async function PainelPage() {
     porModulo.set(mod, acc);
   }
 
-  const temModulos = modulos && modulos.length > 0;
+  // Junta publicados (com link e progresso) e não publicados (teaser).
+  const publicadosPorId = new Map((modulos ?? []).map((m) => [m.id, m]));
+  const cards: CardModulo[] = (todosModulos ?? []).map((m) => {
+    const capaUrl = (m as { capa_url?: string | null }).capa_url ?? null;
+    const publicado = publicadosPorId.get(m.id as string);
+    if (!publicado) {
+      return {
+        id: m.id as string,
+        titulo: m.titulo as string,
+        instrutor: (m.instrutor as string | null) ?? null,
+        capaUrl,
+        publicado: false,
+      };
+    }
+    const p = porModulo.get(m.id as string) ?? { total: 0, feitas: 0 };
+    const r = resumo(p.feitas, p.total);
+    return {
+      id: m.id as string,
+      titulo: m.titulo as string,
+      instrutor: (m.instrutor as string | null) ?? null,
+      capaUrl,
+      slug: publicado.slug,
+      descricao: publicado.descricao,
+      pct: r.pct,
+      feitas: r.feitas,
+      total: r.total,
+      publicado: true,
+    };
+  });
+
+  const temModulos = cards.length > 0;
 
   return (
     <div className="animate-aparecer">
@@ -72,41 +114,7 @@ export default async function PainelPage() {
       <ProgressoGeralCard progresso={progressoCurso} />
 
       {temModulos ? (
-        <ul className="escalonado mt-8 grid gap-4 sm:grid-cols-2" data-tour="modulos">
-          {modulos.map((modulo) => {
-            const p = porModulo.get(modulo.id) ?? { total: 0, feitas: 0 };
-            const r = resumo(p.feitas, p.total);
-            return (
-              <li key={modulo.id}>
-                <Link
-                  href={`/modulos/${modulo.slug}`}
-                  data-conteudo={p.total > 0 ? "1" : "0"}
-                  className="block h-full rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
-                >
-                  <h2 className="font-semibold text-brand-900 dark:text-brand-100">
-                    {modulo.titulo}
-                  </h2>
-                  {modulo.instrutor ? (
-                    <p className="mt-0.5 text-sm text-slate-500">
-                      {modulo.instrutor}
-                    </p>
-                  ) : null}
-                  {modulo.descricao ? (
-                    <p className="mt-2 line-clamp-2 text-sm text-slate-600">
-                      {modulo.descricao}
-                    </p>
-                  ) : null}
-                  <div className="mt-4">
-                    <BarraProgresso
-                      pct={r.pct}
-                      label={`${r.feitas} de ${r.total} aulas`}
-                    />
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <ListaModulos modulos={cards} />
       ) : (
         <div className="mt-8 flex flex-col items-center rounded-xl border border-dashed border-slate-300 bg-superficie p-10 text-center">
           <ModulosVazio className="h-36 w-auto text-slate-300" />
