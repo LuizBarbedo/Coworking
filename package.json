@@ -41,6 +41,7 @@
     "eslint-config-next": "16.2.6",
     "jsdom": "^29.1.1",
     "playwright": "^1.61.1",
+    "server-only": "^0.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",

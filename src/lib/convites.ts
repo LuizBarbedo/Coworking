@@ -60,9 +60,15 @@ export type ResultadoDisparo = {
  */
 export async function liberarEDispararConvites(opcoes?: {
   apenasSemConvite?: boolean;
+  /** Pausa entre envios. Rodadas grandes pedem intervalo maior (ex.: 9s) pra
+   *  não parecer rajada pro filtro de spam do Gmail. */
+  intervaloMs?: number;
+  /** Callback de progresso (usado pelo script de disparo em background). */
+  aoEnviar?: (email: string, status: "enviado" | "falha" | "pulado") => void;
 }): Promise<ResultadoDisparo> {
   const admin = createSupabaseAdminClient();
   const apenasSemConvite = opcoes?.apenasSemConvite ?? true;
+  const intervaloMs = opcoes?.intervaloMs ?? 300;
 
   const { data: inscricoes, error } = await admin
     .from("inscricoes")
@@ -99,6 +105,7 @@ export async function liberarEDispararConvites(opcoes?: {
 
     if (apenasSemConvite && comConvite.has(inscricao.email.toLowerCase())) {
       resultado.pulados++;
+      opcoes?.aoEnviar?.(inscricao.email, "pulado");
       continue;
     }
 
@@ -114,6 +121,7 @@ export async function liberarEDispararConvites(opcoes?: {
         status: "enviado",
       });
       resultado.enviados++;
+      opcoes?.aoEnviar?.(inscricao.email, "enviado");
     } catch (erro) {
       await registrarEnvio(admin, {
         inscricao_id: inscricao.id,
@@ -122,9 +130,10 @@ export async function liberarEDispararConvites(opcoes?: {
         erro: erro instanceof Error ? erro.message.slice(0, 500) : "erro",
       });
       resultado.falhas++;
+      opcoes?.aoEnviar?.(inscricao.email, "falha");
     }
     // respiro entre envios: gentil com o SMTP do Gmail
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, intervaloMs));
   }
 
   return resultado;
