@@ -31,7 +31,15 @@ function dataCurta(iso: string | null): string {
   }).format(new Date(iso));
 }
 
-export async function DesempenhoTurma() {
+const ALUNOS_POR_PAGINA = 25;
+
+export async function DesempenhoTurma({
+  busca = "",
+  pagina = 1,
+}: {
+  busca?: string;
+  pagina?: number;
+} = {}) {
   const admin = createSupabaseAdminClient();
 
   const [
@@ -161,6 +169,32 @@ export async function DesempenhoTurma() {
   const geral = resumoGeral(dados);
   const porDisciplina = avancoPorDisciplina(dados);
   const linhas = linhasDosAlunos(dados);
+
+  // Busca e paginação da lista (a agregação é em memória, então filtra aqui).
+  const termoAluno = busca.trim().toLowerCase();
+  const linhasFiltradas = termoAluno
+    ? linhas.filter(
+        (a) =>
+          a.nome.toLowerCase().includes(termoAluno) ||
+          a.email.toLowerCase().includes(termoAluno),
+      )
+    : linhas;
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(linhasFiltradas.length / ALUNOS_POR_PAGINA),
+  );
+  const paginaAlunos = Math.min(pagina, totalPaginas);
+  const linhasDaPagina = linhasFiltradas.slice(
+    (paginaAlunos - 1) * ALUNOS_POR_PAGINA,
+    paginaAlunos * ALUNOS_POR_PAGINA,
+  );
+  const linkAlunos = (params: { aluno?: string; pagina?: number }) => {
+    const query = new URLSearchParams({ visao: "turma" });
+    const final = { aluno: termoAluno, pagina: 1, ...params };
+    if (final.aluno) query.set("aluno", final.aluno);
+    if (final.pagina > 1) query.set("pagina", String(final.pagina));
+    return `/master/relatorios?${query.toString()}`;
+  };
   const avaliacoes = (avaliacoesRes.data ?? []) as (AvaliacaoDisciplina & {
     created_at: string;
   })[];
@@ -286,12 +320,36 @@ export async function DesempenhoTurma() {
 
       <section>
         <h2 className="font-display text-lg font-semibold text-brand-900 dark:text-brand-100">
-          Alunos ({linhas.length})
+          Alunos ({linhasFiltradas.length}
+          {termoAluno ? ` de ${linhas.length}` : ""})
         </h2>
         <p className="mt-0.5 text-sm text-slate-500">
           Ordenados por avanço — os do fim da lista podem precisar de um
           empurrão da monitoria.
         </p>
+
+        <form action="/master/relatorios" className="mt-3 flex max-w-xl gap-2">
+          <input type="hidden" name="visao" value="turma" />
+          <input
+            type="search"
+            name="aluno"
+            defaultValue={termoAluno}
+            placeholder="Buscar aluno por nome ou e-mail…"
+            className="w-full min-w-0 rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98]"
+          >
+            Buscar
+          </button>
+        </form>
+        {totalPaginas > 1 ? (
+          <p className="mt-2 text-xs text-slate-500">
+            Página {paginaAlunos} de {totalPaginas}
+          </p>
+        ) : null}
+
         <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-superficie shadow-sm">
           <table className="w-full text-sm">
             <thead>
@@ -304,7 +362,7 @@ export async function DesempenhoTurma() {
               </tr>
             </thead>
             <tbody>
-              {linhas.map((a) => (
+              {linhasDaPagina.map((a) => (
                 <tr key={a.id} className="border-b border-slate-100 last:border-0">
                   <td className="max-w-56 px-4 py-2">
                     {inscricaoPorEmail.has(a.email.toLowerCase()) ? (
@@ -340,6 +398,31 @@ export async function DesempenhoTurma() {
             </tbody>
           </table>
         </div>
+
+        {totalPaginas > 1 ? (
+          <div className="mt-4 flex items-center justify-between text-sm">
+            {paginaAlunos > 1 ? (
+              <Link
+                href={linkAlunos({ pagina: paginaAlunos - 1 })}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
+              >
+                Anterior
+              </Link>
+            ) : (
+              <span />
+            )}
+            {paginaAlunos < totalPaginas ? (
+              <Link
+                href={linkAlunos({ pagina: paginaAlunos + 1 })}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
+              >
+                Próxima
+              </Link>
+            ) : (
+              <span />
+            )}
+          </div>
+        ) : null}
       </section>
     </div>
   );

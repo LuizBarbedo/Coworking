@@ -22,7 +22,12 @@ const VISOES = [
 export default async function RelatoriosMasterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dias?: string; visao?: string }>;
+  searchParams: Promise<{
+    dias?: string;
+    visao?: string;
+    aluno?: string;
+    pagina?: string;
+  }>;
 }) {
   await exigirPermissao("ver_relatorios");
   const parametros = await searchParams;
@@ -53,7 +58,10 @@ export default async function RelatoriosMasterPage({
       </nav>
 
       {visao === "turma" ? (
-        <DesempenhoTurma />
+        <DesempenhoTurma
+          busca={parametros.aluno ?? ""}
+          pagina={Math.max(1, Number.parseInt(parametros.pagina ?? "1", 10) || 1)}
+        />
       ) : (
         <>
           <PainelMetricas
