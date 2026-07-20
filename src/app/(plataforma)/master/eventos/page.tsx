@@ -18,32 +18,75 @@ const FILTROS = [
   { valor: "equipe.", rotulo: "Equipe" },
 ] as const;
 
+const POR_PAGINA = 50;
+
 export default async function EventosMasterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string }>;
+  searchParams: Promise<{ tipo?: string; q?: string; pagina?: string }>;
 }) {
   await exigirAdmin();
-  const { tipo = "" } = await searchParams;
+  const { tipo = "", q = "", pagina = "1" } = await searchParams;
+  const paginaAtual = Math.max(1, Number.parseInt(pagina, 10) || 1);
   const admin = createSupabaseAdminClient();
 
-  let consulta = admin
-    .from("eventos")
-    .select("id, ator_id, ator_papel, acao, alvo_tipo, alvo_id, detalhes, created_at")
-    .order("created_at", { ascending: false })
-    .limit(300);
-  if (tipo) consulta = consulta.like("acao", `${tipo}%`);
-
-  const [{ data: eventos, error }, { data: usuarios }] = await Promise.all([
-    consulta,
-    admin.auth.admin.listUsers({ perPage: 1000 }),
-  ]);
+  const { data: usuarios } = await admin.auth.admin.listUsers({
+    perPage: 1000,
+  });
   const nomePorId = new Map(
     (usuarios?.users ?? []).map((u) => [
       u.id,
       (u.user_metadata as { nome?: string })?.nome ?? u.email ?? u.id,
     ]),
   );
+
+  let consulta = admin
+    .from("eventos")
+    .select(
+      "id, ator_id, ator_papel, acao, alvo_tipo, alvo_id, detalhes, created_at",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false });
+  if (tipo) consulta = consulta.like("acao", `${tipo}%`);
+
+  const termo = q.trim();
+  if (termo) {
+    // Busca por ação OU por quem fez (nome/e-mail resolvido pra ids).
+    const seguro = termo.replace(/[%,()]/g, "").toLowerCase();
+    const atoresQueBatem = (usuarios?.users ?? [])
+      .filter((u) => {
+        const nome = (
+          (u.user_metadata as { nome?: string })?.nome ?? ""
+        ).toLowerCase();
+        return nome.includes(seguro) || (u.email ?? "").includes(seguro);
+      })
+      .map((u) => u.id)
+      .slice(0, 50);
+    consulta = atoresQueBatem.length
+      ? consulta.or(
+          `acao.ilike.%${seguro}%,ator_id.in.(${atoresQueBatem.join(",")})`,
+        )
+      : consulta.ilike("acao", `%${seguro}%`);
+  }
+
+  const de = (paginaAtual - 1) * POR_PAGINA;
+  const {
+    data: eventos,
+    error,
+    count,
+  } = await consulta.range(de, de + POR_PAGINA - 1);
+  const total = count ?? 0;
+  const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
+
+  function link(params: { tipo?: string; q?: string; pagina?: string }): string {
+    const query = new URLSearchParams();
+    const final = { tipo, q: termo, pagina: "1", ...params };
+    if (final.tipo) query.set("tipo", final.tipo);
+    if (final.q) query.set("q", final.q);
+    if (final.pagina !== "1") query.set("pagina", final.pagina);
+    const s = query.toString();
+    return s ? `/master/eventos?${s}` : "/master/eventos";
+  }
 
   return (
     <div className="animate-aparecer">
@@ -54,11 +97,28 @@ export default async function EventosMasterPage({
         Trilha de auditoria: quem fez o quê e quando, em toda a plataforma.
       </p>
 
-      <div className="mt-5 flex flex-wrap gap-1.5">
+      <form action="/master/eventos" className="mt-5 flex max-w-xl gap-2">
+        <input
+          type="search"
+          name="q"
+          defaultValue={termo}
+          placeholder="Buscar por ação (ex.: quiz) ou por pessoa…"
+          className="w-full min-w-0 rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+        />
+        {tipo ? <input type="hidden" name="tipo" value={tipo} /> : null}
+        <button
+          type="submit"
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98]"
+        >
+          Buscar
+        </button>
+      </form>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {FILTROS.map((f) => (
           <Link
             key={f.valor}
-            href={f.valor ? `/master/eventos?tipo=${f.valor}` : "/master/eventos"}
+            href={link({ tipo: f.valor })}
             className={`rounded-full border px-3 py-1 text-xs transition ${
               tipo === f.valor
                 ? "border-brand-600 bg-brand-50 font-medium text-brand-900 dark:bg-brand-950/60 dark:text-brand-200"
@@ -70,6 +130,11 @@ export default async function EventosMasterPage({
         ))}
       </div>
 
+      <p className="mt-3 text-xs text-slate-500">
+        {total} evento(s){termo ? ` pra “${termo}”` : ""} — página {paginaAtual}{" "}
+        de {paginas}
+      </p>
+
       {error ? (
         <p className="mt-8 rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-6 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           A migração 0021 (trilha de auditoria) ainda não foi aplicada no
@@ -77,7 +142,7 @@ export default async function EventosMasterPage({
         </p>
       ) : (eventos ?? []).length === 0 ? (
         <p className="mt-8 rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
-          Nenhum evento registrado ainda{tipo ? " nesse filtro" : ""}.
+          Nenhum evento registrado{tipo || termo ? " com esses filtros" : " ainda"}.
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-superficie shadow-sm">
@@ -127,6 +192,31 @@ export default async function EventosMasterPage({
           </table>
         </div>
       )}
+
+      {paginas > 1 ? (
+        <div className="mt-4 flex items-center justify-between text-sm">
+          {paginaAtual > 1 ? (
+            <Link
+              href={link({ pagina: String(paginaAtual - 1) })}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
+            >
+              Anterior
+            </Link>
+          ) : (
+            <span />
+          )}
+          {paginaAtual < paginas ? (
+            <Link
+              href={link({ pagina: String(paginaAtual + 1) })}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
+            >
+              Próxima
+            </Link>
+          ) : (
+            <span />
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
