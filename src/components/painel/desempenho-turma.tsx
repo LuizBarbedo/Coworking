@@ -55,10 +55,12 @@ export async function DesempenhoTurma() {
     admin.from("quizzes").select("id, disciplina_id"),
     admin.from("progresso_aula").select("aluno_id, aula_id"),
     admin.from("quiz_tentativas").select("aluno_id, quiz_id, nota, aprovado"),
+    // Qualquer evento do aluno conta como presença — a sessão dura dias sem
+    // novo login, então só "sessao.login" subestimava o último acesso.
     admin
       .from("eventos")
       .select("ator_id, created_at")
-      .eq("acao", "sessao.login")
+      .not("ator_id", "is", null)
       .order("created_at", { ascending: false })
       .limit(5000),
     admin.from("forum_posts").select("autor_id"),

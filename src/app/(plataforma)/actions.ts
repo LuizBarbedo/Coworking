@@ -127,16 +127,21 @@ export async function primeiroAcesso(
 
   // Já autentica o aluno e grava a sessão nos cookies.
   const supabase = await createSupabaseServerClient();
-  const { error: loginErro } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data: sessaoNova, error: loginErro } =
+    await supabase.auth.signInWithPassword({ email, password });
 
   if (loginErro) {
     // Conta criada, mas falhou o login automático: manda para o login manual.
     redirect("/login");
   }
 
+  // O primeiro acesso também é um login — sem isso o aluno que só entrou por
+  // aqui aparecia como "nunca entrou" no relatório.
+  await registrarEvento({
+    acao: "sessao.login",
+    atorId: sessaoNova.user?.id,
+    detalhes: { primeiroAcesso: true },
+  });
   redirect("/painel");
 }
 

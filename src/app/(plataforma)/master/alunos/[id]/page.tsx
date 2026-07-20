@@ -119,7 +119,8 @@ export default async function AlunoMasterPage({
     ]);
 
     eventos = (eventosRes.data ?? []) as typeof eventos;
-    const ultimoLogin = eventos.find((e) => e.acao === "sessao.login");
+    // Qualquer evento conta como presença (sessão dura dias sem novo login).
+    const ultimoLogin = eventos[0] ?? null;
 
     // Mesma régua do relatório Turma: só módulos publicados contam.
     const modulosPublicados = new Map(
