@@ -1,9 +1,15 @@
 "use server";
 
 import { getSupabase } from "@/lib/supabase";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isValidCPF, unmaskCPF } from "@/lib/cpf";
 import { isValidPhone, unmaskPhone } from "@/lib/phone";
-import { enviarEmailConfirmacaoInscricao } from "@/lib/email";
+import {
+  enviarEmailConfirmacaoInscricao,
+  enviarEmailConviteAluno,
+} from "@/lib/email";
+import { registrarConviteIndividual } from "@/lib/convites";
+import { registrarEvento } from "@/lib/auditoria";
 import { sanitizarOrigem, type Origem } from "@/lib/origem";
 
 export type RegistrationPayload = {
@@ -105,15 +111,56 @@ export async function registerInscription(
     };
   }
 
+  // Com o curso lançado, quem se inscreve já entra: a inscrição nasce
+  // liberada e o e-mail traz as instruções de acesso (matrícula + primeiro
+  // acesso). Se a liberação falhar, cai no e-mail de confirmação antigo e a
+  // pessoa entra pela liberação manual da aba E-mails.
+  const admin = createSupabaseAdminClient();
+  const { data: liberada } = await admin
+    .from("inscricoes")
+    .update({ selecionado: true })
+    .eq("matricula", matricula as string)
+    .select("id")
+    .maybeSingle();
+
   try {
-    await enviarEmailConfirmacaoInscricao({
-      nome,
-      email,
-      matricula: matricula as string,
-    });
+    if (liberada) {
+      await enviarEmailConviteAluno({
+        nome,
+        email,
+        matricula: matricula as string,
+      });
+      await registrarConviteIndividual({
+        inscricaoId: liberada.id,
+        email,
+        ok: true,
+      });
+    } else {
+      await enviarEmailConfirmacaoInscricao({
+        nome,
+        email,
+        matricula: matricula as string,
+      });
+    }
   } catch (emailError) {
-    console.error("Falha ao enviar e-mail de confirmação de inscrição:", emailError);
+    console.error("Falha ao enviar e-mail da inscrição:", emailError);
+    if (liberada) {
+      await registrarConviteIndividual({
+        inscricaoId: liberada.id,
+        email,
+        ok: false,
+        erro: emailError instanceof Error ? emailError.message.slice(0, 500) : "erro",
+      });
+    }
   }
+
+  await registrarEvento({
+    acao: "inscricao.criada",
+    atorPapel: "sistema",
+    alvoTipo: "inscricao",
+    alvoId: liberada?.id ?? null,
+    detalhes: { liberadaAutomaticamente: Boolean(liberada) },
+  });
 
   return { ok: true, matricula: matricula as string };
 }
