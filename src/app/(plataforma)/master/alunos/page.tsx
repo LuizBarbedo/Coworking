@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirPermissao, getSessaoEquipe } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { urlDaPlataforma } from "@/lib/urls";
 import { linkConviteWhatsApp } from "@/lib/whatsapp";
@@ -26,7 +26,10 @@ export default async function AlunosMasterPage({
 }: {
   searchParams: Promise<Busca>;
 }) {
-  await exigirAdmin();
+  // Monitor com "E-mails e convites de acesso" também trabalha esta aba;
+  // cadastrar aluno novo segue só pra admin (formulário condicionado abaixo).
+  await exigirPermissao("gerenciar_emails");
+  const sessao = await getSessaoEquipe();
   const { q = "", status = "", pagina = "1" } = await searchParams;
   const paginaAtual = Math.max(1, Number.parseInt(pagina, 10) || 1);
   const admin = createSupabaseAdminClient();
@@ -188,14 +191,16 @@ export default async function AlunosMasterPage({
           </div>
         </div>
 
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Novo aluno
-          </h2>
-          <div className="mt-3 rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm">
-            <FormCadastrarAluno />
+        {sessao?.nivel === "admin" ? (
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Novo aluno
+            </h2>
+            <div className="mt-3 rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm">
+              <FormCadastrarAluno />
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );

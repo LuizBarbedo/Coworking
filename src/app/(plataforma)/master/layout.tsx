@@ -25,10 +25,10 @@ export default async function MasterLayout({
     abas.push({ href: "/master/relatorios", rotulo: "Relatórios" });
   if (temPermissao(sessao, "moderar_forum"))
     abas.push({ href: "/master/forum", rotulo: "Fórum de dúvidas" });
-  if (sessao?.nivel === "admin") {
+  if (temPermissao(sessao, "gerenciar_emails"))
     abas.push({ href: "/master/alunos", rotulo: "Alunos" });
+  if (sessao?.nivel === "admin")
     abas.push({ href: "/master/equipe", rotulo: "Equipe" });
-  }
   if (temPermissao(sessao, "gerenciar_emails"))
     abas.push({ href: "/master/emails", rotulo: "E-mails" });
   if (sessao?.nivel === "admin")

@@ -5,7 +5,7 @@
 // pela mesma porta do público: inscrição selecionada + primeiro acesso.
 
 import { revalidatePath } from "next/cache";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirAdmin, exigirPermissao } from "@/lib/auth";
 import {
   lerSessaoEquipe,
   PERMISSOES,
@@ -273,7 +273,8 @@ export async function reenviarConviteAluno(
   _prev: EquipeState,
   formData: FormData,
 ): Promise<EquipeState> {
-  await exigirAdmin();
+  // Mesmo guard da aba Alunos: monitor com a permissão também reenvia.
+  await exigirPermissao("gerenciar_emails");
   const inscricaoId = String(formData.get("inscricaoId") ?? "");
   if (!inscricaoId) return { error: "Inscrição inválida." };
 

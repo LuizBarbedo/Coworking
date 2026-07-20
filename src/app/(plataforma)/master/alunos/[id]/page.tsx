@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { exigirAdmin } from "@/lib/auth";
+import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Trilha } from "@/components/ui/trilha";
 import {
@@ -47,7 +47,7 @@ export default async function AlunoMasterPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await exigirAdmin();
+  await exigirPermissao("gerenciar_emails");
   const { id } = await params;
   const admin = createSupabaseAdminClient();
 
