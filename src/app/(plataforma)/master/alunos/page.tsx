@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { exigirAdmin } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { urlDaPlataforma } from "@/lib/urls";
+import { linkConviteWhatsApp } from "@/lib/whatsapp";
 import { FormCadastrarAluno } from "@/components/master/form-cadastrar-aluno";
 import { LinhaAluno } from "@/components/master/linha-aluno";
 
@@ -31,7 +33,7 @@ export default async function AlunosMasterPage({
 
   let consulta = admin
     .from("inscricoes")
-    .select("id, nome, email, matricula, selecionado, ativado_em", {
+    .select("id, nome, email, telefone, matricula, selecionado, ativado_em", {
       count: "exact",
     })
     .order("created_at", { ascending: false });
@@ -49,10 +51,19 @@ export default async function AlunosMasterPage({
   else if (status === "ativado") consulta = consulta.not("ativado_em", "is", null);
 
   const de = (paginaAtual - 1) * POR_PAGINA;
-  const { data: inscricoes, count } = await consulta.range(
-    de,
-    de + POR_PAGINA - 1,
+  const [{ data: inscricoes, count }, devolvidosRes] = await Promise.all([
+    consulta.range(de, de + POR_PAGINA - 1),
+    // Convites que quicaram: muda a mensagem do WhatsApp (pedir e-mail certo).
+    admin
+      .from("envios_email")
+      .select("email")
+      .eq("tipo", "convite_acesso")
+      .eq("status", "devolvido"),
+  ]);
+  const emailsDevolvidos = new Set(
+    (devolvidosRes.data ?? []).map((e) => e.email as string),
   );
+  const urlApp = urlDaPlataforma();
   const total = count ?? 0;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
@@ -130,6 +141,22 @@ export default async function AlunosMasterPage({
                     email={i.email}
                     matricula={i.matricula}
                     ativado={i.ativado_em !== null}
+                    linkWhatsApp={
+                      i.ativado_em === null
+                        ? linkConviteWhatsApp(
+                            {
+                              nome: i.nome,
+                              email: i.email,
+                              matricula: i.matricula,
+                              telefone: i.telefone,
+                              emailDevolvido: emailsDevolvidos.has(
+                                i.email.toLowerCase(),
+                              ),
+                            },
+                            urlApp,
+                          )
+                        : null
+                    }
                   />
                 ))}
               </ul>

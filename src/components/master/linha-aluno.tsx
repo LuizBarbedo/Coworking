@@ -14,12 +14,15 @@ export function LinhaAluno({
   email,
   matricula,
   ativado,
+  linkWhatsApp,
 }: {
   id: string;
   nome: string;
   email: string;
   matricula: string;
   ativado: boolean;
+  /** wa.me com a mensagem pronta (montado no servidor); null sem telefone. */
+  linkWhatsApp?: string | null;
 }) {
   const [state, action, pending] = useActionState<EquipeState, FormData>(
     reenviarConviteAluno,
@@ -45,16 +48,28 @@ export function LinhaAluno({
           Ativo
         </span>
       ) : (
-        <form action={action}>
-          <input type="hidden" name="inscricaoId" value={id} />
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-          >
-            {pending ? "Reenviando…" : "Reenviar convite"}
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          {linkWhatsApp ? (
+            <a
+              href={linkWhatsApp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+            >
+              Chamar no WhatsApp
+            </a>
+          ) : null}
+          <form action={action}>
+            <input type="hidden" name="inscricaoId" value={id} />
+            <button
+              type="submit"
+              disabled={pending}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+            >
+              {pending ? "Reenviando…" : "Reenviar convite"}
+            </button>
+          </form>
+        </div>
       )}
     </li>
   );
