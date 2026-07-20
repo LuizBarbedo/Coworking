@@ -7,6 +7,7 @@ import { RegistrationForm } from "@/components/registration-form";
 import { Patrocinadores } from "@/components/patrocinadores";
 import { SocialLinks } from "@/components/social-links";
 import { TemaToggle } from "@/components/ui/tema-toggle";
+import { urlDaPlataforma } from "@/lib/urls";
 import { RodaAnimada } from "@/components/marca/roda-animada";
 
 const TITULO =
@@ -89,10 +90,18 @@ export default function Home() {
               </p>
             </div>
           </Link>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-brand-100/70 sm:block">
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs text-brand-100/70 lg:block">
               Acesso gratuito à comunidade
             </span>
+            {/* Aluno já cadastrado entra pela plataforma (subdomínio app —
+                o domínio da landing tem o portão de lançamento). */}
+            <a
+              href={`${urlDaPlataforma()}/login`}
+              className="rounded-lg border border-white/25 px-3.5 py-1.5 text-sm font-medium text-white/90 transition hover:border-white/50 hover:bg-white/10 hover:text-white"
+            >
+              Já tem conta? <span className="font-semibold">Entrar</span>
+            </a>
             <TemaToggle className="border-white/20 text-white/70 hover:border-white/40 hover:text-white" />
           </div>
         </header>
