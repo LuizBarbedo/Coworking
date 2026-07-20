@@ -5,7 +5,9 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   avancoPorDisciplina,
   linhasDosAlunos,
+  resumoFeedback,
   resumoGeral,
+  type AvaliacaoDisciplina,
   type DadosTurma,
 } from "@/lib/relatorios-turma";
 
@@ -42,6 +44,7 @@ export async function DesempenhoTurma() {
     loginsRes,
     postsRes,
     respostasRes,
+    avaliacoesRes,
   ] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
     admin.from("modulos").select("id, titulo, publicado"),
@@ -58,6 +61,12 @@ export async function DesempenhoTurma() {
       .limit(5000),
     admin.from("forum_posts").select("autor_id"),
     admin.from("forum_respostas").select("autor_id"),
+    // Feedback anônimo (0022) — sem a migração, segue vazio sem quebrar.
+    admin
+      .from("avaliacoes_disciplina")
+      .select("disciplina_id, estrelas, comentario, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
 
   // Alunos = contas que não são da equipe nem internas/de teste.
@@ -139,6 +148,12 @@ export async function DesempenhoTurma() {
   const geral = resumoGeral(dados);
   const porDisciplina = avancoPorDisciplina(dados);
   const linhas = linhasDosAlunos(dados);
+  const avaliacoes = (avaliacoesRes.data ?? []) as (AvaliacaoDisciplina & {
+    created_at: string;
+  })[];
+  const feedback = resumoFeedback(avaliacoes);
+  const tituloDaDisciplina = new Map(disciplinas.map((d) => [d.id, d.titulo]));
+  const comentarios = avaliacoes.filter((a) => a.comentario);
   const seteDias = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const ativos7d = Object.values(ultimoLoginPorAluno).filter(
     (iso) => new Date(iso).getTime() >= seteDias,
@@ -183,6 +198,7 @@ export async function DesempenhoTurma() {
                 <th className="px-4 py-2.5 font-medium">Começaram</th>
                 <th className="px-4 py-2.5 font-medium">Concluíram as aulas</th>
                 <th className="px-4 py-2.5 font-medium">Avaliação</th>
+                <th className="px-4 py-2.5 font-medium">Feedback</th>
               </tr>
             </thead>
             <tbody>
@@ -209,12 +225,51 @@ export async function DesempenhoTurma() {
                         : `${d.aprovadas}/${d.tentaram} aprovados · nota média ${d.notaMedia}%`
                       : "sem avaliação"}
                   </td>
+                  <td className="whitespace-nowrap px-4 py-2.5 text-slate-600 dark:text-slate-300">
+                    {feedback.has(d.id)
+                      ? `★ ${feedback.get(d.id)!.media} (${feedback.get(d.id)!.total})`
+                      : "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </section>
+
+      {comentarios.length > 0 ? (
+        <section>
+          <h2 className="font-display text-lg font-semibold text-brand-900 dark:text-brand-100">
+            Comentários da turma
+          </h2>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Feedback anônimo de quem concluiu as disciplinas.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {comentarios.slice(0, 30).map((c, i) => (
+              <li
+                key={i}
+                className="rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm"
+              >
+                <p className="text-xs text-slate-500">
+                  <span className="text-amber-500">
+                    {"★".repeat(c.estrelas)}
+                  </span>{" "}
+                  · {tituloDaDisciplina.get(c.disciplina_id) ?? "disciplina"} ·{" "}
+                  {new Intl.DateTimeFormat("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                    day: "2-digit",
+                    month: "2-digit",
+                  }).format(new Date(c.created_at))}
+                </p>
+                <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+                  {c.comentario}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section>
         <h2 className="font-display text-lg font-semibold text-brand-900 dark:text-brand-100">

@@ -39,6 +39,48 @@ export async function marcarAulaAssistida(
   return { ok: true };
 }
 
+/** Avaliação (estrelas + comentário) de quem concluiu a disciplina. */
+export async function avaliarDisciplina(
+  _prev: import("@/lib/acao").AcaoState,
+  formData: FormData,
+): Promise<import("@/lib/acao").AcaoState> {
+  const aluno = await exigirAluno();
+  const disciplinaId = String(formData.get("disciplinaId") ?? "");
+  const estrelas = Number(formData.get("estrelas") ?? 0);
+  const comentario =
+    String(formData.get("comentario") ?? "")
+      .trim()
+      .slice(0, 1000) || null;
+
+  if (!disciplinaId) return { error: "Disciplina inválida." };
+  if (!Number.isInteger(estrelas) || estrelas < 1 || estrelas > 5) {
+    return { error: "Escolha de 1 a 5 estrelas." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("avaliacoes_disciplina").upsert(
+    {
+      disciplina_id: disciplinaId,
+      aluno_id: aluno.id,
+      estrelas,
+      comentario,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "disciplina_id,aluno_id" },
+  );
+  if (error) return { error: "Não foi possível enviar sua avaliação." };
+
+  await registrarEvento({
+    acao: "disciplina.avaliada",
+    atorId: aluno.id,
+    alvoTipo: "disciplina",
+    alvoId: disciplinaId,
+    detalhes: { estrelas },
+  });
+  revalidatePath("/painel");
+  return { ok: "Avaliação enviada — obrigado por ajudar a melhorar o curso!" };
+}
+
 export type QuizState =
   | { nota: number; aprovado: boolean }
   | { error: string }

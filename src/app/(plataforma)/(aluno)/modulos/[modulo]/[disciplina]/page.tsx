@@ -11,6 +11,7 @@ import { QuizForm } from "@/components/ava/quiz-form";
 import { ChatIA } from "@/components/ava/chat-ia";
 import { NavSequencial } from "@/components/ava/nav-sequencial";
 import { Trilha } from "@/components/ui/trilha";
+import { AvaliacaoDisciplina } from "@/components/ava/avaliacao-disciplina";
 import { vizinhasDe } from "@/lib/navegacao-curso";
 
 type Params = { modulo: string; disciplina: string };
@@ -148,6 +149,22 @@ export default async function DisciplinaPage({
     (aulas ?? []).filter((a) => assistidas.has(a.id as string)).length +
     (quizAprovado ? 1 : 0);
   const progDisc = resumo(feitosItens, totalItens);
+
+  // Disciplina concluída → o aluno pode avaliá-la (estrelas + comentário).
+  // Sem a migration 0022 a consulta falha e o card simplesmente não aparece.
+  const concluiu = totalItens > 0 && feitosItens === totalItens;
+  let avaliacaoPropria: { estrelas: number; comentario: string | null } | null =
+    null;
+  let avaliacaoDisponivel = false;
+  if (concluiu) {
+    const { data, error: erroAvaliacao } = await supabase
+      .from("avaliacoes_disciplina")
+      .select("estrelas, comentario")
+      .eq("disciplina_id", disciplina.id)
+      .maybeSingle();
+    avaliacaoDisponivel = !erroAvaliacao;
+    avaliacaoPropria = data ?? null;
+  }
 
   // ── Painéis das abas (montados no servidor) ────────────────────────────────
   const painelAulas = (
@@ -290,6 +307,13 @@ export default async function DisciplinaPage({
           }}
         />
       </div>
+
+      {concluiu && avaliacaoDisponivel ? (
+        <AvaliacaoDisciplina
+          disciplinaId={disciplina.id}
+          avaliacaoAtual={avaliacaoPropria}
+        />
+      ) : null}
 
       <NavSequencial {...vizinhas} />
     </div>

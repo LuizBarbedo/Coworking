@@ -98,6 +98,7 @@ export function avancoPorDisciplina(dados: DadosTurma) {
             .filter((r): r is { nota: number; aprovado: boolean } => Boolean(r))
         : [];
       return {
+        id: d.id,
         disciplina: d.titulo,
         modulo: d.modulo,
         quizId: d.quizId,
@@ -111,6 +112,31 @@ export function avancoPorDisciplina(dados: DadosTurma) {
             : Math.round(notas.reduce((a, n) => a + n.nota, 0) / notas.length),
       };
     });
+}
+
+export type AvaliacaoDisciplina = {
+  disciplina_id: string;
+  estrelas: number;
+  comentario: string | null;
+};
+
+/** Média de estrelas e total de avaliações por disciplina (feedback anônimo). */
+export function resumoFeedback(avaliacoes: AvaliacaoDisciplina[]) {
+  const soma = new Map<string, { total: number; estrelas: number }>();
+  for (const a of avaliacoes) {
+    const atual = soma.get(a.disciplina_id) ?? { total: 0, estrelas: 0 };
+    atual.total += 1;
+    atual.estrelas += a.estrelas;
+    soma.set(a.disciplina_id, atual);
+  }
+  const saida = new Map<string, { media: number; total: number }>();
+  for (const [id, s] of soma) {
+    saida.set(id, {
+      media: Math.round((s.estrelas / s.total) * 10) / 10,
+      total: s.total,
+    });
+  }
+  return saida;
 }
 
 export function linhasDosAlunos(dados: DadosTurma) {

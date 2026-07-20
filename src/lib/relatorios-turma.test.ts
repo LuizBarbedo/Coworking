@@ -81,3 +81,16 @@ describe("linhasDosAlunos", () => {
     expect(segunda.ultimoLogin).toBeNull();
   });
 });
+
+describe("resumoFeedback", () => {
+  it("agrega média de estrelas e comentários por disciplina", async () => {
+    const { resumoFeedback } = await import("./relatorios-turma");
+    const r = resumoFeedback([
+      { disciplina_id: "d1", estrelas: 5, comentario: "Ótima!" },
+      { disciplina_id: "d1", estrelas: 4, comentario: null },
+      { disciplina_id: "d2", estrelas: 2, comentario: "confusa" },
+    ]);
+    expect(r.get("d1")).toEqual({ media: 4.5, total: 2 });
+    expect(r.get("d2")).toEqual({ media: 2, total: 1 });
+  });
+});
