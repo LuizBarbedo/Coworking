@@ -311,3 +311,24 @@ export async function reenviarConviteAluno(
   }
   return { ok: `Convite reenviado pra ${data.email}.` };
 }
+
+/**
+ * Marca que alguém da equipe clicou em "Chamar no WhatsApp" pro aluno —
+ * vira evento de auditoria e aparece como flag pra equipe toda não chamar
+ * a mesma pessoa duas vezes. Fire-and-forget: não bloqueia a abertura do
+ * WhatsApp.
+ */
+export async function registrarContatoWhatsApp(
+  inscricaoId: string,
+): Promise<void> {
+  const executor = await exigirPermissao("gerenciar_emails");
+  if (!inscricaoId) return;
+  await registrarEvento({
+    acao: "contato.whatsapp",
+    atorId: executor.id,
+    atorPapel: "equipe",
+    alvoTipo: "inscricao",
+    alvoId: inscricaoId,
+  });
+  revalidatePath("/master/alunos");
+}

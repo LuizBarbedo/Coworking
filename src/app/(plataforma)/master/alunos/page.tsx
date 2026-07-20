@@ -54,18 +54,51 @@ export default async function AlunosMasterPage({
   else if (status === "ativado") consulta = consulta.not("ativado_em", "is", null);
 
   const de = (paginaAtual - 1) * POR_PAGINA;
-  const [{ data: inscricoes, count }, devolvidosRes] = await Promise.all([
-    consulta.range(de, de + POR_PAGINA - 1),
-    // Convites que quicaram: muda a mensagem do WhatsApp (pedir e-mail certo).
-    admin
-      .from("envios_email")
-      .select("email")
-      .eq("tipo", "convite_acesso")
-      .eq("status", "devolvido"),
-  ]);
+  const [{ data: inscricoes, count }, devolvidosRes, contatosRes, usuariosRes] =
+    await Promise.all([
+      consulta.range(de, de + POR_PAGINA - 1),
+      // Convites que quicaram: muda a mensagem do WhatsApp (pedir e-mail certo).
+      admin
+        .from("envios_email")
+        .select("email")
+        .eq("tipo", "convite_acesso")
+        .eq("status", "devolvido"),
+      // Cliques no "Chamar no WhatsApp" (auditoria) — flag pra equipe.
+      admin
+        .from("eventos")
+        .select("ator_id, alvo_id, created_at")
+        .eq("acao", "contato.whatsapp")
+        .order("created_at", { ascending: false })
+        .limit(2000),
+      admin.auth.admin.listUsers({ perPage: 1000 }),
+    ]);
   const emailsDevolvidos = new Set(
     (devolvidosRes.data ?? []).map((e) => e.email as string),
   );
+
+  const nomeDoMembro = new Map(
+    (usuariosRes.data?.users ?? []).map((u) => [
+      u.id,
+      ((u.user_metadata as { nome?: string })?.nome ?? u.email ?? "equipe")
+        .trim()
+        .split(/\s+/)[0],
+    ]),
+  );
+  // Último contato por inscrição (a lista já vem do mais novo pro mais velho).
+  const contatoPorInscricao = new Map<string, { por: string; quando: string }>();
+  for (const c of contatosRes.data ?? []) {
+    if (!c.alvo_id || contatoPorInscricao.has(c.alvo_id)) continue;
+    contatoPorInscricao.set(c.alvo_id, {
+      por: nomeDoMembro.get(c.ator_id ?? "") ?? "equipe",
+      quando: new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date(c.created_at as string)),
+    });
+  }
   const urlApp = urlDaPlataforma();
   const total = count ?? 0;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
@@ -144,6 +177,7 @@ export default async function AlunosMasterPage({
                     email={i.email}
                     matricula={i.matricula}
                     ativado={i.ativado_em !== null}
+                    contatoWhatsApp={contatoPorInscricao.get(i.id) ?? null}
                     linkWhatsApp={
                       i.ativado_em === null
                         ? linkConviteWhatsApp(
