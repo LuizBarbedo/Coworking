@@ -8,7 +8,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 AVA (Ambiente Virtual de Aprendizagem) do **Coworking Social de Mudanças
 Globais**. Next.js 16 (App Router) + Supabase (Postgres/Auth/Storage, RLS-first)
-+ IA de apoio ao aluno via Ollama Cloud. Deploy na Vercel.
++ IA de apoio ao aluno via Ollama Cloud. Produção numa VPS própria
+(`coworking.service` + nginx); deploy atômico via `bash scripts/deploy.sh` —
+nunca `npm run build` direto com o serviço servindo o mesmo `.next`.
 
 ## Comandos
 
@@ -35,7 +37,9 @@ Desenvolvimento orientado a testes — **escreva o teste antes do código**:
 - Lógica pura (`src/lib/**`) e Server Actions → teste unitário Vitest ao lado
   do arquivo (`foo.test.ts`).
 - Fluxos de usuário (login, inscrição, navegação) → E2E Playwright em `e2e/`.
-- Nunca abra PR com testes quebrando; rode `npm test` antes de cada commit.
+  Os specs pulam sozinhos quando falta dependência (seed demo, migração).
+- Nunca suba código com testes quebrando; rode `npm test` antes de cada
+  commit.
 
 ### Commits atômicos
 
@@ -45,10 +49,13 @@ Desenvolvimento orientado a testes — **escreva o teste antes do código**:
   `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:` (escopo opcional,
   ex.: `feat(master): ...`). Corpo em pt-BR quando precisar de contexto.
 
-### Contribuição via fork
+### Contribuição
 
-Colaboradores sem escrita no repositório trabalham em fork + branch + PR para
-`LuizBarbedo/Coworking` (`origin` = fork, `upstream` = repo principal).
+- Colaboradores **com escrita** no `LuizBarbedo/Coworking` trabalham direto na
+  `main`: branch local → rebase em `upstream/main` → merge fast-forward →
+  push. Commits atômicos e testes verdes antes de cada push.
+- Colaboradores **sem escrita** trabalham em fork + branch + PR para
+  `LuizBarbedo/Coworking` (`origin` = fork, `upstream` = repo principal).
 
 ## Arquitetura
 
@@ -56,21 +63,27 @@ Colaboradores sem escrita no repositório trabalham em fork + branch + PR para
 
 | Grupo | Rotas | Acesso |
 |---|---|---|
-| `(site)` | `/` — landing + inscrição pública | público |
-| `(plataforma)` | `/login`, `/primeiro-acesso` | público (entrada) |
-| `(plataforma)/(aluno)` | `/painel`, `/modulos/[modulo]/[disciplina]` | aluno logado (`exigirAluno` no layout) |
-| `(plataforma)/master` | `/master/**` — autoria de conteúdo | papel `master` (`exigirMaster` no layout) |
-| `(painel)` | `/relatorios` — métricas de inscrição | senha única `PAINEL_SENHA` (sem conta) |
+| `(site)` | `/` — landing + inscrição pública, `/privacidade` | público |
+| `(plataforma)` | `/login`, `/primeiro-acesso`, `/definir-senha` | público (entrada) |
+| `(plataforma)/(aluno)` | `/painel`, `/modulos/[modulo]/[disciplina]`, `/forum`, `/perfil` | aluno logado (`exigirAluno` no layout) |
+| `(plataforma)/master` | `/master/**` — conteúdo, alunos, equipe, e-mails, fórum, relatórios, eventos | papel `master` (`exigirMaster` no layout; páginas sensíveis exigem permissão/nível) |
+| `(painel)` | `/relatorios` — métricas de inscrição e funil | senha única `PAINEL_SENHA` (sem conta) |
 
 - **Proteção de rotas** em `src/proxy.ts` (Next 16 usa `proxy.ts`, sucessor do
   `middleware.ts`): renova a sessão Supabase a cada request e redireciona
   visitante de rota protegida para `/login`. O papel `master` é checado no
   layout, não no proxy.
 - **Auth** (`src/lib/auth.ts`, tudo `server-only`): `getAluno` / `exigirAluno` /
-  `getPapel` / `exigirMaster`. O papel vive em `app_metadata.role` (só o
-  service_role escreve; vai no JWT). O painel administrativo usa outro
+  `getPapel` / `exigirMaster` / `exigirPermissao`. O papel vive em
+  `app_metadata.role` (só o service_role escreve; vai no JWT). A equipe tem
+  dois níveis (`src/lib/permissoes.ts`): **admin** (tudo) e **monitor** (só as
+  permissões concedidas: `visao_aluno`, `moderar_forum`, `editar_conteudo`,
+  `ver_relatorios`, `gerenciar_emails`). O painel administrativo usa outro
   mecanismo (`src/lib/painel-auth.ts`): cookie httpOnly com hash da
   `PAINEL_SENHA`, comparação em tempo constante.
+- **URLs internas** (convites, e-mails, redirects) sempre via
+  `lib/urls.urlDaPlataforma()` — a plataforma vive em `app.<dominio>`;
+  `NEXT_PUBLIC_SITE_URL` é a landing, que tem portão de lançamento.
 
 ### Supabase — três clientes, escolha é decisão de segurança
 
@@ -86,8 +99,9 @@ Colaboradores sem escrita no repositório trabalham em fork + branch + PR para
 - Segredos nunca saem do servidor: gabarito de quiz corrigido via RPC
   `corrigir_quiz`, alternativas expostas por view sem a coluna `correta`,
   métricas agregadas via RPC restrita ao service_role.
-- Migrations em `supabase/migrations/` (0001–0009): idempotentes, com
-  comentário de intenção no topo, aplicadas manualmente no SQL Editor.
+- Migrations em `supabase/migrations/` (0001–0022): idempotentes, com
+  comentário de intenção no topo, aplicadas manualmente no SQL Editor, em
+  ordem.
 
 ### IA / RAG (`src/lib/ia/`, `src/lib/ollama.ts`, `src/app/api/ia/chat/route.ts`)
 
@@ -100,12 +114,46 @@ Colaboradores sem escrita no repositório trabalham em fork + branch + PR para
   que refaz `disciplina_chunks` (~700 chars por trecho, `chunking.ts`).
 - Retrieval por full-text do Postgres: RPC `buscar_chunks` (SECURITY INVOKER,
   respeita RLS), 6 chunks; o prompt confina o modelo ao CONTEXTO recuperado.
+- O assistente também orienta a navegação: guia da plataforma no prompt
+  (`lib/ia/guia-plataforma.ts`, catálogo real via RLS) e links markdown
+  internos renderizados no chat (`lib/ia/links-chat.ts` — externos NÃO viram
+  link).
+
+### Fórum de dúvidas (`src/lib/forum/`, migrações 0015/0017)
+
+- Publicações passam por **moderação prévia com IA** (`moderacao.ts`): o
+  modelo recebe o catálogo do curso (`catalogo.ts`) e emite um veredito
+  (`parsear-veredito.ts`) antes de publicar; a equipe revisa a fila em
+  `/master/forum`.
+- `rate-limit.ts` (limite de postagem), `notificacoes.ts` (avisos ao autor),
+  `saude.ts` (indicador nos relatórios), `dados.ts` (leituras agregadas
+  server-only — quem votou em quê nunca chega ao cliente).
+
+### Alunos, e-mails e auditoria
+
+- **Convites de acesso** (`lib/convites.ts`, migração 0020): a aba
+  `/master/emails` libera e dispara em massa com registro por envio em
+  `envios_email` (enviado/falha/devolvido), idempotente. Bounces via IMAP em
+  `lib/devolucoes.ts`. Disparo grande fora do Next:
+  `scripts/disparo-lancamento.ts` (retomável, roda na VPS com
+  `npx tsx --conditions=react-server`).
+- **Inscrição pela landing** já nasce liberada e envia o e-mail de boas-vindas
+  com o acesso na hora.
+- **Trilha de auditoria** (`lib/auditoria.ts`, migração 0021):
+  `registrarEvento` à prova de falha, instrumentado em sessão/aula/quiz/
+  fórum/moderação/conteúdo/equipe; visão com filtros em `/master/eventos`
+  (admin).
+- **Relatórios**: `/relatorios` (senha) e `/master/relatorios` (permissão
+  `ver_relatorios`) — métricas, funil (0012–0014), visão Turma
+  (`lib/relatorios-turma.ts`) e feedback anônimo de disciplina (0022).
 
 ### Server Actions
 
 `src/app/actions.ts` (inscrição) · `(plataforma)/actions.ts` (login/1º acesso/
-logout) · `(aluno)/actions.ts` (progresso, quiz) · `master/actions.ts` (CRUD de
-conteúdo + base de conhecimento) · `(painel)/actions.ts` (senha do painel).
+definir senha/logout) · `(aluno)/actions.ts` (progresso, quiz, fórum, perfil,
+feedback de disciplina) · `master/actions.ts` (CRUD de conteúdo + base de
+conhecimento + moderação + alunos/equipe/e-mails) · `(painel)/actions.ts`
+(senha do painel).
 
 ### UX / design system
 
