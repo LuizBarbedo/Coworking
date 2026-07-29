@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AvisoSpam } from "@/components/ui/aviso-spam";
+import { dispararEventoMeta } from "@/lib/meta-pixel";
 
 export const CHAVE_MATRICULA = "csmg-matricula";
 
@@ -22,6 +23,9 @@ export function ConfirmacaoInscricao() {
         // sessionStorage indisponível: segue sem a matrícula (vai por e-mail)
       }
     }, 0);
+    // Conversão da Meta: o Google conta pelo carregamento desta URL; o pixel
+    // precisa do evento explícito. Só chega aqui quem terminou a inscrição.
+    dispararEventoMeta("CompleteRegistration");
     return () => clearTimeout(timer);
   }, []);
 
