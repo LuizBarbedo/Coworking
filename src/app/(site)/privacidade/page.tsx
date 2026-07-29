@@ -66,10 +66,18 @@ export default function PrivacidadePage() {
 
         <Secao titulo="Cookies de terceiros">
           <p>
-            <strong>Não usamos cookies de terceiros</strong> nem ferramentas de
-            rastreamento de parceiros. Se isso mudar um dia (por exemplo, um
-            pixel de medição de anúncios), pediremos o seu consentimento antes
-            de carregar qualquer script externo.
+            Nesta página pública de divulgação carregamos duas ferramentas de
+            medição de anúncios: a <strong>tag do Google Ads</strong> e o{" "}
+            <strong>pixel da Meta (Facebook/Instagram)</strong>. Elas registram
+            a visita e a conclusão da inscrição para medir quais anúncios
+            trazem alunos, e usam cookies próprios desses parceiros. Não
+            enviamos a elas seu nome, e-mail ou telefone.
+          </p>
+          <p>
+            <strong>Dentro da plataforma</strong> (área do aluno) não há
+            nenhuma ferramenta de rastreamento de terceiros. Você pode bloquear
+            esses scripts pelo seu navegador ou por extensões de privacidade
+            sem prejuízo nenhum à inscrição ou ao curso.
           </p>
         </Secao>
 

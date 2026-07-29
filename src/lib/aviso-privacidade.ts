@@ -1,8 +1,9 @@
-// Aviso de privacidade da landing: puramente informativo (não usamos cookies
-// de terceiros; a contagem de visitas é anônima), então não há consentimento
-// a colher — só o "entendi" pra não reaparecer. Se um dia entrar um script de
-// terceiros (ex.: Meta Pixel), isto deve voltar a ser um consentimento de
-// verdade, com opção de recusa gateando o script.
+// Aviso de privacidade da landing: hoje é só informativo — o "entendi" serve
+// pra não reaparecer, não é consentimento.
+// PENDÊNCIA: a landing carrega tag do Google Ads e pixel da Meta (layout do
+// grupo (site)). Pra ficar em dia com a LGPD isto precisa virar consentimento
+// de verdade, com opção de recusa gateando os dois scripts (só montar as
+// <Script> depois do aceite).
 
 export const CHAVE_AVISO = "csmg-aviso-privacidade";
 export const EVENTO_AVISO = "csmg:aviso-privacidade";
