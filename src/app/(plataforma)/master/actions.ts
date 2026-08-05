@@ -16,6 +16,7 @@ import {
 import { classificarVideo, resolverVideoAoAtualizar } from "@/lib/video";
 import { timestampDeSaoPaulo } from "@/lib/datas";
 import { registrarEvento } from "@/lib/auditoria";
+import { planejarReordenacao } from "@/lib/reordenar";
 
 /**
  * Reconstrói o índice do assistente de IA da disciplina. Best-effort: uma falha
@@ -84,13 +85,12 @@ async function slugDisciplinaUnico(
 async function proximaOrdem(
   admin: Admin,
   tabela: string,
-  campo: string,
-  valor: string,
+  campo?: string,
+  valor?: string,
 ): Promise<number> {
-  const { data } = await admin
-    .from(tabela)
-    .select("ordem")
-    .eq(campo, valor)
+  const base = admin.from(tabela).select("ordem");
+  const filtrada = campo && valor !== undefined ? base.eq(campo, valor) : base;
+  const { data } = await filtrada
     .order("ordem", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -115,6 +115,7 @@ export async function criarModulo(
   );
 
   const slug = await slugModuloUnico(admin, slugify(titulo));
+  const ordem = await proximaOrdem(admin, "modulos");
   const { data, error } = await admin
     .from("modulos")
     .insert({
@@ -122,7 +123,7 @@ export async function criarModulo(
       titulo,
       descricao,
       instrutor,
-      ordem: 0,
+      ordem,
       publicado: false,
       // Só entra quando preenchido: ambientes sem a 0019 seguem criando.
       ...(publicarEm ? { publicar_em: publicarEm } : {}),
@@ -253,6 +254,45 @@ export async function excluirModulo(
   redirect("/master");
 }
 
+/**
+ * Persiste a nova ordem dos módulos (arrastar-e-soltar do master). Recebe os
+ * ids na ordem desejada e regrava `modulo.ordem` em lote — o painel do aluno e
+ * a home do master ordenam por `ordem`, então a mudança se propaga sozinha.
+ */
+export async function reordenarModulos(
+  novaOrdem: string[],
+): Promise<AcaoState> {
+  const editor = await exigirPermissao("editar_conteudo");
+  const admin = createSupabaseAdminClient();
+
+  const { data: atuais } = await admin.from("modulos").select("id");
+  const idsAtuais = (atuais ?? []).map((m) => m.id as string);
+
+  const plano = planejarReordenacao(idsAtuais, novaOrdem);
+  if ("erro" in plano) return { error: plano.erro };
+
+  // Catálogo curto; updates individuais bastam (não há RPC de reordenação).
+  for (const { id, ordem } of plano.atualizacoes) {
+    const { error } = await admin
+      .from("modulos")
+      .update({ ordem })
+      .eq("id", id);
+    if (error) return { error: "Não foi possível salvar a nova ordem." };
+  }
+
+  await registrarEvento({
+    acao: "conteudo.modulos_reordenados",
+    atorId: editor.id,
+    atorPapel: "equipe",
+    alvoTipo: "modulo",
+    detalhes: { ordem: novaOrdem },
+  });
+
+  revalidatePath("/master");
+  revalidatePath("/painel");
+  return { ok: "Ordem dos módulos salva." };
+}
+
 // ─── disciplinas ─────────────────────────────────────────────────────────────
 export async function criarDisciplina(
   _prev: AcaoState,
@@ -324,6 +364,54 @@ export async function excluirDisciplina(
   revalidatePath(`/master/modulos/${moduloId}`);
   if (moduloId) redirect(`/master/modulos/${moduloId}`);
   return { ok: "Disciplina excluída." };
+}
+
+/**
+ * Persiste a nova ordem das disciplinas de um módulo (arrastar-e-soltar do
+ * master). Recebe os ids na ordem desejada e regrava `disciplina.ordem` em
+ * lote — como toda a exibição (master, aluno, painel, IA) ordena por `ordem`,
+ * a mudança se propaga sozinha.
+ */
+export async function reordenarDisciplinas(
+  moduloId: string,
+  novaOrdem: string[],
+): Promise<AcaoState> {
+  const editor = await exigirPermissao("editar_conteudo");
+  if (!moduloId) return { error: "Módulo inválido." };
+  const admin = createSupabaseAdminClient();
+
+  const { data: atuais } = await admin
+    .from("disciplinas")
+    .select("id")
+    .eq("modulo_id", moduloId);
+  const idsAtuais = (atuais ?? []).map((d) => d.id as string);
+
+  const plano = planejarReordenacao(idsAtuais, novaOrdem);
+  if ("erro" in plano) return { error: plano.erro };
+
+  // Catálogo curto (poucas disciplinas por módulo); updates individuais bastam,
+  // não há RPC de reordenação. O filtro por modulo_id evita mexer fora do lote.
+  for (const { id, ordem } of plano.atualizacoes) {
+    const { error } = await admin
+      .from("disciplinas")
+      .update({ ordem })
+      .eq("id", id)
+      .eq("modulo_id", moduloId);
+    if (error) return { error: "Não foi possível salvar a nova ordem." };
+  }
+
+  await registrarEvento({
+    acao: "conteudo.disciplinas_reordenadas",
+    atorId: editor.id,
+    atorPapel: "equipe",
+    alvoTipo: "modulo",
+    alvoId: moduloId,
+    detalhes: { ordem: novaOrdem },
+  });
+
+  revalidatePath(`/master/modulos/${moduloId}`);
+  revalidatePath("/modulos/[modulo]", "page");
+  return { ok: "Ordem das disciplinas salva." };
 }
 
 // ─── aulas ───────────────────────────────────────────────────────────────────

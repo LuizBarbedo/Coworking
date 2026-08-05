@@ -1,11 +1,11 @@
 import { FormAcao } from "@/components/ui/form-acao";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { exigirMaster, getSessaoEquipe } from "@/lib/auth";
 import { primeiraRotaPermitida, temPermissao } from "@/lib/permissoes";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { criarModulo } from "./actions";
+import { ListaModulos } from "./lista-modulos";
 
 export const metadata: Metadata = { title: "Área do Master — CSMG" };
 
@@ -49,42 +49,13 @@ export default async function MasterHome() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Módulos
           </h2>
-          {modulos && modulos.length > 0 ? (
-            <ul className="escalonado mt-3 space-y-3">
-              {modulos.map((m) => (
-                <li key={m.id}>
-                  <Link
-                    href={`/master/modulos/${m.id}`}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
-                  >
-                    <div className="min-w-0">
-                      <h3 className="truncate font-semibold text-brand-900 dark:text-brand-100">
-                        {m.titulo}
-                      </h3>
-                      {m.instrutor ? (
-                        <p className="truncate text-sm text-slate-500">
-                          {m.instrutor}
-                        </p>
-                      ) : null}
-                    </div>
-                    <span
-                      className={`flex-none rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        m.publicado
-                          ? "bg-green-50 text-green-700"
-                          : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {m.publicado ? "Publicado" : "Rascunho"}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-3 rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
-              Nenhum módulo ainda. Crie o primeiro ao lado.
+          <ListaModulos modulos={modulos ?? []} />
+          {modulos && modulos.length > 1 ? (
+            <p className="mt-2 text-xs text-slate-500">
+              Arraste pela alça ou use as setas para reordenar. A ordem vale para
+              os alunos.
             </p>
-          )}
+          ) : null}
         </div>
 
         {/* Criar módulo */}
