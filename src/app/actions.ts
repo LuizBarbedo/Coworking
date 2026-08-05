@@ -11,6 +11,20 @@ import {
 import { registrarConviteIndividual } from "@/lib/convites";
 import { registrarEvento } from "@/lib/auditoria";
 import { sanitizarOrigem, type Origem } from "@/lib/origem";
+import { criarLimitador } from "@/lib/limite-taxa";
+import { ipDeCabecalhos } from "@/lib/ip-cliente";
+import { headers } from "next/headers";
+
+// Trava de abuso do formulário público. A inscrição dispara e-mail na hora
+// pro endereço digitado, então sem limite qualquer um usaria o formulário pra
+// mandar e-mail em massa saindo do nosso remetente — queimando a reputação de
+// entrega. 10/hora por IP passa longe do uso real (inclusive vários alunos na
+// mesma rede) e corta rajada automatizada.
+const LIMITE_INSCRICAO_POR_IP = 10;
+const limitadorInscricao = criarLimitador({
+  limite: LIMITE_INSCRICAO_POR_IP,
+  janelaMs: 60 * 60 * 1000,
+});
 
 export type RegistrationPayload = {
   nome: string;
@@ -68,6 +82,18 @@ export async function registerInscription(
   const telefone = unmaskPhone(data.telefone ?? "");
   if (!isValidPhone(telefone)) {
     return { ok: false, error: "Telefone inválido.", field: "telefone" };
+  }
+
+  // Só depois de validar os campos: erro de digitação não gasta cota, e a
+  // cota só é consumida por tentativa que de fato gravaria e mandaria e-mail.
+  const ip = ipDeCabecalhos(await headers());
+  if (!limitadorInscricao.consumir(ip)) {
+    console.warn(`Limite de inscrições por IP atingido (${ip}).`);
+    return {
+      ok: false,
+      error:
+        "Muitas inscrições enviadas deste acesso. Tente de novo mais tarde ou fale com a gente.",
+    };
   }
 
   const origem = sanitizarOrigem(data.origem);
