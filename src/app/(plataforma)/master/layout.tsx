@@ -28,6 +28,8 @@ export default async function MasterLayout({
   if (temPermissao(sessao, "gerenciar_emails"))
     abas.push({ href: "/master/alunos", rotulo: "Alunos" });
   if (sessao?.nivel === "admin")
+    abas.push({ href: "/master/turmas", rotulo: "Turmas" });
+  if (sessao?.nivel === "admin")
     abas.push({ href: "/master/equipe", rotulo: "Equipe" });
   if (temPermissao(sessao, "gerenciar_emails"))
     abas.push({ href: "/master/emails", rotulo: "E-mails" });
