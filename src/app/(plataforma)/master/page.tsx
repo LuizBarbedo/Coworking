@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { exigirMaster, getSessaoEquipe } from "@/lib/auth";
 import { temPermissao, type Permissao } from "@/lib/permissoes";
+import {
+  CardInscricoes,
+  CardModeracao,
+  CardTurmaProxima,
+  CardVideos,
+} from "@/components/master/cards-inicio";
 
 export const metadata: Metadata = { title: "Área do Master — CSMG" };
 
@@ -73,13 +79,20 @@ export default async function MasterInicioPage() {
         Visão geral da operação — cada área em detalhe fica nas abas.
       </p>
 
+      <div className="escalonado mt-8 grid gap-4 sm:grid-cols-2">
+        {temPermissao(sessao, "gerenciar_emails") ? <CardTurmaProxima /> : null}
+        {temPermissao(sessao, "ver_relatorios") ? <CardInscricoes /> : null}
+        {temPermissao(sessao, "moderar_forum") ? <CardModeracao /> : null}
+        {temPermissao(sessao, "editar_conteudo") ? <CardVideos /> : null}
+      </div>
+
       {atalhos.length === 0 ? (
         <p className="mt-8 rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
           Sua conta ainda não tem nenhuma área liberada — peça a um admin
           para conceder as permissões na aba Equipe.
         </p>
       ) : (
-        <div className="escalonado mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="escalonado mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {atalhos.map((a) => (
             <div key={a.href} data-tour={a.dataTour}>
               <Link
