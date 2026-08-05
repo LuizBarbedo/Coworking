@@ -18,10 +18,17 @@ async function main() {
   const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
   const admin = createSupabaseAdminClient();
 
-  const { data: pendentes, error } = await admin
+  // Coluna turma só existe com a 0023 — sem ela, refaz sem a coluna.
+  let { data: pendentes, error } = await admin
     .from("inscricoes")
-    .select("email")
+    .select("email, turma")
     .is("ativado_em", null);
+  if (error) {
+    ({ data: pendentes, error } = await admin
+      .from("inscricoes")
+      .select("email")
+      .is("ativado_em", null));
+  }
   if (error) throw new Error(error.message);
 
   const { data: jaEnviados } = await admin
@@ -31,7 +38,15 @@ async function main() {
     .eq("status", "enviado");
   const comConvite = new Set((jaEnviados ?? []).map((e) => e.email));
 
-  const aEnviar = (pendentes ?? []).filter(
+  // Mesma régua do disparo real: turma que ainda não abriu fica de fora.
+  const { filtrarPorTurmaLiberada } = await import("@/lib/turmas");
+  const { buscarTurmas } = await import("@/lib/turmas-dados");
+  const { liberadas: aptos, aguardando } = filtrarPorTurmaLiberada(
+    (pendentes ?? []) as Array<{ email: string; turma?: number | null }>,
+    await buscarTurmas(),
+  );
+
+  const aEnviar = aptos.filter(
     (i) =>
       !i.email.endsWith("@coworkingsocial.com.br") &&
       !comConvite.has(i.email.toLowerCase()),
@@ -39,7 +54,8 @@ async function main() {
 
   console.log(
     `${aEnviar} convites a enviar (${pendentes?.length ?? 0} não ativados, ` +
-      `${comConvite.size} já convidados). Intervalo: ${INTERVALO_MS / 1000}s ` +
+      `${comConvite.size} já convidados, ${aguardando.length} aguardando a ` +
+      `turma abrir). Intervalo: ${INTERVALO_MS / 1000}s ` +
       `=> duração estimada ~${Math.ceil((aEnviar * (INTERVALO_MS + 2000)) / 60000)}min`,
   );
 

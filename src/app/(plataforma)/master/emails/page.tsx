@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { FormAcao } from "@/components/ui/form-acao";
+import { filtrarPorTurmaLiberada } from "@/lib/turmas";
+import { buscarTurmas } from "@/lib/turmas-dados";
 import { dispararConvites, conferirDevolucoes } from "./actions";
 
 export const metadata: Metadata = { title: "E-mails — CSMG Master" };
@@ -19,24 +21,37 @@ export default async function EmailsMasterPage() {
   await exigirPermissao("gerenciar_emails");
   const admin = createSupabaseAdminClient();
 
-  const [inscricoesRes, enviosRes] = await Promise.all([
-    admin
-      .from("inscricoes")
-      .select("id, selecionado, ativado_em"),
+  const [primeiraBusca, enviosRes, turmas] = await Promise.all([
+    admin.from("inscricoes").select("id, selecionado, ativado_em, turma"),
     admin
       .from("envios_email")
       .select("id, email, status, erro, created_at")
       .order("created_at", { ascending: false })
       .limit(300),
+    buscarTurmas(),
   ]);
+  // Coluna turma só existe com a 0023 — sem ela, refaz sem a coluna.
+  const inscricoesRes = primeiraBusca.error
+    ? await admin.from("inscricoes").select("id, selecionado, ativado_em")
+    : primeiraBusca;
 
-  const inscricoes = inscricoesRes.data ?? [];
+  const inscricoes = (inscricoesRes.data ?? []) as Array<{
+    id: string;
+    selecionado: boolean;
+    ativado_em: string | null;
+    turma?: number | null;
+  }>;
   const envios = enviosRes.data;
   const semTabela = Boolean(enviosRes.error);
+  const { aguardando } = filtrarPorTurmaLiberada(
+    inscricoes.filter((i) => !i.ativado_em),
+    turmas,
+  );
   const totais = {
     inscritos: inscricoes.length,
     liberados: inscricoes.filter((i) => i.selecionado).length,
     ativados: inscricoes.filter((i) => i.ativado_em).length,
+    aguardandoTurma: aguardando.length,
     enviados: (envios ?? []).filter((e) => e.status === "enviado").length,
     falhas: (envios ?? []).filter((e) => e.status === "falha").length,
     devolvidos: (envios ?? []).filter((e) => e.status === "devolvido").length,
@@ -58,10 +73,13 @@ export default async function EmailsMasterPage() {
             ["Inscritos", totais.inscritos],
             ["Liberados", totais.liberados],
             ["Já ativaram", totais.ativados],
+            ...(totais.aguardandoTurma > 0
+              ? [["Aguardando turma", totais.aguardandoTurma]]
+              : []),
             ["Enviados", totais.enviados],
             ["Falhas", totais.falhas],
             ["Devolvidos", totais.devolvidos],
-          ] as const
+          ] as Array<[string, number]>
         ).map(([rotulo, valor]) => (
           <div
             key={rotulo}
@@ -96,7 +114,9 @@ export default async function EmailsMasterPage() {
       <p className="mt-2 text-xs text-slate-500">
         O disparo pula quem já recebeu convite e quem já ativou a conta —
         pode rodar de novo sem duplicar e-mail. Falha e devolução voltam a
-        ser incluídas na próxima rodada.
+        ser incluídas na próxima rodada. Inscrições de turma que ainda não
+        abriu ficam de fora e entram no disparo a partir da data de
+        liberação.
       </p>
 
       {semTabela ? (

@@ -18,7 +18,11 @@ export async function dispararConvites(
     const r = await liberarEDispararConvites({ apenasSemConvite: true });
     revalidatePath("/master/emails");
     return {
-      ok: `Liberadas ${r.liberadas} inscrições · ${r.enviados} convites enviados · ${r.falhas} falhas · ${r.pulados} já tinham convite.`,
+      ok: `Liberadas ${r.liberadas} inscrições · ${r.enviados} convites enviados · ${r.falhas} falhas · ${r.pulados} já tinham convite.${
+        r.aguardandoTurma > 0
+          ? ` ${r.aguardandoTurma} aguardando a turma abrir (fora do disparo).`
+          : ""
+      }`,
     };
   } catch (erro) {
     return {

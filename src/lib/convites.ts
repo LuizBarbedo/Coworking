@@ -4,11 +4,15 @@ import "server-only";
 // convite com a matrícula e registra CADA tentativa em envios_email
 // ('enviado' | 'falha'); a checagem de devoluções (bounce) lê a caixa do
 // Gmail via IMAP e marca 'devolvido'. Usado pela aba E-mails do master e
-// pelo disparo agendado (rota /api/admin/enviar-convites).
+// pelos scripts de disparo em background (scripts/disparo-*.ts).
+// Inscrição de turma que ainda não abriu (migração 0023) fica FORA do
+// disparo — ela entra sozinha a partir da data de liberação da turma.
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { enviarEmailConviteAluno } from "@/lib/email";
 import { extrairEmailDevolvido } from "@/lib/devolucoes";
+import { filtrarPorTurmaLiberada } from "@/lib/turmas";
+import { buscarTurmas } from "@/lib/turmas-dados";
 
 type Admin = ReturnType<typeof createSupabaseAdminClient>;
 
@@ -56,6 +60,8 @@ export type ResultadoDisparo = {
   enviados: number;
   falhas: number;
   pulados: number;
+  /** Inscrições de turma que ainda não abriu — ficam fora do disparo. */
+  aguardandoTurma: number;
 };
 
 /**
@@ -75,11 +81,20 @@ export async function liberarEDispararConvites(opcoes?: {
   const apenasSemConvite = opcoes?.apenasSemConvite ?? true;
   const intervaloMs = opcoes?.intervaloMs ?? 300;
 
-  const { data: inscricoes, error } = await admin
+  // A coluna turma só existe com a 0023 aplicada — sem ela, refaz a busca
+  // sem a coluna e ninguém fica retido (comportamento antigo).
+  let { data: inscricoes, error } = await admin
     .from("inscricoes")
-    .select("id, nome, email, matricula, selecionado, ativado_em")
+    .select("id, nome, email, matricula, selecionado, ativado_em, turma")
     .is("ativado_em", null)
     .order("created_at", { ascending: true });
+  if (error) {
+    ({ data: inscricoes, error } = await admin
+      .from("inscricoes")
+      .select("id, nome, email, matricula, selecionado, ativado_em")
+      .is("ativado_em", null)
+      .order("created_at", { ascending: true }));
+  }
   if (error) throw new Error(`Falha ao listar inscrições: ${error.message}`);
 
   const { data: jaEnviados } = await admin
@@ -89,14 +104,30 @@ export async function liberarEDispararConvites(opcoes?: {
     .eq("status", "enviado");
   const comConvite = new Set((jaEnviados ?? []).map((e) => e.email));
 
+  // Quem é de turma ainda fechada não é selecionado nem recebe convite —
+  // entra no próximo disparo depois que a turma abrir.
+  const { liberadas: aptas, aguardando } = filtrarPorTurmaLiberada(
+    (inscricoes ?? []) as Array<{
+      id: string;
+      nome: string;
+      email: string;
+      matricula: string;
+      selecionado: boolean;
+      ativado_em: string | null;
+      turma?: number | null;
+    }>,
+    await buscarTurmas(),
+  );
+
   const resultado: ResultadoDisparo = {
     liberadas: 0,
     enviados: 0,
     falhas: 0,
     pulados: 0,
+    aguardandoTurma: aguardando.length,
   };
 
-  for (const inscricao of inscricoes ?? []) {
+  for (const inscricao of aptas) {
     // teste interno não recebe convite
     if (inscricao.email.endsWith("@coworkingsocial.com.br")) continue;
 
