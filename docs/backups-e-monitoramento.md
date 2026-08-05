@@ -58,6 +58,20 @@ docker rm -f teste-restauracao
   inteira cair, o alerta cai junto. Recomendação registrada: contratar
   verificação externa gratuita (UptimeRobot ou similar) apontando pra
   `https://app.coworkingsocial.com.br/login`.
+- Existe `GET /api/health` (200 + latência do banco; 503 se o banco não
+  responder) — dá pra apontar o vigia pra ele com
+  `VIGIA_URL=https://app.coworkingsocial.com.br/api/health`, que aí a
+  checagem cobre app **e** banco, não só a página de login.
+
+## Batimentos no banco (card do master)
+
+- Migração **0025** criou `public.ops_heartbeats`: `backup-banco.sh` e
+  `redundancia-nuvem.sh` gravam um upsert no fim de cada rodada (sucesso
+  ou falha, best-effort — nunca derruba o backup).
+- O card "Saúde da operação" no Início do master (`/master`, só admin) lê
+  a tabela e sinaliza: **ok**, **falhou** (última rodada com erro) ou
+  **atrasado** (batimento com mais de 26h — cron parado). Detalhe fino
+  continua nos logs de `/var/log/coworking-*.log`.
 
 ## Segredos (R-13)
 

@@ -30,7 +30,20 @@ alerta() {
       --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" -T - || true
 }
 
+# Batimento no banco (0025) pro card "Saúde da operação" do master.
+# Best-effort: tabela ausente ou banco fora nunca derrubam o backup.
+batimento() {
+  local ok="$1" detalhes="$2"
+  [ -n "$DATABASE_URL" ] || return 0
+  psql "$DATABASE_URL" -X -q -c "insert into public.ops_heartbeats (id, ok, detalhes, atualizado_em)
+    values ('backup-banco', $ok, '$detalhes', now())
+    on conflict (id) do update set ok = excluded.ok,
+      detalhes = excluded.detalhes, atualizado_em = excluded.atualizado_em;" \
+    >/dev/null 2>&1 || true
+}
+
 falhou() {
+  batimento false "falhou na etapa: $1"
   alerta "[CSMG] FALHA no backup do banco de producao" \
     "O backup de $(date '+%d/%m %H:%M') falhou na etapa: $1. Conferir /var/log/coworking-backup.log na VPS."
   echo "ERRO: $1" >&2
@@ -52,4 +65,5 @@ TAMANHO=$(stat -c%s "$ARQUIVO")
 # Retenção: mantém os N mais novos.
 ls -1t "$DESTINO"/coworking-*.dump | tail -n +$((RETENCAO + 1)) | xargs -r rm --
 
+batimento true "${TAMANHO} bytes"
 echo "$(date '+%F %H:%M') backup ok: $ARQUIVO (${TAMANHO} bytes)"

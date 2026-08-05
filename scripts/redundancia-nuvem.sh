@@ -25,7 +25,20 @@ alerta() {
       --mail-from "$GMAIL_USER" --mail-rcpt "$GMAIL_USER" \
       --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" -T - || true
 }
+# Batimento no banco LOCAL (0025) pro card "Saúde da operação" do master.
+# Best-effort: tabela ausente ou banco fora nunca derrubam o espelho.
+batimento() {
+  local ok="$1" detalhes="$2"
+  [ -n "$LOCAL_URL" ] || return 0
+  psql "$LOCAL_URL" -X -q -c "insert into public.ops_heartbeats (id, ok, detalhes, atualizado_em)
+    values ('espelho-nuvem', $ok, '$detalhes', now())
+    on conflict (id) do update set ok = excluded.ok,
+      detalhes = excluded.detalhes, atualizado_em = excluded.atualizado_em;" \
+    >/dev/null 2>&1 || true
+}
+
 falhou() {
+  batimento false "falhou na etapa: $1"
   alerta "[CSMG] FALHA na redundancia pra nuvem" \
     "A copia diaria local->nuvem de $(date '+%d/%m %H:%M') falhou na etapa: $1. Ver /var/log/coworking-redundancia.log."
   echo "ERRO: $1" >&2
@@ -62,4 +75,5 @@ echo "== conferência"
 LOCAL_N=$(psql "$LOCAL_URL" -t -c "select count(*) from public.inscricoes;" | tr -dc 0-9)
 NUVEM_N=$(psql "$NUVEM_URL" -t -c "select count(*) from public.inscricoes;" | tr -dc 0-9)
 [ "$LOCAL_N" = "$NUVEM_N" ] || falhou "contagens divergem (local=$LOCAL_N nuvem=$NUVEM_N)"
+batimento true "$NUVEM_N inscricoes espelhadas"
 echo "$(date '+%F %H:%M') redundancia ok: $NUVEM_N inscricoes espelhadas na nuvem"
