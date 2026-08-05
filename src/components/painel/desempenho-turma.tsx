@@ -95,10 +95,12 @@ export async function DesempenhoTurma({
       .order("created_at", { ascending: false })
       .limit(200),
     // Vínculo pro detalhe do aluno (/master/alunos/[id]) — casa por e-mail.
-    // A coluna turma só entra quando a 0023 existe (senão derruba a query).
+    // A coluna turma só entra quando a 0023 existe (senão derruba a query);
+    // o parser de tipos do supabase-js não aceita select condicional, então
+    // o cast fixa a forma base e `turma` é lida com cast pontual abaixo.
     admin
       .from("inscricoes")
-      .select(temTurmas ? "id, email, turma" : "id, email"),
+      .select((temTurmas ? "id, email, turma" : "id, email") as "id, email"),
   ]);
 
   const inscricoes = (inscricoesRes.data ?? []) as {
