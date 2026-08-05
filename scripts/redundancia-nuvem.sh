@@ -37,18 +37,23 @@ falhou() {
 mkdir -p "$D" && chmod 700 "$D"
 
 echo "== dump do banco local"
+# users e identities em dumps separados: na nuvem o postgres não é dono das
+# tabelas do auth (não pode --disable-triggers), então a FK é satisfeita
+# restaurando na ordem users → identities.
 $PGD -Fc --no-owner -n public -d "$LOCAL_URL" -f "$D/public.dump" || falhou "dump public"
-$PGD -Fc --no-owner --data-only -t auth.users -t auth.identities -d "$LOCAL_URL" -f "$D/auth.dump" || falhou "dump auth"
+$PGD -Fc --no-owner --data-only -t auth.users -d "$LOCAL_URL" -f "$D/auth-users.dump" || falhou "dump auth.users"
+$PGD -Fc --no-owner --data-only -t auth.identities -d "$LOCAL_URL" -f "$D/auth-identities.dump" || falhou "dump auth.identities"
 $PGD -Fc --no-owner --data-only -t storage.buckets -d "$LOCAL_URL" -f "$D/buckets.dump" || falhou "dump buckets"
 
 echo "== restore na nuvem (public do zero, auth antes das FKs)"
 psql "$NUVEM_URL" -v ON_ERROR_STOP=1 -c "drop schema if exists public cascade; create schema public;
   grant usage on schema public to postgres, anon, authenticated, service_role;" || falhou "drop/create public na nuvem"
 psql "$NUVEM_URL" -c "truncate auth.identities, auth.users cascade;" || falhou "truncate auth na nuvem"
-$PGR --no-owner --disable-triggers -d "$NUVEM_URL" "$D/auth.dump" || falhou "restore auth"
+$PGR --no-owner -d "$NUVEM_URL" "$D/auth-users.dump" || falhou "restore auth.users"
+$PGR --no-owner -d "$NUVEM_URL" "$D/auth-identities.dump" || falhou "restore auth.identities"
 $PGR --no-owner -d "$NUVEM_URL" "$D/public.dump" || true # avisos de extensão tolerados; conferência decide
 psql "$NUVEM_URL" -c "truncate storage.buckets cascade;" || falhou "truncate buckets na nuvem"
-$PGR --no-owner --disable-triggers -d "$NUVEM_URL" "$D/buckets.dump" || falhou "restore buckets"
+$PGR --no-owner -d "$NUVEM_URL" "$D/buckets.dump" || falhou "restore buckets"
 
 echo "== arquivos do storage (local → nuvem, upsert)"
 SENTIDO=local-nuvem node "$RAIZ/scripts/migrar-storage.mjs" | tail -1 || falhou "storage"
