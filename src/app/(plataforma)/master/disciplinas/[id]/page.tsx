@@ -4,6 +4,7 @@ import { Trilha } from "@/components/ui/trilha";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { exigirPermissao } from "@/lib/auth";
+import { resumoFeedback } from "@/lib/relatorios-turma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { LinhaEditavel } from "@/components/master/linha-editavel";
 import { BlocoAdicionar } from "@/components/master/bloco-adicionar";
@@ -67,6 +68,7 @@ export default async function DisciplinaMasterPage({
     { data: materiais },
     { data: quiz },
     { data: conhecimento },
+    avaliacoesRes,
   ] = await Promise.all([
     admin
       .from("aulas")
@@ -90,7 +92,26 @@ export default async function DisciplinaMasterPage({
       .select("id, titulo, conteudo, ordem, arquivo_nome, arquivo_path")
       .eq("disciplina_id", id)
       .order("ordem", { ascending: true }),
+    // Feedback anônimo (0022): sem a migração a seção some, sem quebrar.
+    // NUNCA selecionar aluno_id — nota e comentário chegam sem autor.
+    admin
+      .from("avaliacoes_disciplina")
+      .select("estrelas, comentario, created_at")
+      .eq("disciplina_id", id)
+      .order("created_at", { ascending: false }),
   ]);
+
+  const avaliacoes = avaliacoesRes.error ? null : (avaliacoesRes.data ?? []);
+  const resumoAvaliacoes =
+    avaliacoes && avaliacoes.length > 0
+      ? resumoFeedback(
+          avaliacoes.map((a) => ({
+            disciplina_id: id,
+            estrelas: a.estrelas as number,
+            comentario: a.comentario as string | null,
+          })),
+        ).get(id)
+      : null;
 
   // URLs assinadas (1h) para o master baixar/consultar os arquivos anexados.
   const pathsArquivos = (conhecimento ?? [])
@@ -210,6 +231,55 @@ export default async function DisciplinaMasterPage({
           </div>
         </FormAcao>
       </section>
+
+      {/* Feedback anônimo dos alunos (0022) — só aparece quando existe. */}
+      {avaliacoes && avaliacoes.length > 0 && resumoAvaliacoes ? (
+        <section className={cardClass}>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">
+              Feedback dos alunos
+            </h2>
+            <p className="text-sm text-slate-500">
+              <span className="font-semibold text-amber-500">
+                ★ {resumoAvaliacoes.media.toLocaleString("pt-BR")}
+              </span>{" "}
+              · {resumoAvaliacoes.total}{" "}
+              {resumoAvaliacoes.total === 1 ? "avaliação" : "avaliações"}
+            </p>
+          </div>
+          {avaliacoes.some((a) => a.comentario) ? (
+            <ul className="mt-4 space-y-3">
+              {avaliacoes
+                .filter((a) => a.comentario)
+                .slice(0, 10)
+                .map((a, i) => (
+                  <li
+                    key={i}
+                    className="rounded-lg border border-slate-100 bg-background p-3 text-sm dark:border-slate-800"
+                  >
+                    <p className="text-xs text-amber-500">
+                      {"★".repeat(a.estrelas as number)}
+                      <span className="ml-2 text-slate-400">
+                        {new Intl.DateTimeFormat("pt-BR", {
+                          timeZone: "America/Sao_Paulo",
+                          day: "2-digit",
+                          month: "2-digit",
+                        }).format(new Date(a.created_at as string))}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-slate-700 dark:text-slate-300">
+                      {a.comentario}
+                    </p>
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">
+              Só notas até agora — nenhum comentário escrito.
+            </p>
+          )}
+        </section>
+      ) : null}
 
       {/* Aulas */}
       <section className={cardClass} data-tour="master-aulas">
