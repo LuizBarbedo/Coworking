@@ -855,8 +855,12 @@
     <li><strong>O painel por senha expõe apenas números agregados</strong>, nunca
       registros individuais.</li>
     <li><strong>Dentro da área do aluno não há nenhum rastreador de terceiros.</strong></li>
-    <li><strong>Não há armazenamento de dado pessoal em disco na VPS</strong>;
-      os logs do serviço registram operação da aplicação, não conteúdo de dados.</li>
+    <li><strong>Logs sem conteúdo de dado pessoal</strong>: os registros do
+      serviço documentam a operação da aplicação, não o conteúdo dos dados.
+      Desde 05/08/2026 os dados pessoais residem em disco na VPS (banco
+      self-hosted e cópias de segurança, ambos em diretórios restritos ao
+      root) — a afirmação anterior desta seção, de que não havia dado pessoal
+      em disco na VPS, valia para a arquitetura com banco em nuvem.</li>
   </ul>
 
   <h3>8.3 Cookies e ferramentas de terceiros</h3>
