@@ -6,6 +6,7 @@
 const ROTAS_DA_PLATAFORMA = [
   "/login",
   "/primeiro-acesso",
+  "/aguardando-liberacao",
   "/painel",
   "/modulos",
   "/master",

@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { registrarEvento } from "@/lib/auditoria";
+import { turmaLiberada } from "@/lib/turmas";
+import {
+  buscarInscricaoPorEmail,
+  buscarTurmaDaInscricao,
+} from "@/lib/turmas-dados";
 
 export type AuthState = { error?: string } | undefined;
 
@@ -31,6 +36,18 @@ export async function login(
   });
 
   if (error) {
+    // Antes do erro genérico: quem é de turma que ainda não abriu não tem
+    // conta nenhuma — explicar a espera vale mais que "senha incorreta".
+    const inscricao = await buscarInscricaoPorEmail(email);
+    if (
+      inscricao &&
+      !inscricao.ativadoEm &&
+      !inscricao.selecionado &&
+      inscricao.turma &&
+      !turmaLiberada(inscricao.turma)
+    ) {
+      redirect(`/aguardando-liberacao?turma=${inscricao.turma.numero}`);
+    }
     return { error: "E-mail ou senha incorretos." };
   }
 
@@ -88,10 +105,33 @@ export async function primeiroAcesso(
   }
 
   if (!inscricao.selecionado) {
-    return {
-      error:
-        "Sua inscrição ainda não consta como selecionada para esta turma.",
-    };
+    const turma = await buscarTurmaDaInscricao(inscricao.id);
+    if (turma && !turmaLiberada(turma)) {
+      // Turma ainda fechada: a página de espera explica a data.
+      redirect(`/aguardando-liberacao?turma=${turma.numero}`);
+    }
+    if (turma) {
+      // Turma já aberta, mas o disparo de convites ainda não passou (ex.:
+      // manhã do dia da liberação): seleciona na hora e a ativação segue —
+      // o disparo depois pula quem já ativou.
+      const { error: erroSelecao } = await admin
+        .from("inscricoes")
+        .update({ selecionado: true })
+        .eq("id", inscricao.id);
+      if (erroSelecao) {
+        return {
+          error:
+            "Não foi possível validar sua inscrição. Tente novamente.",
+        };
+      }
+    } else {
+      // Sem informação de turma (migração 0023 pendente): comportamento
+      // antigo — só entra quem foi selecionado.
+      return {
+        error:
+          "Sua inscrição ainda não consta como selecionada para esta turma.",
+      };
+    }
   }
 
   if (inscricao.ativado_em) {
