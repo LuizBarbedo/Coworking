@@ -8,6 +8,7 @@ import {
   CardTurmaProxima,
   CardVideos,
 } from "@/components/master/cards-inicio";
+import { CardSaudeOperacao } from "@/components/master/card-saude-operacao";
 
 export const metadata: Metadata = { title: "Área do Master — CSMG" };
 
@@ -85,6 +86,12 @@ export default async function MasterInicioPage() {
         {temPermissao(sessao, "moderar_forum") ? <CardModeracao /> : null}
         {temPermissao(sessao, "editar_conteudo") ? <CardVideos /> : null}
       </div>
+
+      {sessao?.nivel === "admin" ? (
+        <div className="mt-4">
+          <CardSaudeOperacao />
+        </div>
+      ) : null}
 
       {atalhos.length === 0 ? (
         <p className="mt-8 rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
