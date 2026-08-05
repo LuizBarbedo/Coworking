@@ -10,13 +10,19 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Turma } from "@/lib/turmas";
 
 export async function buscarTurmas(): Promise<Turma[]> {
-  const admin = createSupabaseAdminClient();
-  const { data, error } = await admin
-    .from("turmas")
-    .select("numero, nome, liberacao_em")
-    .order("numero", { ascending: true });
-  if (error) return [];
-  return (data as Turma[] | null) ?? [];
+  try {
+    const admin = createSupabaseAdminClient();
+    const { data, error } = await admin
+      .from("turmas")
+      .select("numero, nome, liberacao_em")
+      .order("numero", { ascending: true });
+    if (error) return [];
+    return (data as Turma[] | null) ?? [];
+  } catch {
+    // Sem env do service_role (ex.: build fora da VPS): a landing e os
+    // fluxos seguem sem aviso de turma.
+    return [];
+  }
 }
 
 export async function buscarTurmaPorNumero(numero: number): Promise<Turma | null> {

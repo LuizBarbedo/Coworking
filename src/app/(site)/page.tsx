@@ -9,6 +9,16 @@ import { SocialLinks } from "@/components/social-links";
 import { TemaToggle } from "@/components/ui/tema-toggle";
 import { urlDaPlataforma } from "@/lib/urls";
 import { RodaAnimada } from "@/components/marca/roda-animada";
+import { buscarTurmas } from "@/lib/turmas-dados";
+import {
+  turmaAtualDeInscricao,
+  turmaLiberada,
+  dataLiberacaoFormatada,
+} from "@/lib/turmas";
+
+// A landing diz pra qual turma a inscrição vale e quando o acesso abre.
+// Revalida a cada 5 min: mudar a data na gestão de turmas não pede deploy.
+export const revalidate = 300;
 
 const TITULO =
   "Capacitação gratuita para empreendedores — CSMG · Coworking Social de Mudanças Globais";
@@ -53,7 +63,16 @@ const JSON_LD = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const turmaAtual = turmaAtualDeInscricao(await buscarTurmas());
+  const avisoTurma =
+    turmaAtual && !turmaLiberada(turmaAtual)
+      ? {
+          nome: turmaAtual.nome ?? `Turma ${turmaAtual.numero}`,
+          dataLiberacao: dataLiberacaoFormatada(turmaAtual),
+        }
+      : null;
+
   return (
     <main className="relative flex flex-1 flex-col">
       <script
@@ -109,7 +128,9 @@ export default function Home() {
         <section className="mx-auto grid w-full max-w-6xl flex-1 gap-12 px-6 pb-20 pt-12 lg:grid-cols-2 lg:items-center lg:gap-16 lg:pt-20">
           <div className="animate-surgir text-white">
             <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium ring-1 ring-white/20">
-              Inscrições abertas
+              {avisoTurma
+                ? `Inscrições abertas para a ${avisoTurma.nome}`
+                : "Inscrições abertas"}
             </span>
             <h1 className="mt-5 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
               Capacitação online e gratuita para empreendedores.
@@ -155,7 +176,7 @@ export default function Home() {
           </div>
 
           <div className="animate-aparecer lg:pl-4">
-            <RegistrationForm />
+            <RegistrationForm avisoTurma={avisoTurma ?? undefined} />
           </div>
         </section>
       </div>

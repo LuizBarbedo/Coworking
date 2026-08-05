@@ -39,7 +39,9 @@ function capturarOrigem(): Origem {
   return daUrl;
 }
 
-export function RegistrationForm() {
+type AvisoTurma = { nome: string; dataLiberacao: string };
+
+export function RegistrationForm({ avisoTurma }: { avisoTurma?: AvisoTurma }) {
   const [values, setValues] = useState<RegistrationPayload>(initialValues);
 
   // Persiste as UTMs assim que a página abre; a leitura acontece no submit.
@@ -105,6 +107,15 @@ export function RegistrationForm() {
       <p className="mt-1 text-sm text-brand-800/70 dark:text-brand-100/70">
         Preencha seus dados para garantir acesso gratuito à plataforma.
       </p>
+
+      {avisoTurma && (
+        <p className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-3 text-sm text-brand-800/90 dark:border-brand-700 dark:bg-brand-900/40 dark:text-brand-100/90">
+          A inscrição garante sua vaga na{" "}
+          <strong className="font-semibold">{avisoTurma.nome}</strong> — o
+          acesso à plataforma abre em{" "}
+          <strong className="font-semibold">{avisoTurma.dataLiberacao}</strong>.
+        </p>
+      )}
 
       <div className="mt-6 grid gap-5">
         <Field
