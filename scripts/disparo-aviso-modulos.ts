@@ -16,6 +16,10 @@
 // comum, e rajada de e-mail idêntico é o que mais rápido derruba reputação de
 // remetente — que aqui já está ruim (só 22% dos convidados ativaram a conta).
 
+// Sem import estático o TypeScript trataria este arquivo como script de
+// escopo global — e as constantes colidiriam com as dos outros disparos.
+export {};
+
 process.loadEnvFile(".env.local");
 
 const TIPO = "aviso_modulos_10_11";

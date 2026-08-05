@@ -10,6 +10,10 @@
 // Retomável: quem já tem envio 'enviado' em envios_email é pulado, então
 // rodar de novo depois de uma falha não duplica e-mail.
 
+// Sem import estático o TypeScript trataria este arquivo como script de
+// escopo global — e as constantes colidiriam com as dos outros disparos.
+export {};
+
 process.loadEnvFile(".env.local");
 
 const INTERVALO_MS = Number(process.env.DISPARO_INTERVALO_MS ?? 9_000);
@@ -19,17 +23,21 @@ async function main() {
   const admin = createSupabaseAdminClient();
 
   // Coluna turma só existe com a 0023 — sem ela, refaz sem a coluna.
-  let { data: pendentes, error } = await admin
+  let pendentes: Array<{ email: string; turma?: number | null }> | null = null;
+  const primeira = await admin
     .from("inscricoes")
     .select("email, turma")
     .is("ativado_em", null);
-  if (error) {
-    ({ data: pendentes, error } = await admin
+  if (primeira.error) {
+    const segunda = await admin
       .from("inscricoes")
       .select("email")
-      .is("ativado_em", null));
+      .is("ativado_em", null);
+    if (segunda.error) throw new Error(segunda.error.message);
+    pendentes = segunda.data;
+  } else {
+    pendentes = primeira.data;
   }
-  if (error) throw new Error(error.message);
 
   const { data: jaEnviados } = await admin
     .from("envios_email")

@@ -44,14 +44,16 @@ export default async function AlunosMasterPage({
     turmas.map((t) => [t.numero, t.nome ?? `Turma ${t.numero}`]),
   );
 
+  // O parser de tipos do supabase-js não aceita select condicional — o cast
+  // fixa a forma base; a coluna extra `turma` é lida com cast pontual abaixo.
+  const campos = (
+    temTurmas
+      ? "id, nome, email, telefone, matricula, selecionado, ativado_em, turma"
+      : "id, nome, email, telefone, matricula, selecionado, ativado_em"
+  ) as "id, nome, email, telefone, matricula, selecionado, ativado_em";
   let consulta = admin
     .from("inscricoes")
-    .select(
-      temTurmas
-        ? "id, nome, email, telefone, matricula, selecionado, ativado_em, turma"
-        : "id, nome, email, telefone, matricula, selecionado, ativado_em",
-      { count: "exact" },
-    )
+    .select(campos, { count: "exact" })
     .order("created_at", { ascending: false });
   if (temTurmas && turma) consulta = consulta.eq("turma", Number(turma));
 

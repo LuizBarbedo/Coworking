@@ -83,19 +83,34 @@ export async function liberarEDispararConvites(opcoes?: {
 
   // A coluna turma só existe com a 0023 aplicada — sem ela, refaz a busca
   // sem a coluna e ninguém fica retido (comportamento antigo).
-  let { data: inscricoes, error } = await admin
+  type InscricaoPendente = {
+    id: string;
+    nome: string;
+    email: string;
+    matricula: string;
+    selecionado: boolean;
+    ativado_em: string | null;
+    turma?: number | null;
+  };
+  let inscricoes: InscricaoPendente[] | null = null;
+  const primeira = await admin
     .from("inscricoes")
     .select("id, nome, email, matricula, selecionado, ativado_em, turma")
     .is("ativado_em", null)
     .order("created_at", { ascending: true });
-  if (error) {
-    ({ data: inscricoes, error } = await admin
+  if (primeira.error) {
+    const segunda = await admin
       .from("inscricoes")
       .select("id, nome, email, matricula, selecionado, ativado_em")
       .is("ativado_em", null)
-      .order("created_at", { ascending: true }));
+      .order("created_at", { ascending: true });
+    if (segunda.error) {
+      throw new Error(`Falha ao listar inscrições: ${segunda.error.message}`);
+    }
+    inscricoes = segunda.data;
+  } else {
+    inscricoes = primeira.data;
   }
-  if (error) throw new Error(`Falha ao listar inscrições: ${error.message}`);
 
   const { data: jaEnviados } = await admin
     .from("envios_email")
@@ -107,15 +122,7 @@ export async function liberarEDispararConvites(opcoes?: {
   // Quem é de turma ainda fechada não é selecionado nem recebe convite —
   // entra no próximo disparo depois que a turma abrir.
   const { liberadas: aptas, aguardando } = filtrarPorTurmaLiberada(
-    (inscricoes ?? []) as Array<{
-      id: string;
-      nome: string;
-      email: string;
-      matricula: string;
-      selecionado: boolean;
-      ativado_em: string | null;
-      turma?: number | null;
-    }>,
+    inscricoes ?? [],
     await buscarTurmas(),
   );
 
