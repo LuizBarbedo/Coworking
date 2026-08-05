@@ -1,0 +1,1449 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Documento Técnico-Funcional — Plataforma CSMG</title>
+<style>
+  @page { size: A4; margin: 20mm 16mm 20mm 16mm; }
+
+  :root {
+    --verde-900:#0c302d; --verde-700:#135049; --verde-600:#17605b;
+    --verde-50:#f0f7f5; --laranja:#c2410c; --ambar-700:#935b0f;
+    --ambar-50:#fdf6e8; --vermelho:#b91c1c; --vermelho-50:#fdf0ef;
+    --cinza-600:#475569; --cinza-500:#64748b; --cinza-300:#cbd5e1;
+    --cinza-200:#e2e8f0; --cinza-100:#eef2f1; --texto:#1e2b29;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Liberation Sans",Arial,Helvetica,sans-serif;font-size:9.5pt;
+       line-height:1.5;color:var(--texto);margin:0}
+  h1,h2,h3,h4{color:var(--verde-900);line-height:1.22}
+  p{margin:0 0 7px}
+
+  /* capa ------------------------------------------------------------ */
+  .capa{height:242mm;display:flex;flex-direction:column;justify-content:center;
+        page-break-after:always}
+  .capa img{width:26mm;margin-bottom:12mm}
+  .capa .classificacao{font-size:8.5pt;letter-spacing:.1em;text-transform:uppercase;
+        color:var(--laranja);font-weight:bold;margin-bottom:4mm}
+  .capa h1{font-size:26pt;margin:0 0 3mm;letter-spacing:-.5px}
+  .capa .sub{font-size:13pt;color:var(--verde-700);margin-bottom:16mm}
+  .capa table{width:100%;font-size:9.5pt;border-collapse:collapse}
+  .capa table td{border:0;border-top:1px solid var(--cinza-200);padding:2.2mm 0}
+  .capa table td:first-child{width:42mm;color:var(--cinza-500)}
+
+  /* seções ---------------------------------------------------------- */
+  .cap{page-break-before:always}
+  .cap>h2{font-size:16pt;border-bottom:2.5px solid var(--verde-600);
+          padding-bottom:3px;margin:0 0 5mm}
+  h3{font-size:11.5pt;margin:7mm 0 2mm;page-break-after:avoid}
+  h4{font-size:10pt;margin:5mm 0 1.5mm;page-break-after:avoid;color:var(--verde-700)}
+
+  ul,ol{margin:2mm 0 3mm;padding-left:5.5mm}
+  li{margin-bottom:1.2mm}
+
+  table.d{width:100%;border-collapse:collapse;margin:3mm 0 4mm;font-size:8.5pt;
+          page-break-inside:auto}
+  table.d th,table.d td{border:1px solid var(--cinza-300);padding:1.6mm 2.2mm;
+          text-align:left;vertical-align:top}
+  table.d th{background:var(--cinza-100);color:var(--verde-900);font-size:8.5pt}
+  table.d tr{page-break-inside:avoid}
+  table.d code{font-size:8pt}
+  .cod{font-family:"Liberation Mono",monospace;font-size:8pt}
+  code{font-family:"Liberation Mono",monospace;font-size:8.5pt;
+       background:var(--cinza-100);border:1px solid var(--cinza-200);
+       border-radius:2px;padding:0 3px}
+
+  .nota{border-left:3px solid var(--verde-600);background:var(--verde-50);
+        padding:3mm 4mm;margin:3mm 0;page-break-inside:avoid}
+  .nota.alerta{border-left-color:var(--ambar-700);background:var(--ambar-50)}
+  .nota.risco{border-left-color:var(--vermelho);background:var(--vermelho-50)}
+  .nota p:last-child{margin-bottom:0}
+  .nota .rot{display:block;font-weight:bold;font-size:8pt;letter-spacing:.06em;
+        text-transform:uppercase;margin-bottom:1.2mm;color:var(--verde-700)}
+  .nota.alerta .rot{color:var(--ambar-700)}
+  .nota.risco .rot{color:var(--vermelho)}
+
+  .sumario ol{list-style:none;padding:0;counter-reset:s}
+  .sumario>ol>li{counter-increment:s;padding:1.6mm 0;
+        border-bottom:1px dotted var(--cinza-300)}
+  .sumario>ol>li::before{content:counter(s) ". ";font-weight:bold;color:var(--verde-600)}
+  .sumario span{color:var(--cinza-500);font-size:8.5pt}
+
+  /* diagrama -------------------------------------------------------- */
+  .diagrama{margin:4mm 0 3mm;page-break-inside:avoid;font-size:8pt}
+  .faixa{border:1px solid var(--cinza-300);border-radius:4px;padding:3mm;
+         margin-bottom:2.5mm;background:#fbfdfc}
+  .faixa>.titulo{font-size:7.5pt;letter-spacing:.08em;text-transform:uppercase;
+         color:var(--cinza-500);margin-bottom:2mm;font-weight:bold}
+  .caixas{display:flex;gap:2.5mm;flex-wrap:wrap}
+  .bx{flex:1;min-width:32mm;border:1px solid var(--verde-600);border-radius:4px;
+      padding:2mm 2.5mm;background:#fff}
+  .bx b{display:block;color:var(--verde-900);font-size:8.5pt}
+  .bx span{color:var(--cinza-600);font-size:7.5pt;line-height:1.35;display:block;
+      margin-top:.8mm}
+  .bx.ext{border-color:var(--ambar-700);border-style:dashed}
+  .bx.nucleo{border-width:2px;background:var(--verde-50)}
+  .seta{text-align:center;color:var(--verde-600);font-size:11pt;margin:-1mm 0 1mm}
+
+  .rf{font-weight:bold;color:var(--verde-700);white-space:nowrap}
+  .sim{color:var(--vermelho);font-weight:bold}
+  .nao{color:var(--cinza-500)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ CAPA ═══ -->
+<section class="capa">
+  <img src="logo-roda.svg" alt="CSMG">
+  <div class="classificacao">Uso interno — descreve controles de segurança</div>
+  <h1>Documento Técnico-Funcional</h1>
+  <p class="sub">Plataforma de Ensino do Coworking Social de Mudanças Globais<br>
+     Ambiente Virtual de Aprendizagem</p>
+  <table>
+    <tr><td>Versão</td><td><strong>1.1</strong> — atualiza a migração do banco
+        para a própria VPS e o tratamento dos riscos R-01, R-03, R-04, R-05 e R-13</td></tr>
+    <tr><td>Data de emissão</td><td>5 de agosto de 2026</td></tr>
+    <tr><td>Data-base dos dados</td><td>5 de agosto de 2026</td></tr>
+    <tr><td>Sistema</td><td>Plataforma CSMG — <span class="cod">app.coworkingsocial.com.br</span></td></tr>
+    <tr><td>Situação</td><td>Em produção desde 20/07/2026</td></tr>
+    <tr><td>Finalidade</td><td>Descrição funcional, técnica e de controles para
+        fins de auditoria, prestação de contas e transferência de conhecimento</td></tr>
+    <tr><td>Elaboração</td><td>Equipe técnica do projeto</td></tr>
+    <tr><td>Classificação</td><td>Uso interno. Contém descrição de mecanismos de
+        segurança; não contém segredos, chaves ou dados pessoais</td></tr>
+  </table>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════ SUMÁRIO ═══ -->
+<section class="cap">
+  <h2>Sumário</h2>
+  <div class="sumario">
+    <ol>
+      <li>Objetivo e escopo <span>— o que este documento cobre e o que não cobre</span></li>
+      <li>Visão geral do sistema <span>— finalidade, perfis de usuário e porte atual</span></li>
+      <li>Arquitetura <span>— componentes, stack, hospedagem e fluxo de requisição</span></li>
+      <li>Requisitos funcionais <span>— catálogo RF-01 a RF-42, com rastreabilidade ao código</span></li>
+      <li>Controle de acesso <span>— identidade, papéis, matriz de permissões e camadas de verificação</span></li>
+      <li>Modelo de dados <span>— inventário de tabelas, funções, views e migrações</span></li>
+      <li>Segurança da informação <span>— controles implementados e evidências</span></li>
+      <li>Privacidade e LGPD <span>— dados tratados, finalidades, terceiros e direitos do titular</span></li>
+      <li>Integrações externas <span>— serviços, dados trafegados e credenciais</span></li>
+      <li>Qualidade e processo de desenvolvimento <span>— testes, revisão e versionamento</span></li>
+      <li>Operação <span>— implantação, execução, monitoramento e continuidade</span></li>
+      <li>Requisitos não funcionais <span>— desempenho, disponibilidade, acessibilidade</span></li>
+      <li>Riscos e limitações conhecidas <span>— registro honesto de lacunas e plano de tratamento</span></li>
+      <li>Anexos <span>— rotas, variáveis de ambiente, migrações, taxonomia de eventos, glossário</span></li>
+    </ol>
+  </div>
+
+  <div class="nota">
+    <span class="rot">Como este documento foi produzido</span>
+    <p>
+      Todo o conteúdo foi extraído por inspeção direta do código-fonte em
+      produção, das migrações de banco aplicadas, da configuração de servidor
+      (systemd e nginx) e de consultas de contagem ao banco. Os números de porte
+      da base referem-se a 4 de agosto de 2026. Onde uma informação não pôde ser
+      verificada tecnicamente a partir do ambiente, ela está marcada como
+      <strong>a confirmar</strong> — e não como afirmação.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 1 ═══ -->
+<section class="cap">
+  <h2>1. Objetivo e escopo</h2>
+
+  <h3>1.1 Finalidade</h3>
+  <p>
+    Este documento descreve, em nível funcional e técnico, a plataforma de
+    ensino a distância do Coworking Social de Mudanças Globais (CSMG). Foi
+    escrito para atender a três públicos:
+  </p>
+  <ul>
+    <li><strong>Auditoria e prestação de contas</strong> — evidenciar quais
+      funcionalidades existem, quais controles de segurança e privacidade estão
+      implementados e onde estão as lacunas conhecidas.</li>
+    <li><strong>Coordenação do projeto</strong> — dar visão completa do que foi
+      construído, sem depender de conhecimento tácito de quem desenvolveu.</li>
+    <li><strong>Continuidade técnica</strong> — permitir que outra equipe assuma
+      a manutenção do sistema.</li>
+  </ul>
+
+  <h3>1.2 Escopo</h3>
+  <p>Está no escopo deste documento:</p>
+  <ul>
+    <li>A aplicação web (site público de inscrição, área do aluno e área
+      administrativa) e suas rotas.</li>
+    <li>O banco de dados, o modelo de autorização e as funções de servidor.</li>
+    <li>As integrações com serviços externos.</li>
+    <li>Os controles de segurança e o tratamento de dados pessoais.</li>
+    <li>O processo de implantação e a infraestrutura de execução.</li>
+  </ul>
+
+  <h3>1.3 Fora de escopo</h3>
+  <ul>
+    <li>Conteúdo pedagógico do curso (ementas, roteiros de aula, material
+      didático) — objeto de documentação própria da coordenação.</li>
+    <li>Contratos, custos e faturamento dos serviços de infraestrutura.</li>
+    <li>Manual de uso da plataforma pela equipe — coberto pelo documento
+      <em>Guia de Operação da Plataforma</em>, complementar a este.</li>
+  </ul>
+
+  <h3>1.4 Documentos de referência</h3>
+  <table class="d">
+    <tr><th style="width:38%">Documento</th><th>Localização</th></tr>
+    <tr><td>Guia do repositório e convenções</td><td><span class="cod">AGENTS.md</span></td></tr>
+    <tr><td>Migrações de banco (0001 a 0022)</td><td><span class="cod">supabase/migrations/</span></td></tr>
+    <tr><td>Política de Privacidade publicada</td><td><span class="cod">/privacidade</span> (rota pública)</td></tr>
+    <tr><td>Inventário de variáveis de ambiente</td><td><span class="cod">.env.local.example</span></td></tr>
+    <tr><td>Guia de Operação (manual da equipe)</td><td><span class="cod">docs/Guia-de-Operacao-Plataforma-CSMG.pdf</span></td></tr>
+    <tr><td>Roteiro de QA pré-lançamento</td><td><span class="cod">docs/qa-pre-lancamento.md</span></td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 2 ═══ -->
+<section class="cap">
+  <h2>2. Visão geral do sistema</h2>
+
+  <h3>2.1 Finalidade de negócio</h3>
+  <p>
+    A plataforma sustenta a oferta de capacitação a distância do CSMG. Ela
+    executa quatro processos de negócio de ponta a ponta:
+  </p>
+  <ol>
+    <li><strong>Captação</strong> — página pública de divulgação com formulário
+      de inscrição e medição da origem do tráfego.</li>
+    <li><strong>Seleção e liberação de acesso</strong> — a coordenação libera
+      inscrições e a plataforma dispara os convites com a matrícula.</li>
+    <li><strong>Ensino</strong> — entrega de aulas em vídeo, materiais,
+      avaliações corrigidas automaticamente, fórum moderado e assistente de
+      dúvidas por IA restrito ao material do curso.</li>
+    <li><strong>Acompanhamento</strong> — relatórios de funil de inscrição e de
+      desempenho da turma, ficha individual do aluno e trilha de auditoria.</li>
+  </ol>
+
+  <h3>2.2 Perfis de usuário</h3>
+  <table class="d">
+    <tr><th style="width:22%">Perfil</th><th style="width:26%">Forma de acesso</th><th>Alcance</th></tr>
+    <tr><td><strong>Visitante</strong></td><td>Anônimo</td>
+        <td>Página de divulgação, formulário de inscrição e política de privacidade.</td></tr>
+    <tr><td><strong>Aluno</strong></td><td>Conta própria (e-mail e senha)</td>
+        <td>Módulos publicados, aulas, materiais, avaliações, fórum, assistente de IA e perfil.</td></tr>
+    <tr><td><strong>Monitor</strong></td><td>Conta própria com papel de equipe</td>
+        <td>Somente as áreas administrativas cujas permissões tenham sido concedidas individualmente.</td></tr>
+    <tr><td><strong>Administrador</strong></td><td>Conta própria com papel de equipe</td>
+        <td>Todas as áreas administrativas, incluindo gestão da equipe e trilha de auditoria.</td></tr>
+    <tr><td><strong>Coordenação (painel)</strong></td><td>Senha única compartilhada, sem conta</td>
+        <td>Somente o painel de acompanhamento de inscrições, com números agregados.</td></tr>
+  </table>
+
+  <h3>2.3 Porte do ambiente produtivo</h3>
+  <p>Volumes apurados por contagem direta no banco em 4 de agosto de 2026:</p>
+  <table class="d">
+    <tr><th>Domínio</th><th style="width:14%">Registros</th><th>Domínio</th><th style="width:14%">Registros</th></tr>
+    <tr><td>Inscrições</td><td>288</td><td>Aulas</td><td>32</td></tr>
+    <tr><td>Contas de autenticação</td><td>74</td><td>Materiais</td><td>10</td></tr>
+    <tr><td>— das quais equipe</td><td>8</td><td>Avaliações (questionários)</td><td>9</td></tr>
+    <tr><td>Módulos</td><td>13</td><td>Perguntas / alternativas</td><td>104 / 487</td></tr>
+    <tr><td>Disciplinas</td><td>13</td><td>Tentativas de avaliação</td><td>24</td></tr>
+    <tr><td>Registros de progresso</td><td>80</td><td>Trechos indexados para a IA</td><td>307</td></tr>
+    <tr><td>Eventos de auditoria</td><td>453</td><td>Diálogos com a IA</td><td>14</td></tr>
+    <tr><td>Envios de e-mail registrados</td><td>306</td><td>Visitas anônimas à landing</td><td>1.193</td></tr>
+  </table>
+
+  <h3>2.4 Ambientes</h3>
+  <table class="d">
+    <tr><th style="width:24%">Ambiente</th><th>Descrição</th></tr>
+    <tr><td><strong>Produção</strong></td>
+        <td>VPS própria, serviço <span class="cod">coworking.service</span> atrás de nginx.
+            Domínios <span class="cod">coworkingsocial.com.br</span> (divulgação) e
+            <span class="cod">app.coworkingsocial.com.br</span> (plataforma).
+            Desde 05/08/2026 o banco/identidade/arquivos (Supabase) rodam
+            <strong>na própria VPS</strong> (stack self-hosted em contêineres,
+            <span class="cod">/opt/coworking-supabase</span>); o projeto Supabase
+            em nuvem passou a ser cópia de segurança diária.</td></tr>
+    <tr><td><strong>Homologação</strong></td>
+        <td>Stack Supabase local segregado (Supabase CLI, contêineres próprios,
+            dados sintéticos), reconstituível do zero pelas migrações com
+            <span class="cod">supabase db reset</span>. Toda migração de banco é
+            testada aqui antes de ir à produção. Criado em 05/08/2026 em
+            tratamento ao risco R-03 (ver capítulo 13).</td></tr>
+    <tr><td><strong>Desenvolvimento</strong></td>
+        <td>Máquina do desenvolvedor, <span class="cod">npm run dev</span>, apontando
+            para o ambiente de homologação — não acessa mais o banco de produção.</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 3 ═══ -->
+<section class="cap">
+  <h2>3. Arquitetura</h2>
+
+  <h3>3.1 Componentes</h3>
+
+  <div class="diagrama">
+    <div class="faixa">
+      <div class="titulo">Cliente</div>
+      <div class="caixas">
+        <div class="bx"><b>Navegador do visitante</b><span>Landing pública, formulário de inscrição</span></div>
+        <div class="bx"><b>Navegador do aluno</b><span>Aulas, avaliações, fórum, assistente</span></div>
+        <div class="bx"><b>Navegador da equipe</b><span>Área administrativa</span></div>
+      </div>
+    </div>
+    <div class="seta">▼ HTTPS (TLS, Let's Encrypt)</div>
+    <div class="faixa">
+      <div class="titulo">Borda — VPS do projeto</div>
+      <div class="caixas">
+        <div class="bx"><b>nginx</b><span>Terminação TLS, proxy reverso para 127.0.0.1:3000, cabeçalhos X-Forwarded-For</span></div>
+      </div>
+    </div>
+    <div class="seta">▼</div>
+    <div class="faixa">
+      <div class="titulo">Aplicação — mesma VPS</div>
+      <div class="caixas">
+        <div class="bx nucleo"><b>Next.js 16 (App Router)</b>
+          <span>Processo único sob systemd, bind em localhost. Renderização no servidor,
+          Server Actions, proxy de sessão, duas rotas de API.</span></div>
+      </div>
+    </div>
+    <div class="seta">▼</div>
+    <div class="faixa">
+      <div class="titulo">Serviços externos</div>
+      <div class="caixas">
+        <div class="bx ext"><b>Supabase (self-hosted na VPS)</b><span>Postgres, Auth e Storage em contêineres locais. Fonte única da verdade; espelho diário no projeto em nuvem.</span></div>
+        <div class="bx ext"><b>Cloudflare R2</b><span>Bucket privado de vídeos das aulas</span></div>
+        <div class="bx ext"><b>Modal</b><span>Transcodificação de vídeo sob demanda</span></div>
+      </div>
+      <div class="caixas" style="margin-top:2.5mm">
+        <div class="bx ext"><b>Ollama Cloud</b><span>Modelo de linguagem: assistente e moderação</span></div>
+        <div class="bx ext"><b>Gmail (SMTP/IMAP)</b><span>Envio de convites e leitura de devoluções</span></div>
+        <div class="bx ext"><b>Google Ads / Meta</b><span>Medição de anúncios, somente na landing</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>3.2 Stack e versões</h3>
+  <table class="d">
+    <tr><th style="width:30%">Camada</th><th style="width:26%">Tecnologia</th><th>Versão / observação</th></tr>
+    <tr><td>Runtime</td><td>Node.js</td><td>22.22.2</td></tr>
+    <tr><td>Framework web</td><td>Next.js (App Router)</td><td>16.2.6 — usa <span class="cod">proxy.ts</span>, sucessor do <span class="cod">middleware.ts</span></td></tr>
+    <tr><td>Interface</td><td>React</td><td>19.2.4</td></tr>
+    <tr><td>Estilo</td><td>Tailwind CSS</td><td>4 (tokens semânticos, tema claro/escuro)</td></tr>
+    <tr><td>Linguagem</td><td>TypeScript</td><td>5, modo estrito</td></tr>
+    <tr><td>Banco / Auth / Storage</td><td>Supabase</td><td>cliente <span class="cod">supabase-js</span> 2.106, <span class="cod">@supabase/ssr</span> 0.12</td></tr>
+    <tr><td>Armazenamento de vídeo</td><td>Cloudflare R2 (S3 API)</td><td>AWS SDK v3 + presigner</td></tr>
+    <tr><td>E-mail</td><td>Nodemailer (SMTP) / ImapFlow (IMAP)</td><td>envio e checagem de devoluções</td></tr>
+    <tr><td>Extração de texto</td><td>unpdf, mammoth, exceljs</td><td>PDF, DOCX, XLSX para a base da IA</td></tr>
+    <tr><td>Testes unitários</td><td>Vitest</td><td>4.1</td></tr>
+    <tr><td>Testes de ponta a ponta</td><td>Playwright</td><td>1.61</td></tr>
+    <tr><td>Tour guiado</td><td>driver.js</td><td>1.7</td></tr>
+  </table>
+
+  <h3>3.3 Hospedagem, rede e TLS</h3>
+  <ul>
+    <li>A aplicação roda como serviço systemd (<span class="cod">coworking.service</span>),
+      com reinício automático em caso de falha e log em
+      <span class="cod">/var/log/coworking.log</span>.</li>
+    <li>O processo escuta apenas em <span class="cod">127.0.0.1:3000</span> —
+      não é acessível diretamente da internet.</li>
+    <li>O nginx faz a terminação TLS (certificado Let's Encrypt) e o proxy
+      reverso, atendendo <span class="cod">coworkingsocial.com.br</span>,
+      <span class="cod">www.coworkingsocial.com.br</span> e
+      <span class="cod">app.coworkingsocial.com.br</span>, com redirecionamento
+      de HTTP para HTTPS.</li>
+    <li>O banco de dados e o armazenamento de arquivos são serviços gerenciados
+      externos; a VPS não guarda dados de aluno em disco.</li>
+  </ul>
+
+  <h3>3.4 Fluxo de uma requisição autenticada</h3>
+  <ol>
+    <li>O navegador envia o cookie de sessão do Supabase para o nginx, que
+      encaminha ao Next.js.</li>
+    <li>O <span class="cod">proxy.ts</span> renova a sessão, aplica o portão de
+      pré-lançamento por domínio e redireciona visitantes não autenticados de
+      rotas protegidas (<span class="cod">/painel</span>,
+      <span class="cod">/modulos</span>, <span class="cod">/master</span>) para o login.</li>
+    <li>O layout da área verifica o papel e a permissão exigidos
+      (<span class="cod">exigirAluno</span>, <span class="cod">exigirMaster</span>,
+      <span class="cod">exigirPermissao</span>).</li>
+    <li>A página, executada no servidor, consulta o banco. Leituras do aluno usam
+      o cliente com a chave pública e o cookie do usuário, de modo que as
+      políticas de segurança de linha (RLS) do Postgres filtram os dados.</li>
+    <li>Ações de escrita passam por Server Actions, que revalidam permissão antes
+      de gravar e registram o evento na trilha de auditoria.</li>
+  </ol>
+
+  <h3>3.5 Modelo de renderização</h3>
+  <p>
+    A aplicação é predominantemente renderizada no servidor. Componentes de
+    cliente existem apenas onde há interação (formulários com estado, upload,
+    chat, listas ordenáveis). Módulos sensíveis — autenticação, cliente
+    administrativo do banco, e-mail, métricas e IA — são marcados com
+    <span class="cod">import "server-only"</span>, o que faz a compilação falhar
+    caso algum deles seja importado por engano em código que vai ao navegador.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 4 ═══ -->
+<section class="cap">
+  <h2>4. Requisitos funcionais</h2>
+  <p>
+    Catálogo do que o sistema faz hoje, com o ator responsável e a
+    rastreabilidade para o ponto de implementação. A coluna "Auditoria" indica
+    se a operação gera registro na trilha de eventos.
+  </p>
+
+  <h3>4.1 Captação e inscrição</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-01</td><td>Publicar página de divulgação com informações do programa e formulário de inscrição</td><td>Visitante</td><td><span class="cod">app/(site)</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-02</td><td>Registrar inscrição com nome, CPF, e-mail e telefone, validando CPF e formato dos campos no servidor</td><td>Visitante</td><td>RPC <span class="cod">criar_inscricao</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-03</td><td>Gerar matrícula única automaticamente na inscrição</td><td>Sistema</td><td>migração 0001</td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-04</td><td>Enviar e-mail de confirmação com o acesso imediatamente após a inscrição</td><td>Sistema</td><td><span class="cod">lib/email.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-05</td><td>Capturar a origem da visita (parâmetros de campanha) e vinculá-la à inscrição</td><td>Sistema</td><td><span class="cod">lib/origem.ts</span>, migração 0012</td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-06</td><td>Contar visitas à landing de forma anônima, sem IP e sem identificador</td><td>Sistema</td><td>RPC <span class="cod">registrar_visita</span>, migração 0013</td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-07</td><td>Limitar a 10 inscrições por hora por endereço IP</td><td>Sistema</td><td><span class="cod">lib/limite-taxa.ts</span></td><td class="nao">—</td></tr>
+  </table>
+
+  <h3>4.2 Identidade e acesso</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-08</td><td>Ativar conta no primeiro acesso mediante matrícula e e-mail, com definição de senha pelo próprio titular</td><td>Aluno</td><td><span class="cod">/primeiro-acesso</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-09</td><td>Autenticar por e-mail e senha, com sessão renovada a cada requisição</td><td>Aluno / equipe</td><td>Supabase Auth + <span class="cod">proxy.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-10</td><td>Encerrar sessão</td><td>Aluno / equipe</td><td><span class="cod">(plataforma)/actions.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-11</td><td>Redefinir senha por link enviado ao e-mail cadastrado</td><td>Aluno</td><td><span class="cod">/definir-senha</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-12</td><td>Bloquear rotas protegidas para não autenticados</td><td>Sistema</td><td><span class="cod">proxy.ts</span></td><td class="nao">—</td></tr>
+  </table>
+
+  <h3>4.3 Ensino — área do aluno</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-13</td><td>Listar apenas os módulos publicados, com capa, instrutor e progresso individual</td><td>Aluno</td><td><span class="cod">/painel</span> + RLS</td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-14</td><td>Exibir módulos não publicados como teaser "Em breve", sem expor conteúdo</td><td>Aluno</td><td><span class="cod">/painel</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-15</td><td>Reproduzir a aula em vídeo (YouTube, URL externa ou vídeo hospedado)</td><td>Aluno</td><td><span class="cod">VideoPlayer</span>, <span class="cod">lib/r2.ts</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-16</td><td>Marcar aula como assistida e atualizar o progresso</td><td>Aluno</td><td><span class="cod">(aluno)/actions.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-17</td><td>Disponibilizar materiais de apoio da disciplina</td><td>Aluno</td><td>tabela <span class="cod">materiais</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-18</td><td>Responder avaliação de múltipla escolha com correção imediata no servidor e nota mínima configurável</td><td>Aluno</td><td>RPC <span class="cod">corrigir_quiz</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-19</td><td>Permitir nova tentativa de avaliação, mantendo o histórico de todas</td><td>Aluno</td><td><span class="cod">quiz_tentativas</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-20</td><td>Coletar avaliação anônima da disciplina (estrelas e comentário) ao concluir</td><td>Aluno</td><td>migração 0022</td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-21</td><td>Manter perfil do aluno (biografia e imagem)</td><td>Aluno</td><td>migração 0016</td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-22</td><td>Oferecer tour guiado narrado da plataforma, por perfil</td><td>Aluno / equipe</td><td><span class="cod">components/tour</span></td><td class="nao">—</td></tr>
+  </table>
+
+  <h3>4.4 Assistente de dúvidas (IA)</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-23</td><td>Responder dúvidas do aluno usando exclusivamente o material cadastrado na disciplina, sem conhecimento externo</td><td>Aluno</td><td><span class="cod">api/ia/chat</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-24</td><td>Recuperar os trechos pertinentes por busca textual do Postgres, respeitando o RLS do aluno</td><td>Sistema</td><td>RPC <span class="cod">buscar_chunks</span> (invoker)</td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-25</td><td>Orientar a navegação na plataforma com links internos, no modo geral</td><td>Aluno</td><td><span class="cod">lib/ia/guia-plataforma.ts</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-26</td><td>Reconstruir automaticamente o índice de trechos quando o material da disciplina muda</td><td>Sistema</td><td><span class="cod">lib/ia/conhecimento.ts</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-27</td><td>Informar ao aluno que a resposta é gerada por IA e pode conter imprecisões</td><td>Sistema</td><td>componente de chat</td><td class="nao">—</td></tr>
+  </table>
+
+  <h3>4.5 Fórum e moderação</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-28</td><td>Publicar dúvida ou enquete no fórum, com limite de postagem por período</td><td>Aluno</td><td><span class="cod">lib/forum/rate-limit.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-29</td><td>Submeter toda publicação a moderação prévia automatizada, mantendo pendente o que for suspeito ou não avaliado</td><td>Sistema</td><td><span class="cod">lib/forum/moderacao.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-30</td><td>Aprovar ou rejeitar publicação pendente, com motivo visível ao autor</td><td>Equipe</td><td><span class="cod">/master/forum</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-31</td><td>Responder, votar e marcar resposta como solução</td><td>Aluno</td><td>migrações 0015 e 0017</td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-32</td><td>Notificar o autor sobre o desfecho da moderação e sobre respostas</td><td>Sistema</td><td><span class="cod">lib/forum/notificacoes.ts</span></td><td class="nao">—</td></tr>
+  </table>
+
+  <h3>4.6 Gestão de conteúdo</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-33</td><td>Criar, editar, ordenar, publicar e excluir módulos, disciplinas, aulas, materiais e avaliações</td><td>Equipe</td><td><span class="cod">master/actions.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-34</td><td>Agendar a publicação de um módulo para data e hora futuras</td><td>Equipe</td><td>migração 0019</td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-35</td><td>Enviar arquivo de vídeo e transcodificá-lo automaticamente para 720p, publicando a versão convertida e descartando o original</td><td>Equipe</td><td>R2 + Modal + <span class="cod">api/video/concluir</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-36</td><td>Cadastrar base de conhecimento da IA por disciplina, por texto ou anexo (PDF, DOCX, XLSX, TXT, MD, CSV até 20 MB)</td><td>Equipe</td><td><span class="cod">lib/ia/extrair-texto.ts</span></td><td class="sim">sim</td></tr>
+  </table>
+
+  <h3>4.7 Gestão de alunos, convites e equipe</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-37</td><td>Buscar e filtrar inscrições por nome, e-mail, matrícula e situação, com paginação</td><td>Equipe</td><td><span class="cod">/master/alunos</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-38</td><td>Exibir ficha individual com cadastro, histórico de convites, desempenho por disciplina e atividade recente</td><td>Equipe</td><td><span class="cod">/master/alunos/[id]</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-39</td><td>Liberar inscrições e disparar convites em massa de forma idempotente, registrando cada envio</td><td>Equipe</td><td><span class="cod">lib/convites.ts</span>, migração 0020</td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-40</td><td>Identificar e-mails devolvidos por leitura da caixa postal e marcá-los para novo envio</td><td>Equipe</td><td><span class="cod">lib/devolucoes.ts</span> (IMAP)</td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-41</td><td>Acionar contato por WhatsApp com mensagem pré-montada e registrar o contato para evitar duplicidade</td><td>Equipe</td><td><span class="cod">lib/whatsapp.ts</span></td><td class="sim">sim</td></tr>
+    <tr><td class="rf">RF-42</td><td>Cadastrar membros da equipe, conceder e revogar permissões individualmente e remover acesso</td><td>Administrador</td><td><span class="cod">master/equipe/actions.ts</span></td><td class="sim">sim</td></tr>
+  </table>
+
+  <h3>4.8 Relatórios e auditoria</h3>
+  <table class="d">
+    <tr><th style="width:12%">ID</th><th style="width:40%">Requisito</th><th style="width:12%">Ator</th><th style="width:24%">Implementação</th><th style="width:12%">Auditoria</th></tr>
+    <tr><td class="rf">RF-43</td><td>Apresentar funil de inscrição: visitas, inscrições, variação por período e origem do tráfego</td><td>Equipe / coordenação</td><td>RPC <span class="cod">metricas_painel</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-44</td><td>Apresentar desempenho da turma por disciplina, com conclusão, aprovação e feedback anônimo</td><td>Equipe</td><td><span class="cod">lib/relatorios-turma.ts</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-45</td><td>Disponibilizar painel de inscrições por senha única, sem conta individual</td><td>Coordenação</td><td><span class="cod">lib/painel-auth.ts</span></td><td class="nao">—</td></tr>
+    <tr><td class="rf">RF-46</td><td>Registrar quem fez o quê e quando, com filtros e busca, sem possibilidade de exclusão pela interface</td><td>Administrador</td><td><span class="cod">lib/auditoria.ts</span>, migração 0021</td><td class="sim">sim</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 5 ═══ -->
+<section class="cap">
+  <h2>5. Controle de acesso</h2>
+
+  <h3>5.1 Modelo de identidade</h3>
+  <p>
+    A identidade é gerenciada pelo Supabase Auth. Cada pessoa tem uma conta
+    individual com e-mail e senha; a senha é armazenada pelo provedor com hash e
+    <strong>não é acessível à equipe nem à aplicação</strong>. A sessão é mantida
+    por cookie e renovada a cada requisição pelo <span class="cod">proxy.ts</span>.
+  </p>
+  <p>
+    O papel do usuário fica em <span class="cod">app_metadata</span>, um espaço
+    do token de autenticação que <strong>somente a chave de serviço pode
+    escrever</strong> — o usuário não consegue alterar o próprio papel, e o valor
+    chega assinado no token, dispensando consulta adicional ao banco.
+  </p>
+
+  <h3>5.2 Papéis, níveis e permissões</h3>
+  <p>
+    Quem não tem papel é aluno. Quem tem o papel <span class="cod">master</span>
+    é equipe, e se subdivide em dois níveis: <strong>administrador</strong>
+    (acesso total) e <strong>monitor</strong> (somente o concedido). São cinco
+    permissões atômicas:
+  </p>
+  <table class="d">
+    <tr><th style="width:26%">Permissão</th><th style="width:34%">Libera</th><th>Operações sensíveis alcançadas</th></tr>
+    <tr><td><span class="cod">visao_aluno</span></td><td>Navegar como aluno</td><td>Leitura do conteúdo publicado</td></tr>
+    <tr><td><span class="cod">moderar_forum</span></td><td>Aba Fórum de dúvidas</td><td>Aprovar e rejeitar publicações de terceiros</td></tr>
+    <tr><td><span class="cod">editar_conteudo</span></td><td>Aba Conteúdo</td><td>Criar, publicar e <strong>excluir</strong> conteúdo do curso</td></tr>
+    <tr><td><span class="cod">ver_relatorios</span></td><td>Aba Relatórios</td><td>Desempenho nominal por aluno</td></tr>
+    <tr><td><span class="cod">gerenciar_emails</span></td><td>Abas Alunos e E-mails</td><td>Acesso a dados pessoais e disparo de e-mail em massa</td></tr>
+  </table>
+
+  <h3>5.3 Matriz de acesso</h3>
+  <table class="d">
+    <tr>
+      <th style="width:30%">Recurso</th><th>Visitante</th><th>Aluno</th>
+      <th>Monitor</th><th>Administrador</th><th>Painel (senha)</th>
+    </tr>
+    <tr><td>Landing e inscrição</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+    <tr><td>Conteúdo publicado do curso</td><td>—</td><td>✓</td><td>se <span class="cod">visao_aluno</span></td><td>✓</td><td>—</td></tr>
+    <tr><td>Progresso e notas próprios</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+    <tr><td>Progresso e notas de terceiros</td><td>—</td><td>—</td><td>se <span class="cod">ver_relatorios</span></td><td>✓</td><td>—</td></tr>
+    <tr><td>Dados pessoais de inscritos</td><td>—</td><td>—</td><td>se <span class="cod">gerenciar_emails</span></td><td>✓</td><td>—</td></tr>
+    <tr><td>Gestão de conteúdo</td><td>—</td><td>—</td><td>se <span class="cod">editar_conteudo</span></td><td>✓</td><td>—</td></tr>
+    <tr><td>Moderação do fórum</td><td>—</td><td>—</td><td>se <span class="cod">moderar_forum</span></td><td>✓</td><td>—</td></tr>
+    <tr><td>Disparo de e-mail em massa</td><td>—</td><td>—</td><td>se <span class="cod">gerenciar_emails</span></td><td>✓</td><td>—</td></tr>
+    <tr><td>Gestão da equipe</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td></tr>
+    <tr><td>Trilha de auditoria</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td></tr>
+    <tr><td>Números agregados de inscrição</td><td>—</td><td>—</td><td>se <span class="cod">ver_relatorios</span></td><td>✓</td><td>✓</td></tr>
+    <tr><td>Gabarito das avaliações</td><td>—</td><td>—</td><td>se <span class="cod">editar_conteudo</span></td><td>✓</td><td>—</td></tr>
+  </table>
+
+  <h3>5.4 Verificação em camadas</h3>
+  <p>
+    A autorização não depende de um único ponto. São quatro barreiras
+    independentes, e a falha de qualquer uma delas não é suficiente para expor
+    dados:
+  </p>
+  <table class="d">
+    <tr><th style="width:22%">Camada</th><th style="width:30%">Onde</th><th>O que garante</th></tr>
+    <tr><td>1 — Borda</td><td><span class="cod">proxy.ts</span></td>
+        <td>Sessão válida para rotas protegidas; portão de domínio.</td></tr>
+    <tr><td>2 — Layout</td><td><span class="cod">exigirAluno</span>, <span class="cod">exigirMaster</span>, <span class="cod">exigirPermissao</span></td>
+        <td>Papel e permissão antes de renderizar qualquer página da área.</td></tr>
+    <tr><td>3 — Ação</td><td>Server Actions</td>
+        <td>Revalidação da permissão dentro de cada operação de escrita — não se
+            confia na tela ter escondido o botão.</td></tr>
+    <tr><td>4 — Banco</td><td>Políticas RLS do Postgres</td>
+        <td>Mesmo com consulta forjada, o banco só devolve as linhas que aquele
+            usuário pode ver.</td></tr>
+  </table>
+
+  <h3>5.5 Painel por senha única</h3>
+  <p>
+    O painel de acompanhamento em <span class="cod">/relatorios</span> usa
+    mecanismo separado: uma senha compartilhada, guardada apenas como variável de
+    ambiente do servidor. A conferência é feita com comparação em tempo constante
+    (evitando ataque por medição de tempo) e, quando correta, grava um cookie
+    <span class="cod">httpOnly</span> com um <em>hash</em> derivado da senha —
+    nunca a senha em si — válido por 12 horas. Trocar a senha invalida
+    automaticamente todos os cookies emitidos. Há limite de 10 tentativas por IP
+    a cada 15 minutos.
+  </p>
+  <div class="nota alerta">
+    <span class="rot">Limitação por natureza do mecanismo</span>
+    <p>
+      Por não haver conta individual, o painel não permite atribuir o acesso a
+      uma pessoa específica nem revogar o acesso de uma só pessoa. É adequado
+      para números agregados — que é o que ele expõe — mas não deve ser
+      estendido a dados pessoais. Ver risco R-08.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 6 ═══ -->
+<section class="cap">
+  <h2>6. Modelo de dados</h2>
+
+  <h3>6.1 Inventário de tabelas</h3>
+  <p>
+    Todas as tabelas ficam no esquema <span class="cod">public</span> de um
+    Postgres do stack Supabase self-hosted na VPS. A coluna "PD" indica presença de dado
+    pessoal identificável.
+  </p>
+  <table class="d">
+    <tr><th style="width:26%">Tabela</th><th style="width:8%">Linhas</th><th style="width:6%">PD</th><th>Finalidade e observações</th></tr>
+    <tr><td><span class="cod">inscricoes</span></td><td>288</td><td class="sim">sim</td>
+        <td>Nome, CPF, e-mail, telefone, matrícula, situação de seleção e ativação, origem da campanha. <strong>Tabela mais sensível do sistema.</strong></td></tr>
+    <tr><td><span class="cod">modulos</span></td><td>13</td><td class="nao">não</td><td>Blocos do curso: título, instrutor, capa, ordem, publicação e agendamento.</td></tr>
+    <tr><td><span class="cod">disciplinas</span></td><td>13</td><td class="nao">não</td><td>Divisões do módulo; unidade que agrega aulas, materiais e avaliação.</td></tr>
+    <tr><td><span class="cod">aulas</span></td><td>32</td><td class="nao">não</td><td>Vídeos: provedor, identificador, situação de processamento e miniatura.</td></tr>
+    <tr><td><span class="cod">materiais</span></td><td>10</td><td class="nao">não</td><td>Links de apoio da disciplina.</td></tr>
+    <tr><td><span class="cod">quizzes</span></td><td>9</td><td class="nao">não</td><td>Avaliação da disciplina e nota mínima.</td></tr>
+    <tr><td><span class="cod">quiz_perguntas</span></td><td>104</td><td class="nao">não</td><td>Enunciados.</td></tr>
+    <tr><td><span class="cod">quiz_alternativas</span></td><td>487</td><td class="nao">não</td><td>Alternativas e <strong>gabarito</strong> (coluna <span class="cod">correta</span>) — nunca exposta ao cliente.</td></tr>
+    <tr><td><span class="cod">quiz_tentativas</span></td><td>24</td><td class="sim">sim</td><td>Nota, aprovação e respostas por aluno. Dado de desempenho.</td></tr>
+    <tr><td><span class="cod">progresso_aula</span></td><td>80</td><td class="sim">sim</td><td>Quais aulas cada aluno concluiu e quando.</td></tr>
+    <tr><td><span class="cod">disciplina_conhecimento</span></td><td>11</td><td class="nao">não</td><td>Material que alimenta o assistente de IA, com referência ao arquivo original.</td></tr>
+    <tr><td><span class="cod">disciplina_chunks</span></td><td>307</td><td class="nao">não</td><td>Trechos derivados do material, com índice de busca textual.</td></tr>
+    <tr><td><span class="cod">ia_mensagens</span></td><td>14</td><td class="sim">sim</td><td>Perguntas e respostas do assistente, vinculadas ao aluno.</td></tr>
+    <tr><td><span class="cod">forum_posts</span></td><td>2</td><td class="sim">sim</td><td>Publicações, situação de moderação e parecer da IA.</td></tr>
+    <tr><td><span class="cod">forum_respostas</span></td><td>0</td><td class="sim">sim</td><td>Respostas às publicações.</td></tr>
+    <tr><td><span class="cod">forum_enquete_opcoes</span></td><td>0</td><td class="nao">não</td><td>Opções das enquetes.</td></tr>
+    <tr><td><span class="cod">forum_votos_posts</span> / <span class="cod">_respostas</span> / <span class="cod">_enquete</span></td><td>3 / 0 / 0</td><td class="sim">sim</td><td>Votos por aluno. Quem votou em quê nunca é enviado ao navegador.</td></tr>
+    <tr><td><span class="cod">perfis</span></td><td>7</td><td class="sim">sim</td><td>Biografia e imagem do aluno.</td></tr>
+    <tr><td><span class="cod">avaliacoes_disciplina</span></td><td>12</td><td class="sim">sim</td><td>Estrelas e comentário. Exibido de forma <strong>anônima</strong> nos relatórios.</td></tr>
+    <tr><td><span class="cod">eventos</span></td><td>453</td><td class="sim">sim</td><td>Trilha de auditoria: ator, ação, alvo, detalhes e momento.</td></tr>
+    <tr><td><span class="cod">envios_email</span></td><td>306</td><td class="sim">sim</td><td>Registro por envio: endereço, tipo, situação e erro.</td></tr>
+    <tr><td><span class="cod">visitas_landing</span></td><td>1.193</td><td class="nao">não</td><td>Contagem anônima: só data e campanha. <strong>Sem IP e sem identificador.</strong></td></tr>
+    <tr><td><span class="cod">video_jobs</span></td><td>2</td><td class="nao">não</td><td>Fila de transcodificação de vídeo.</td></tr>
+  </table>
+
+  <h3>6.2 Funções e views</h3>
+  <p>
+    O sistema concentra em funções de banco tudo que não pode ser decidido pelo
+    cliente. O modo <em>definer</em> executa com os privilégios do dono da
+    função; o modo <em>invoker</em> executa com os privilégios de quem chama,
+    respeitando o RLS.
+  </p>
+  <table class="d">
+    <tr><th style="width:26%">Objeto</th><th style="width:12%">Modo</th><th style="width:16%">Concedida a</th><th>Finalidade</th></tr>
+    <tr><td><span class="cod">criar_inscricao</span></td><td>definer</td><td>anônimo</td>
+        <td>Único caminho de gravação de inscrição. Valida no servidor; o papel anônimo não tem permissão de escrita direta na tabela.</td></tr>
+    <tr><td><span class="cod">corrigir_quiz</span></td><td>definer</td><td>autenticado</td>
+        <td>Corrige a avaliação no banco. O gabarito nunca sai do servidor.</td></tr>
+    <tr><td><span class="cod">metricas_painel</span></td><td>definer</td><td><strong>somente serviço</strong></td>
+        <td>Agregados do funil. Não é acessível pelo cliente, nem autenticado.</td></tr>
+    <tr><td><span class="cod">registrar_visita</span></td><td>definer</td><td>anônimo</td>
+        <td>Contagem anônima de visita à landing.</td></tr>
+    <tr><td><span class="cod">buscar_chunks</span></td><td>invoker</td><td>autenticado</td>
+        <td>Recuperação de material da disciplina para a IA, respeitando o RLS do aluno.</td></tr>
+    <tr><td><span class="cod">buscar_chunks_geral</span></td><td>invoker</td><td>autenticado</td>
+        <td>Idem, no modo geral (todas as disciplinas visíveis ao aluno).</td></tr>
+    <tr><td><span class="cod">buscar_posts_similares</span></td><td>invoker</td><td>autenticado</td>
+        <td>Sugestão de publicações parecidas no fórum.</td></tr>
+    <tr><td><span class="cod">quiz_alternativas_publicas</span> (view)</td><td>—</td><td>autenticado</td>
+        <td>Expõe as alternativas <strong>sem a coluna do gabarito</strong>.</td></tr>
+    <tr><td><span class="cod">inscricoes_export</span> (view)</td><td>invoker</td><td><strong>revogada</strong> de anônimo e autenticado</td>
+        <td>Exportação administrativa. Ver seção 7.10.</td></tr>
+  </table>
+
+  <h3>6.3 Segurança em nível de linha</h3>
+  <p>
+    Vinte e quatro tabelas têm RLS habilitado. O padrão adotado é:
+  </p>
+  <ul>
+    <li><strong>Conteúdo do curso</strong> (<span class="cod">modulos</span>,
+      <span class="cod">disciplinas</span>, <span class="cod">aulas</span>,
+      <span class="cod">materiais</span>, <span class="cod">quizzes</span>,
+      <span class="cod">quiz_perguntas</span>, <span class="cod">disciplina_chunks</span>):
+      leitura permitida ao autenticado apenas quando o item está publicado.</li>
+    <li><strong>Dados do próprio aluno</strong> (<span class="cod">progresso_aula</span>,
+      <span class="cod">quiz_tentativas</span>, <span class="cod">ia_mensagens</span>,
+      <span class="cod">avaliacoes_disciplina</span>, <span class="cod">perfis</span>):
+      leitura e escrita restritas a linhas onde o identificador do aluno é o do
+      usuário autenticado.</li>
+    <li><strong>Dados administrativos</strong> (<span class="cod">eventos</span>,
+      <span class="cod">envios_email</span>, <span class="cod">video_jobs</span>,
+      <span class="cod">inscricoes</span>): sem política de leitura pública — só
+      alcançáveis pela chave de serviço, no servidor.</li>
+  </ul>
+
+  <h3>6.4 Controle de mudança do esquema</h3>
+  <p>
+    O esquema evolui por 24 migrações versionadas no repositório
+    (<span class="cod">0000</span> a <span class="cod">0023</span>), todas
+    idempotentes e com comentário de intenção no cabeçalho. Desde 05/08/2026,
+    toda migração é <strong>testada primeiro no ambiente de homologação</strong>
+    (<span class="cod">supabase db reset</span> reconstrói o banco do zero na
+    ordem) e só então aplicada em produção via <span class="cod">psql</span>,
+    em ordem. O código foi
+    escrito para tolerar migração ainda não aplicada: as telas afetadas exibem
+    aviso em vez de quebrar. Ver risco R-04.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 7 ═══ -->
+<section class="cap">
+  <h2>7. Segurança da informação</h2>
+
+  <h3>7.1 Segregação de credenciais de banco</h3>
+  <p>
+    O sistema usa três clientes de banco distintos, e a escolha entre eles é
+    tratada como decisão de segurança:
+  </p>
+  <table class="d">
+    <tr><th style="width:24%">Cliente</th><th style="width:20%">Credencial</th><th>Uso e limite</th></tr>
+    <tr><td>Público (anônimo)</td><td>Chave pública</td>
+        <td>Chamadas do visitante, restritas às funções concedidas ao papel anônimo.</td></tr>
+    <tr><td>Sessão do usuário</td><td>Chave pública + cookie</td>
+        <td>Age <em>como o usuário logado</em>; o RLS filtra. Padrão para toda leitura do aluno.</td></tr>
+    <tr><td>Administrativo</td><td><strong>Chave de serviço</strong></td>
+        <td><strong>Ignora o RLS.</strong> Exclusivo de servidor, protegido por
+            <span class="cod">import "server-only"</span>, que quebra a compilação se for
+            importado em código de navegador.</td></tr>
+  </table>
+
+  <h3>7.2 Proteção do gabarito das avaliações</h3>
+  <p>
+    A coluna que marca a alternativa correta nunca é enviada ao navegador. As
+    alternativas chegam ao aluno por uma view sem essa coluna, e a correção
+    acontece integralmente no banco, pela função <span class="cod">corrigir_quiz</span>.
+    Não há caminho pelo qual inspecionar o tráfego ou o código do navegador
+    revele a resposta certa antes da submissão.
+  </p>
+
+  <h3>7.3 Limitação de taxa</h3>
+  <table class="d">
+    <tr><th style="width:34%">Alvo</th><th style="width:22%">Limite</th><th>Finalidade</th></tr>
+    <tr><td>Formulário de inscrição</td><td>10 por hora por IP</td>
+        <td>Cortar cadastro automatizado em massa, que queimaria a reputação do remetente de e-mail.</td></tr>
+    <tr><td>Senha do painel</td><td>10 por 15 min por IP</td><td>Impedir força bruta.</td></tr>
+    <tr><td>Publicação no fórum</td><td>por período, por aluno</td><td>Conter enxurrada de publicações.</td></tr>
+  </table>
+  <p>
+    O IP é lido dos cabeçalhos <span class="cod">X-Forwarded-For</span> /
+    <span class="cod">X-Real-IP</span>, que o nginx sempre reescreve — não há
+    proxy do usuário à frente que permita forjá-los. A contagem é mantida em
+    memória do processo; ver risco R-02.
+  </p>
+
+  <h3>7.4 Autenticação de webhook</h3>
+  <p>
+    O retorno da transcodificação de vídeo é autenticado por segredo
+    compartilhado, comparado em <strong>tempo constante</strong> sobre o hash de
+    cada lado — o que impede tanto a descoberta do segredo por medição de tempo
+    quanto o vazamento do seu comprimento. Segredo ausente ou vazio nunca
+    confere, o que evita que uma variável de ambiente não configurada abra a
+    porta. Além disso, a chamada só é aceita se corresponder a um envio real
+    daquela aula.
+  </p>
+
+  <h3>7.5 Isolamento do serviço de transcodificação</h3>
+  <p>
+    O serviço externo que converte os vídeos recebe apenas as credenciais do
+    bucket de armazenamento e o segredo do webhook — <strong>nunca a chave de
+    serviço do banco</strong>. A atualização do banco é feita exclusivamente
+    pela aplicação, ao receber o retorno. Um comprometimento desse serviço não
+    dá acesso a dados de aluno.
+  </p>
+
+  <h3>7.6 Armazenamento e entrega de vídeo</h3>
+  <ul>
+    <li>Bucket <strong>privado</strong>: nenhum vídeo é acessível por URL pública.</li>
+    <li>O envio é feito por URL assinada de curta duração, gerada no servidor.</li>
+    <li>A reprodução usa URL assinada de curta duração, gerada a cada carregamento
+      da página, para o aluno autenticado.</li>
+    <li>O arquivo original é descartado após a conversão; publica-se apenas a
+      versão limitada a 720p.</li>
+  </ul>
+
+  <h3>7.7 Moderação à prova de falha</h3>
+  <p>
+    Toda publicação de aluno no fórum é avaliada por um modelo de linguagem antes
+    de ir ao ar. O desenho é deliberadamente conservador: os vereditos
+    <em>suspeito</em> e <em>erro</em> — este último inclui indisponibilidade do
+    modelo e tempo esgotado — <strong>mantêm o conteúdo pendente</strong>, na
+    fila de revisão humana. A IA pode destravar uma publicação, nunca liberá-la
+    por omissão nem descartá-la sozinha.
+  </p>
+
+  <h3>7.8 Restrição do assistente de IA</h3>
+  <p>
+    O prompt confina o modelo ao material recuperado do banco, proíbe uso de
+    conhecimento externo, proíbe revelar as próprias instruções e determina
+    resposta negativa quando não há material sobre a pergunta. A recuperação de
+    trechos usa função em modo <em>invoker</em>, ou seja, o aluno só pode
+    recuperar material de disciplinas às quais já tem acesso — não há como
+    extrair conteúdo de módulo não publicado por meio do assistente.
+  </p>
+
+  <h3>7.9 Trilha de auditoria</h3>
+  <p>
+    Treze tipos de evento são registrados hoje, cobrindo sessão, ativação de
+    conta, inscrição, conclusão de aula, tentativa de avaliação, avaliação de
+    disciplina, fórum, conteúdo, equipe e contato com aluno (anexo D). O registro
+    é <strong>à prova de falha por contrato</strong>: uma falha ao auditar nunca
+    interrompe a operação do usuário. Não há interface de exclusão de eventos.
+  </p>
+  <div class="nota alerta">
+    <span class="rot">Contrapartida do desenho à prova de falha</span>
+    <p>
+      Como a auditoria não pode quebrar o fluxo do usuário, uma falha de gravação
+      é descartada em silêncio. Isso significa que a trilha é <em>altamente
+      provável</em>, mas não <em>garantida</em> — ela não deve ser tratada como
+      prova irrefutável de ausência de um fato. Ver risco R-07.
+    </p>
+  </div>
+
+  <h3>7.10 Vulnerabilidade identificada e corrigida antes do lançamento</h3>
+  <p>
+    Registro para fins de auditoria, por transparência. Durante a preparação para
+    o lançamento identificou-se que a view <span class="cod">inscricoes_export</span>
+    havia sido criada sem o modo <em>invoker</em>. Views em Postgres executam com
+    os privilégios do dono e, nessa condição, ignoram o RLS da tabela por baixo —
+    o que permitia ao papel anônimo, cuja chave é pública e embarcada no
+    navegador, ler nome, CPF, e-mail e telefone de todos os inscritos pela API.
+  </p>
+  <table class="d">
+    <tr><th style="width:22%">Item</th><th>Descrição</th></tr>
+    <tr><td>Correção</td><td>Migração <span class="cod">0003_seguranca_inscricoes.sql</span>, aplicada antes do lançamento.</td></tr>
+    <tr><td>Medida 1</td><td>A view passou a respeitar o RLS de quem consulta (<span class="cod">security_invoker</span>).</td></tr>
+    <tr><td>Medida 2</td><td>Defesa em profundidade: acesso à view revogado dos papéis anônimo e autenticado.</td></tr>
+    <tr><td>Medida 3</td><td>Removida a política que permitia inserção direta na tabela pelo papel anônimo; toda inscrição passa obrigatoriamente pela função validada.</td></tr>
+    <tr><td>Situação</td><td>Corrigido e verificado. A tabela em si já estava protegida por RLS; a exposição se dava apenas pela view.</td></tr>
+  </table>
+
+  <h3>7.11 Gestão de segredos</h3>
+  <ul>
+    <li>Segredos ficam em <span class="cod">.env.local</span> na VPS, fora do
+      controle de versão. O repositório contém apenas
+      <span class="cod">.env.local.example</span>, sem valores.</li>
+    <li>Convenção estrita: variáveis com prefixo <span class="cod">NEXT_PUBLIC_</span>
+      são públicas por definição e vão ao navegador; sem o prefixo, nunca saem
+      do servidor.</li>
+    <li>Cada variável é lida no ponto de uso, com erro explícito quando ausente —
+      o sistema falha de forma visível em vez de operar em estado degradado
+      silencioso.</li>
+    <li>Inventário completo no anexo B.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 8 ═══ -->
+<section class="cap">
+  <h2>8. Privacidade e proteção de dados (LGPD)</h2>
+
+  <h3>8.1 Dados pessoais tratados</h3>
+  <table class="d">
+    <tr><th style="width:20%">Dado</th><th style="width:26%">Finalidade</th><th style="width:16%">Origem</th><th>Onde é armazenado</th></tr>
+    <tr><td>Nome completo</td><td>Identificação do aluno, comunicação e certificação</td><td>Titular, na inscrição</td><td><span class="cod">inscricoes</span></td></tr>
+    <tr><td>CPF</td><td>Identificação unívoca e prestação de contas do programa</td><td>Titular, na inscrição</td><td><span class="cod">inscricoes</span></td></tr>
+    <tr><td>E-mail</td><td>Credencial de acesso e envio de convite e comunicações</td><td>Titular, na inscrição</td><td><span class="cod">inscricoes</span>, provedor de identidade, <span class="cod">envios_email</span></td></tr>
+    <tr><td>Telefone</td><td>Contato de suporte, inclusive por WhatsApp</td><td>Titular, na inscrição</td><td><span class="cod">inscricoes</span></td></tr>
+    <tr><td>Senha</td><td>Autenticação</td><td>Titular, no primeiro acesso</td><td>Provedor de identidade, com hash. <strong>Inacessível à equipe.</strong></td></tr>
+    <tr><td>Progresso e notas</td><td>Acompanhamento pedagógico</td><td>Gerado pelo uso</td><td><span class="cod">progresso_aula</span>, <span class="cod">quiz_tentativas</span></td></tr>
+    <tr><td>Publicações no fórum</td><td>Interação pedagógica</td><td>Titular</td><td><span class="cod">forum_*</span></td></tr>
+    <tr><td>Diálogos com o assistente</td><td>Suporte ao estudo e melhoria do material</td><td>Titular</td><td><span class="cod">ia_mensagens</span></td></tr>
+    <tr><td>Registros de atividade</td><td>Segurança, auditoria e suporte</td><td>Gerado pelo uso</td><td><span class="cod">eventos</span></td></tr>
+    <tr><td>Origem da campanha</td><td>Medição de eficácia da divulgação</td><td>Parâmetros do link</td><td><span class="cod">inscricoes</span>, <span class="cod">visitas_landing</span></td></tr>
+  </table>
+
+  <h3>8.2 Minimização e anonimização — medidas adotadas</h3>
+  <ul>
+    <li><strong>Visitas à landing são anônimas</strong>: registram-se apenas data
+      e campanha. Não há endereço IP, identificador de visitante nem cookie de
+      rastreamento próprio.</li>
+    <li><strong>Feedback de disciplina é anônimo na exibição</strong>: o vínculo
+      com o aluno existe apenas para impedir voto duplicado; os relatórios
+      mostram somente estrelas e comentário.</li>
+    <li><strong>Votos do fórum não trafegam</strong>: as leituras agregadas são
+      feitas no servidor; quem votou em quê nunca chega ao navegador.</li>
+    <li><strong>O painel por senha expõe apenas números agregados</strong>, nunca
+      registros individuais.</li>
+    <li><strong>Dentro da área do aluno não há nenhum rastreador de terceiros.</strong></li>
+    <li><strong>Não há armazenamento de dado pessoal em disco na VPS</strong>;
+      os logs do serviço registram operação da aplicação, não conteúdo de dados.</li>
+  </ul>
+
+  <h3>8.3 Cookies e ferramentas de terceiros</h3>
+  <table class="d">
+    <tr><th style="width:24%">Ferramenta</th><th style="width:20%">Onde atua</th><th>Dado enviado</th></tr>
+    <tr><td>Tag do Google Ads</td><td>Somente na landing pública</td>
+        <td>Visita e conversão de inscrição. <strong>Não recebe nome, e-mail, CPF ou telefone.</strong></td></tr>
+    <tr><td>Pixel da Meta</td><td>Somente na landing pública</td>
+        <td>Visita e conversão de inscrição. <strong>Não recebe nome, e-mail, CPF ou telefone.</strong></td></tr>
+    <tr><td>Cookies próprios</td><td>Plataforma</td>
+        <td>Sessão de login (essencial) e preferências de tema e som, guardadas no navegador.</td></tr>
+  </table>
+  <p>
+    Ambas as ferramentas estão declaradas na Política de Privacidade publicada em
+    <span class="cod">/privacidade</span>, com a informação de que podem ser
+    bloqueadas pelo navegador sem prejuízo à inscrição ou ao curso.
+  </p>
+
+  <h3>8.4 Operadores e subprocessadores</h3>
+  <table class="d">
+    <tr><th style="width:22%">Serviço</th><th style="width:26%">Papel no tratamento</th><th>Dados a que tem acesso</th></tr>
+    <tr><td>Supabase (nuvem)</td><td>Desde 05/08/2026, apenas cópia de segurança
+        (espelho diário do banco, contas e arquivos)</td><td>Todos os dados pessoais
+        tratados pelo sistema, na condição de réplica</td></tr>
+    <tr><td>Provedor da VPS</td><td>Hospedagem da aplicação <strong>e do banco de
+        dados</strong> (stack Supabase self-hosted desde 05/08/2026)</td><td>Todos os
+        dados pessoais tratados pelo sistema, em disco e em memória</td></tr>
+    <tr><td>Google (Gmail)</td><td>Envio de e-mail e leitura de devoluções</td><td>Nome, e-mail e matrícula, no corpo das mensagens</td></tr>
+    <tr><td>Cloudflare R2</td><td>Armazenamento de vídeo</td><td>Somente conteúdo do curso — nenhum dado pessoal</td></tr>
+    <tr><td>Modal</td><td>Conversão de vídeo</td><td>Somente arquivos de vídeo do curso</td></tr>
+    <tr><td>Ollama Cloud</td><td>Modelo de linguagem</td><td>Texto da pergunta do aluno e trechos do material; recebe o conteúdo da publicação na moderação</td></tr>
+    <tr><td>Google Ads e Meta</td><td>Medição de anúncios</td><td>Evento de visita e conversão na landing, sem dados de identificação</td></tr>
+  </table>
+  <div class="nota alerta">
+    <span class="rot">A confirmar</span>
+    <p>
+      A região de armazenamento dos dados no provedor de banco e a existência de
+      cláusulas de transferência internacional não são verificáveis a partir do
+      código e devem ser confirmadas junto à coordenação, com os contratos dos
+      serviços. Ver risco R-11.
+    </p>
+  </div>
+
+  <h3>8.5 Direitos do titular</h3>
+  <p>
+    A Política de Privacidade publicada informa que o titular pode solicitar
+    acesso, correção ou exclusão dos seus dados, bem como informações sobre o
+    tratamento, pelos canais oficiais do CSMG. Operacionalmente, o atendimento é
+    viável com as ferramentas existentes:
+  </p>
+  <table class="d">
+    <tr><th style="width:26%">Direito</th><th>Como é atendido hoje</th></tr>
+    <tr><td>Confirmação e acesso</td><td>Ficha individual do aluno na área administrativa reúne cadastro, convites, desempenho e atividade.</td></tr>
+    <tr><td>Correção</td><td>Alteração do cadastro pela equipe administrativa.</td></tr>
+    <tr><td>Eliminação</td><td>Exclusão da conta e da inscrição; registros dependentes caem por integridade referencial. Procedimento executado manualmente.</td></tr>
+    <tr><td>Portabilidade</td><td>Exportação administrativa das inscrições pelo painel do provedor de banco.</td></tr>
+    <tr><td>Informação sobre compartilhamento</td><td>Seção 8.4 deste documento e Política de Privacidade.</td></tr>
+  </table>
+  <div class="nota alerta">
+    <span class="rot">Lacuna</span>
+    <p>
+      Não há hoje um procedimento formal escrito, com prazo e responsável
+      designado, para o atendimento de requisições de titular, nem tela dedicada
+      a isso. Ver risco R-09.
+    </p>
+  </div>
+
+  <h3>8.6 Retenção e descarte</h3>
+  <p>
+    O sistema não implementa expurgo automático. Todos os registros permanecem
+    enquanto a base existir. Não há política formal de retenção definida por
+    tipo de dado. Ver risco R-10.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ CAP 9 ═══ -->
+<section class="cap">
+  <h2>9. Integrações externas</h2>
+  <table class="d">
+    <tr>
+      <th style="width:17%">Serviço</th><th style="width:22%">Função no sistema</th>
+      <th style="width:19%">Credencial usada</th><th style="width:20%">Dado trafegado</th>
+      <th>Comportamento em caso de falha</th>
+    </tr>
+    <tr>
+      <td><strong>Supabase (self-hosted)</strong></td>
+      <td>Banco, identidade e arquivos — contêineres na própria VPS desde
+          05/08/2026; o projeto em nuvem recebe espelho diário (cópia de segurança)</td>
+      <td>Chave pública e chave de serviço, geradas localmente</td>
+      <td>Todos os dados do sistema (não saem mais da VPS na operação normal)</td>
+      <td>Indisponibilidade total da plataforma; recuperável pelo espelho em nuvem.</td>
+    </tr>
+    <tr>
+      <td><strong>Gmail SMTP</strong></td>
+      <td>Envio de convites e notificações</td>
+      <td>Usuário e senha de aplicativo</td>
+      <td>Nome, e-mail, matrícula e link de acesso</td>
+      <td>Envio registrado como falha; reprocessável no disparo seguinte.</td>
+    </tr>
+    <tr>
+      <td><strong>Gmail IMAP</strong></td>
+      <td>Leitura de devoluções</td>
+      <td>Mesma credencial</td>
+      <td>Cabeçalhos das devoluções</td>
+      <td>Devolução não detectada; nenhuma perda de dado.</td>
+    </tr>
+    <tr>
+      <td><strong>Ollama Cloud</strong></td>
+      <td>Assistente e moderação do fórum</td>
+      <td>Chave de API</td>
+      <td>Pergunta do aluno, trechos do material, texto da publicação</td>
+      <td>Assistente indisponível; moderação mantém a publicação pendente para revisão humana.</td>
+    </tr>
+    <tr>
+      <td><strong>Cloudflare R2</strong></td>
+      <td>Armazenamento de vídeo</td>
+      <td>Chave de acesso S3</td>
+      <td>Arquivos de vídeo do curso</td>
+      <td>Aulas com vídeo próprio não reproduzem; aulas com link externo seguem normalmente.</td>
+    </tr>
+    <tr>
+      <td><strong>Modal</strong></td>
+      <td>Transcodificação sob demanda</td>
+      <td>URL do endpoint e segredo compartilhado</td>
+      <td>Arquivos de vídeo</td>
+      <td>Aula permanece em processamento; nada é publicado pela metade.</td>
+    </tr>
+    <tr>
+      <td><strong>Google Ads</strong></td>
+      <td>Medição de anúncio</td>
+      <td>Identificador público de conversão</td>
+      <td>Evento de visita e conversão</td>
+      <td>Sem impacto funcional.</td>
+    </tr>
+    <tr>
+      <td><strong>Meta</strong></td>
+      <td>Medição de anúncio</td>
+      <td>Identificador público do pixel</td>
+      <td>Evento de visita e conversão</td>
+      <td>Sem impacto funcional.</td>
+    </tr>
+    <tr>
+      <td><strong>ElevenLabs</strong></td>
+      <td>Geração da narração do tour</td>
+      <td>Chave de API</td>
+      <td>Texto dos passos do tour</td>
+      <td>Não é usado em execução: os áudios são gerados offline e servidos como arquivos estáticos.</td>
+    </tr>
+  </table>
+
+  <div class="nota">
+    <span class="rot">Observação sobre dependência de IA</span>
+    <p>
+      Nenhuma decisão com efeito irreversível é delegada ao modelo de linguagem.
+      Ele sugere (moderação) e responde consultas (assistente); a aprovação de
+      conteúdo e qualquer alteração de dado dependem de ação humana ou de
+      código determinístico.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ CAP 10 ═══ -->
+<section class="cap">
+  <h2>10. Qualidade e processo de desenvolvimento</h2>
+
+  <h3>10.1 Estratégia de testes</h3>
+  <p>
+    O projeto adota desenvolvimento orientado a testes como regra: o teste é
+    escrito antes do código. A cobertura é distribuída por camada:
+  </p>
+  <table class="d">
+    <tr><th style="width:30%">Camada</th><th style="width:20%">Ferramenta</th><th>O que cobre</th></tr>
+    <tr><td>Lógica pura e regras de negócio</td><td>Vitest</td>
+        <td>Validação de CPF e telefone, permissões, cálculo de progresso e relatórios, normalização de auditoria, limite de taxa, comparação de segredos, ordenação, conversão de datas, origem de tráfego, devoluções.</td></tr>
+    <tr><td>Componentes de interface</td><td>Vitest + Testing Library</td><td>Comportamento de formulários e componentes interativos.</td></tr>
+    <tr><td>Fluxos de usuário</td><td>Playwright</td>
+        <td>Inscrição, primeiro acesso, login, navegação de aula e avaliação, fórum, perfil, níveis de acesso da equipe, assistente.</td></tr>
+  </table>
+
+  <h3>10.2 Resultado da suíte na data-base</h3>
+  <table class="d">
+    <tr><th style="width:40%">Métrica</th><th>Valor</th></tr>
+    <tr><td>Arquivos de teste unitário e de componente</td><td>40</td></tr>
+    <tr><td>Casos de teste</td><td><strong>202, todos aprovados</strong></td></tr>
+    <tr><td>Tempo de execução da suíte</td><td>aproximadamente 26 segundos</td></tr>
+    <tr><td>Especificações de ponta a ponta</td><td>8 arquivos</td></tr>
+    <tr><td>Análise estática</td><td>ESLint e TypeScript em modo estrito</td></tr>
+  </table>
+  <p>
+    Os testes de ponta a ponta rodam contra o banco real e criam apenas dados
+    identificáveis (endereços em domínio de exemplo), removidos automaticamente
+    ao final da execução. Especificações que dependem de recurso ausente são
+    puladas em vez de falharem.
+  </p>
+
+  <h3>10.3 Versionamento e controle de mudança</h3>
+  <ul>
+    <li>Repositório Git, com commits atômicos — um assunto por commit, cada um
+      compilando e passando nos testes isoladamente.</li>
+    <li>Mensagens em formato convencional (<span class="cod">feat</span>,
+      <span class="cod">fix</span>, <span class="cod">chore</span>,
+      <span class="cod">docs</span>, <span class="cod">test</span>,
+      <span class="cod">refactor</span>), o que torna o histórico auditável por
+      tipo de mudança.</li>
+    <li>Colaboradores sem permissão de escrita trabalham por bifurcação do
+      repositório e requisição de incorporação; colaboradores com permissão
+      integram diretamente, sempre com testes verdes.</li>
+    <li>Convenção de idioma única (português) para código, nomes e comentários,
+      reduzindo ambiguidade na manutenção.</li>
+  </ul>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ CAP 11 ═══ -->
+<section class="cap">
+  <h2>11. Operação</h2>
+
+  <h3>11.1 Implantação</h3>
+  <p>
+    A implantação é feita por script único (<span class="cod">scripts/deploy.sh</span>),
+    executado na VPS, com troca atômica:
+  </p>
+  <ol>
+    <li>A nova versão é construída em diretório separado, com a produção
+      no ar e intacta.</li>
+    <li>O serviço é parado, o diretório antigo é substituído pelo novo e o
+      serviço é reiniciado — janela de indisponibilidade de aproximadamente
+      2 segundos.</li>
+    <li>Verificação automática de saúde: a rota de login precisa responder com
+      sucesso, caso contrário o script termina com erro sinalizado.</li>
+  </ol>
+  <div class="nota">
+    <span class="rot">Motivo do desenho</span>
+    <p>
+      Construir a nova versão sobre a que está sendo servida faz com que usuários
+      carregando páginas durante a construção recebam referências a arquivos que
+      deixaram de existir — página sem estilo. A troca atômica elimina essa
+      janela.
+    </p>
+  </div>
+
+  <h3>11.2 Execução e registros</h3>
+  <table class="d">
+    <tr><th style="width:30%">Item</th><th>Configuração</th></tr>
+    <tr><td>Gerenciador de processo</td><td>systemd, unidade <span class="cod">coworking.service</span></td></tr>
+    <tr><td>Reinício automático</td><td>Sim, com intervalo de 5 segundos</td></tr>
+    <tr><td>Escuta</td><td><span class="cod">127.0.0.1:3000</span> — sem exposição direta</td></tr>
+    <tr><td>Registros</td><td><span class="cod">/var/log/coworking.log</span> (saída padrão e de erro)</td></tr>
+    <tr><td>Usuário do processo</td><td><span class="cod">root</span> — ver risco R-06</td></tr>
+  </table>
+
+  <h3>11.3 Monitoramento</h3>
+  <p>
+    Desde 05/08/2026, um vigia local (<span class="cod">scripts/vigiar-producao.sh</span>,
+    cron a cada 5 minutos) confere a resposta da plataforma e o espaço em disco;
+    duas falhas seguidas disparam alerta por e-mail à operação (no máximo um por
+    hora). Limitação conhecida: o vigia mora na própria VPS — se a máquina
+    inteira cair, o alerta cai junto; a contratação de verificação externa de
+    disponibilidade permanece recomendada. Não há agregação de erros da
+    aplicação. Ver risco R-05.
+  </p>
+
+  <h3>11.4 Continuidade e recuperação</h3>
+  <table class="d">
+    <tr><th style="width:30%">Ativo</th><th>Situação da proteção</th></tr>
+    <tr><td>Código-fonte</td><td>Versionado em repositório Git remoto. Recuperável.</td></tr>
+    <tr><td>Esquema do banco</td><td>Reconstituível pelas 24 migrações versionadas
+        (validado: o ambiente de homologação é recriado do zero por elas).</td></tr>
+    <tr><td>Dados do banco</td><td>Três camadas desde 05/08/2026: dump local diário
+        (03:30, retenção de 14, teste de restauração executado e registrado em
+        <span class="cod">docs/backups-e-monitoramento.md</span>); espelho diário
+        completo no projeto Supabase em nuvem (04:00 — banco, contas e arquivos);
+        e snapshot da VPS no provedor (ativação a confirmar no painel).</td></tr>
+    <tr><td>Vídeos das aulas</td><td>Armazenados no bucket; o arquivo original é descartado após a conversão. Sem cópia secundária.</td></tr>
+    <tr><td>Configuração do servidor</td><td>nginx e systemd sem cópia versionada fora da VPS;
+        a configuração do stack Supabase local reside em
+        <span class="cod">/opt/coworking-supabase</span> (o compose vem de repositório
+        público; o <span class="cod">.env</span> de segredos não é versionado).</td></tr>
+  </table>
+  <p>
+    Ponto de recuperação efetivo: até 24 horas (espelho diário). Objetivo de
+    tempo de recuperação ainda não formalizado; o procedimento de retorno à
+    nuvem está documentado em <span class="cod">docs/migracao-banco-vps.md</span>
+    e leva minutos. Ver risco R-01.
+  </p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ CAP 12 ═══ -->
+<section class="cap">
+  <h2>12. Requisitos não funcionais</h2>
+  <table class="d">
+    <tr><th style="width:26%">Atributo</th><th>Como é atendido</th></tr>
+    <tr><td>Desempenho</td>
+        <td>Renderização no servidor com consultas paralelas por página; listas com paginação (25 alunos, 50 eventos por página); vídeo limitado a 720p para reduzir consumo de banda do aluno.</td></tr>
+    <tr><td>Escalabilidade</td>
+        <td>Banco na própria VPS (16 GB / 4 núcleos, uso corrente ~30%); aplicação em
+            processo único — ver risco R-02 quanto ao efeito sobre a limitação de taxa.
+            A latência de API caiu de 0,7–1,3 s (nuvem, plano gratuito) para ~10 ms
+            (local), medida em 05/08/2026.</td></tr>
+    <tr><td>Disponibilidade</td>
+        <td>Reinício automático do serviço; deploy com indisponibilidade de aproximadamente 2 segundos e verificação de saúde.</td></tr>
+    <tr><td>Compatibilidade</td>
+        <td>Aplicação web responsiva, sem instalação, funcionando em navegadores modernos de computador e celular.</td></tr>
+    <tr><td>Acessibilidade</td>
+        <td>Marcação semântica, rótulos associados aos campos, foco visível, contraste de cores em tema claro e escuro, e respeito à preferência do sistema por redução de animações.</td></tr>
+    <tr><td>Usabilidade</td>
+        <td>Tour guiado narrado por perfil, assistente de dúvidas contextual, estados vazios ilustrados e mensagens de erro em linguagem comum.</td></tr>
+    <tr><td>Internacionalização</td>
+        <td>Sistema monolíngue em português do Brasil, com datas e números no fuso e formato locais.</td></tr>
+    <tr><td>Manutenibilidade</td>
+        <td>Convenção de idioma única, módulos pequenos com responsabilidade definida, marcação explícita do que é código de servidor, e cobertura de testes na lógica de negócio.</td></tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ CAP 13 ═══ -->
+<section class="cap">
+  <h2>13. Riscos e limitações conhecidas</h2>
+  <p>
+    Registro deliberadamente franco das lacunas identificadas, com recomendação
+    de tratamento. Nenhum dos itens abaixo impede a operação atual; todos são
+    relevantes para a continuidade e para a conformidade.
+  </p>
+
+  <table class="d">
+    <tr>
+      <th style="width:7%">ID</th><th style="width:23%">Risco</th>
+      <th style="width:9%">Severidade</th><th style="width:30%">Situação atual</th>
+      <th>Recomendação</th>
+    </tr>
+    <tr>
+      <td class="rf">R-01</td>
+      <td>Cópia de segurança dos dados não verificada</td>
+      <td><strong>Tratado em 05/08/2026</strong></td>
+      <td>Três camadas próprias: dump diário local com retenção de 14 e teste de
+          restauração executado e registrado; espelho diário completo (banco,
+          contas e arquivos) no projeto Supabase em nuvem; snapshot da VPS no
+          provedor (ativação a confirmar). Falha de qualquer rotina dispara
+          alerta por e-mail. Ponto de recuperação: até 24 h.</td>
+      <td>Ativar o snapshot no painel do provedor; repetir o teste de
+          restauração a cada trimestre (roteiro em
+          <span class="cod">docs/backups-e-monitoramento.md</span>).</td>
+    </tr>
+    <tr>
+      <td class="rf">R-02</td>
+      <td>Limitação de taxa em memória do processo</td>
+      <td>Média</td>
+      <td>Os contadores zeram a cada reinício e não são compartilhados entre processos. Adequado ao desenho atual, de processo único.</td>
+      <td>Ao adotar mais de um processo ou servidor, migrar a contagem para o banco ou para armazenamento compartilhado.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-03</td>
+      <td>Ausência de ambiente de homologação</td>
+      <td><strong>Tratado em 05/08/2026</strong></td>
+      <td>Stack Supabase local segregado na VPS (contêineres próprios, dados
+          sintéticos), reconstituível do zero pelas migrações. O desenvolvimento
+          não acessa mais o banco de produção.</td>
+      <td>Manter o hábito: dado real não entra na homologação; fluxo novo passa
+          por lá antes de produção (<span class="cod">docs/homologacao.md</span>).</td>
+    </tr>
+    <tr>
+      <td class="rf">R-04</td>
+      <td>Migrações aplicadas manualmente</td>
+      <td>Média — <strong>mitigado</strong></td>
+      <td>A aplicação em produção segue manual (via <span class="cod">psql</span>),
+          mas desde 05/08/2026 toda migração é validada antes no ambiente de
+          homologação, que reconstrói o banco do zero na ordem — o que detecta
+          migração fora de ordem ou dependência implícita. Sem registro
+          automático do que foi aplicado.</td>
+      <td>Adotar aplicação automatizada com controle de versão do esquema, ou manter registro assinado de cada aplicação.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-05</td>
+      <td>Sem monitoramento nem alerta</td>
+      <td>Média — <strong>mitigado</strong></td>
+      <td>Vigia local a cada 5 minutos (resposta da plataforma + disco) com
+          alerta por e-mail desde 05/08/2026. Limite: roda na própria VPS —
+          queda total da máquina não gera alerta. Sem agregação de erros.</td>
+      <td>Contratar verificação externa de disponibilidade com alerta, e agregação de erros da aplicação.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-06</td>
+      <td>Serviço executado como superusuário</td>
+      <td>Média</td>
+      <td>A unidade systemd roda como <span class="cod">root</span>, o que amplia o alcance de uma eventual exploração da aplicação.</td>
+      <td>Criar usuário dedicado sem privilégios, com permissão apenas sobre o diretório da aplicação.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-07</td>
+      <td>Auditoria pode perder evento em silêncio</td>
+      <td>Baixa</td>
+      <td>Decisão consciente: a auditoria nunca interrompe o fluxo do usuário, então uma falha de gravação é descartada.</td>
+      <td>Registrar as falhas de auditoria no log da aplicação, para que sejam ao menos observáveis.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-08</td>
+      <td>Painel protegido por senha compartilhada</td>
+      <td>Baixa</td>
+      <td>Sem conta individual, não há como atribuir acesso a uma pessoa nem revogar individualmente. Expõe apenas números agregados.</td>
+      <td>Manter o painel restrito a agregados. Se algum dia precisar exibir dado individual, migrar para conta com permissão.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-09</td>
+      <td>Sem procedimento formal para requisições de titular</td>
+      <td>Média</td>
+      <td>Os direitos são atendíveis com as ferramentas existentes, mas não há responsável designado, prazo definido nem registro das solicitações.</td>
+      <td>Formalizar o procedimento com responsável, prazo e livro de registro das requisições atendidas.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-10</td>
+      <td>Sem política de retenção e descarte</td>
+      <td>Média</td>
+      <td>Nenhum dado é expurgado automaticamente; tudo permanece indefinidamente.</td>
+      <td>Definir prazo de retenção por tipo de dado, considerando a finalidade do programa, e implementar o expurgo.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-11</td>
+      <td>Transferência internacional não documentada</td>
+      <td>Média</td>
+      <td>A região de armazenamento nos provedores e as cláusulas contratuais aplicáveis não foram verificadas.</td>
+      <td>Levantar a região de cada serviço e anexar as cláusulas de transferência aos documentos do programa.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-12</td>
+      <td>Entregabilidade do e-mail de convite</td>
+      <td>Alta</td>
+      <td>Os convites saem de uma conta comum de e-mail, sem domínio próprio autenticado, o que faz parte das mensagens ser classificada como spam. Mitigado por contato por WhatsApp e por aviso nas telas.</td>
+      <td>Migrar para provedor transacional com domínio próprio e autenticação de remetente configurada no DNS.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-13</td>
+      <td>Segredos residentes na VPS</td>
+      <td>Média — <strong>mitigado</strong></td>
+      <td>Arquivos de segredo com permissão restrita ao root (600) desde
+          05/08/2026. As chaves do stack local foram geradas na própria VPS e
+          nunca transitaram por canal externo. Sem rotação periódica formal;
+          a senha do banco em nuvem (hoje só cópia de segurança) tem rotação
+          recomendada e pendente.</td>
+      <td>Estabelecer rotação periódica de chaves e registrar a data de cada
+          rotação em <span class="cod">docs/backups-e-monitoramento.md</span>.</td>
+    </tr>
+    <tr>
+      <td class="rf">R-14</td>
+      <td>Dependência de terceiros sem alternativa</td>
+      <td>Baixa</td>
+      <td>Com o banco/identidade/arquivos na própria VPS (05/08/2026), a
+          indisponibilidade que derruba a plataforma inteira passou a ser a da
+          VPS — mitigada pelo espelho diário em nuvem, que permite retorno ao
+          provedor anterior em minutos. IA, vídeo e e-mail seguem em serviços
+          externos distintos, com falhas degradando funções específicas.</td>
+      <td>Documentar o plano de contingência por serviço e manter cópia externa dos vídeos publicados.</td>
+    </tr>
+  </table>
+
+  <div class="nota">
+    <span class="rot">Leitura geral</span>
+    <p>
+      Os controles de <em>confidencialidade</em> — segregação de credenciais,
+      segurança em nível de linha, proteção do gabarito, moderação conservadora,
+      isolamento do serviço de vídeo e trilha de auditoria — estão implementados
+      e verificáveis no código. Em 05/08/2026 foram tratadas as principais
+      lacunas de <em>disponibilidade</em> apontadas na versão 1.0: cópia de
+      segurança em três camadas com teste de restauração, monitoramento com
+      alerta e segregação de ambientes (homologação local). As pendências
+      concentram-se agora em <em>entregabilidade de e-mail</em> (R-12, com
+      prazo prático: o disparo de convites da turma 2 em 17/08) e
+      <em>governança de dados</em> (R-09 a R-11): formalização de procedimentos
+      LGPD, retenção e transferência internacional. É nessa direção que o
+      esforço seguinte tende a render mais.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ ANEXOS ═══ -->
+<section class="cap">
+  <h2>14. Anexos</h2>
+
+  <h3>Anexo A — Inventário de rotas</h3>
+  <table class="d">
+    <tr><th style="width:34%">Rota</th><th style="width:20%">Acesso</th><th>Função</th></tr>
+    <tr><td><span class="cod">/</span></td><td>Público</td><td>Divulgação e inscrição</td></tr>
+    <tr><td><span class="cod">/inscricao-realizada</span></td><td>Público</td><td>Confirmação da inscrição</td></tr>
+    <tr><td><span class="cod">/privacidade</span></td><td>Público</td><td>Política de Privacidade</td></tr>
+    <tr><td><span class="cod">/login</span></td><td>Público</td><td>Autenticação</td></tr>
+    <tr><td><span class="cod">/primeiro-acesso</span></td><td>Público</td><td>Ativação de conta</td></tr>
+    <tr><td><span class="cod">/definir-senha</span></td><td>Público com token</td><td>Redefinição de senha</td></tr>
+    <tr><td><span class="cod">/painel</span></td><td>Aluno</td><td>Lista de módulos e progresso</td></tr>
+    <tr><td><span class="cod">/modulos/[modulo]</span></td><td>Aluno</td><td>Disciplinas do módulo</td></tr>
+    <tr><td><span class="cod">/modulos/[modulo]/[disciplina]</span></td><td>Aluno</td><td>Aulas, materiais, avaliação e assistente</td></tr>
+    <tr><td><span class="cod">/forum</span>, <span class="cod">/forum/novo</span>, <span class="cod">/forum/[id]</span></td><td>Aluno</td><td>Fórum de dúvidas</td></tr>
+    <tr><td><span class="cod">/perfil</span>, <span class="cod">/perfil/[id]</span></td><td>Aluno</td><td>Perfil próprio e de colegas</td></tr>
+    <tr><td><span class="cod">/master</span></td><td>Permissão de conteúdo</td><td>Gestão de módulos</td></tr>
+    <tr><td><span class="cod">/master/modulos/[id]</span></td><td>Permissão de conteúdo</td><td>Edição de módulo e disciplinas</td></tr>
+    <tr><td><span class="cod">/master/disciplinas/[id]</span></td><td>Permissão de conteúdo</td><td>Aulas, materiais, base da IA e avaliação</td></tr>
+    <tr><td><span class="cod">/master/alunos</span>, <span class="cod">/master/alunos/[id]</span></td><td>Permissão de e-mails</td><td>Gestão e ficha de alunos</td></tr>
+    <tr><td><span class="cod">/master/emails</span></td><td>Permissão de e-mails</td><td>Convites em massa e registro de envios</td></tr>
+    <tr><td><span class="cod">/master/forum</span></td><td>Permissão de moderação</td><td>Fila de moderação</td></tr>
+    <tr><td><span class="cod">/master/relatorios</span></td><td>Permissão de relatórios</td><td>Funil e desempenho da turma</td></tr>
+    <tr><td><span class="cod">/master/equipe</span></td><td>Administrador</td><td>Gestão da equipe e permissões</td></tr>
+    <tr><td><span class="cod">/master/eventos</span></td><td>Administrador</td><td>Trilha de auditoria</td></tr>
+    <tr><td><span class="cod">/relatorios</span></td><td>Senha única</td><td>Painel de inscrições</td></tr>
+    <tr><td><span class="cod">/api/ia/chat</span></td><td>Aluno autenticado</td><td>Assistente, resposta em fluxo contínuo</td></tr>
+    <tr><td><span class="cod">/api/video/concluir</span></td><td>Segredo compartilhado</td><td>Retorno da transcodificação</td></tr>
+  </table>
+
+  <h3>Anexo B — Variáveis de ambiente</h3>
+  <table class="d">
+    <tr><th style="width:34%">Variável</th><th style="width:14%">Exposição</th><th>Finalidade</th></tr>
+    <tr><td><span class="cod">NEXT_PUBLIC_SUPABASE_URL</span></td><td>Pública</td><td>Endereço do projeto de banco</td></tr>
+    <tr><td><span class="cod">NEXT_PUBLIC_SUPABASE_ANON_KEY</span></td><td>Pública</td><td>Chave de acesso limitada pelas políticas</td></tr>
+    <tr><td><span class="cod">SUPABASE_SERVICE_ROLE_KEY</span></td><td><strong>Secreta</strong></td><td>Operações privilegiadas; ignora as políticas de acesso</td></tr>
+    <tr><td><span class="cod">NEXT_PUBLIC_SITE_URL</span></td><td>Pública</td><td>Endereço canônico da divulgação</td></tr>
+    <tr><td><span class="cod">DOMINIO_LANDING</span></td><td>Servidor</td><td>Domínio que serve só a divulgação</td></tr>
+    <tr><td><span class="cod">PLATAFORMA_LIBERADA</span></td><td>Servidor</td><td>Chave de liberação da plataforma no domínio principal</td></tr>
+    <tr><td><span class="cod">PAINEL_SENHA</span></td><td><strong>Secreta</strong></td><td>Senha única do painel de inscrições</td></tr>
+    <tr><td><span class="cod">GMAIL_USER</span></td><td>Servidor</td><td>Remetente das mensagens</td></tr>
+    <tr><td><span class="cod">GMAIL_APP_PASSWORD</span></td><td><strong>Secreta</strong></td><td>Senha de aplicativo do remetente</td></tr>
+    <tr><td><span class="cod">OLLAMA_API_KEY</span></td><td><strong>Secreta</strong></td><td>Acesso ao modelo de linguagem</td></tr>
+    <tr><td><span class="cod">OLLAMA_BASE_URL</span>, <span class="cod">OLLAMA_MODEL</span>, <span class="cod">OLLAMA_THINK</span></td><td>Servidor</td><td>Endereço, modelo e modo de raciocínio</td></tr>
+    <tr><td><span class="cod">R2_ACCOUNT_ID</span>, <span class="cod">R2_BUCKET_VIDEOS</span></td><td>Servidor</td><td>Identificação do armazenamento de vídeo</td></tr>
+    <tr><td><span class="cod">R2_ACCESS_KEY_ID</span>, <span class="cod">R2_SECRET_ACCESS_KEY</span></td><td><strong>Secretas</strong></td><td>Credenciais do armazenamento</td></tr>
+    <tr><td><span class="cod">MODAL_TRANSCODE_URL</span></td><td>Servidor</td><td>Endereço do serviço de conversão</td></tr>
+    <tr><td><span class="cod">VIDEO_WEBHOOK_SECRET</span></td><td><strong>Secreta</strong></td><td>Autenticação mútua do retorno de conversão</td></tr>
+    <tr><td><span class="cod">ELEVENLABS_API_KEY</span></td><td><strong>Secreta</strong></td><td>Uso exclusivo em script offline; não é lida em execução</td></tr>
+  </table>
+
+  <h3>Anexo C — Migrações do banco</h3>
+  <table class="d">
+    <tr><th style="width:12%">Nº</th><th style="width:32%">Assunto</th><th>Nº</th><th>Assunto</th></tr>
+    <tr><td>0001</td><td>Matrícula e inscrição</td><td>0012</td><td>Origem do tráfego</td></tr>
+    <tr><td>0002</td><td>Estrutura de ensino e correção de avaliação</td><td>0013</td><td>Contagem anônima de visitas</td></tr>
+    <tr><td>0003</td><td><strong>Correção de exposição de dados pessoais</strong></td><td>0014</td><td>Funil dos relatórios</td></tr>
+    <tr><td>0004</td><td>Métricas do painel</td><td>0015</td><td>Fórum de dúvidas</td></tr>
+    <tr><td>0005</td><td>Disciplinas</td><td>0016</td><td>Perfis de aluno</td></tr>
+    <tr><td>0006</td><td>Dados de demonstração</td><td>0017</td><td>Edição no fórum</td></tr>
+    <tr><td>0007</td><td>Correção das alternativas públicas</td><td>0018</td><td>Capa dos módulos</td></tr>
+    <tr><td>0008</td><td>Base de conhecimento e busca da IA</td><td>0019</td><td>Agendamento de publicação</td></tr>
+    <tr><td>0009</td><td>Arquivos da base de conhecimento</td><td>0020</td><td>Registro de envios de e-mail</td></tr>
+    <tr><td>0010</td><td>Busca geral da IA</td><td>0021</td><td>Trilha de auditoria</td></tr>
+    <tr><td>0011</td><td>Vídeo das aulas</td><td>0022</td><td>Feedback de disciplina</td></tr>
+  </table>
+
+  <h3>Anexo D — Taxonomia da trilha de auditoria</h3>
+  <p>Tipos de evento registrados e volume acumulado na data-base:</p>
+  <table class="d">
+    <tr><th style="width:26%">Ação</th><th style="width:10%">Volume</th><th>Significado</th></tr>
+    <tr><td><span class="cod">inscricao.criada</span></td><td>97</td><td>Nova inscrição pela landing</td></tr>
+    <tr><td><span class="cod">sessao.login</span></td><td>86</td><td>Entrada na plataforma</td></tr>
+    <tr><td><span class="cod">sessao.logout</span></td><td>11</td><td>Saída da plataforma</td></tr>
+    <tr><td><span class="cod">conta.ativada</span></td><td>64</td><td>Primeiro acesso concluído</td></tr>
+    <tr><td><span class="cod">aula.assistida</span></td><td>75</td><td>Aula marcada como concluída</td></tr>
+    <tr><td><span class="cod">quiz.tentativa</span></td><td>21</td><td>Avaliação respondida</td></tr>
+    <tr><td><span class="cod">disciplina.avaliada</span></td><td>13</td><td>Feedback de disciplina enviado</td></tr>
+    <tr><td><span class="cod">forum.post_criado</span></td><td>1</td><td>Publicação no fórum</td></tr>
+    <tr><td><span class="cod">contato.whatsapp</span></td><td>62</td><td>Equipe acionou contato com aluno</td></tr>
+    <tr><td><span class="cod">conteudo.modulo_salvo</span></td><td>5</td><td>Módulo criado ou alterado</td></tr>
+    <tr><td><span class="cod">conteudo.modulos_reordenados</span></td><td>10</td><td>Ordem dos módulos alterada</td></tr>
+    <tr><td><span class="cod">equipe.monitor_criado</span></td><td>1</td><td>Membro da equipe cadastrado</td></tr>
+    <tr><td><span class="cod">equipe.permissoes_alteradas</span></td><td>7</td><td>Permissões concedidas ou revogadas</td></tr>
+  </table>
+  <p>
+    A taxonomia prevê ainda eventos de moderação, edição no fórum e resposta,
+    ainda sem ocorrência registrada na data-base.
+  </p>
+
+  <h3>Anexo E — Glossário técnico</h3>
+  <table class="d">
+    <tr><th style="width:30%">Termo</th><th>Significado neste documento</th></tr>
+    <tr><td>RLS (segurança em nível de linha)</td><td>Recurso do Postgres que filtra, dentro do próprio banco, quais linhas cada usuário pode ler ou gravar.</td></tr>
+    <tr><td>Modo <em>definer</em> / <em>invoker</em></td><td>Função de banco que executa com os privilégios de quem a criou ou de quem a chama, respectivamente.</td></tr>
+    <tr><td>Chave de serviço</td><td>Credencial que ignora as políticas de acesso do banco. Uso exclusivo de servidor.</td></tr>
+    <tr><td>Server Action</td><td>Função que roda no servidor, acionada por um formulário, sem exposição de endpoint público.</td></tr>
+    <tr><td>URL assinada</td><td>Endereço temporário que autoriza acesso a um arquivo privado por tempo limitado.</td></tr>
+    <tr><td>Comparação em tempo constante</td><td>Verificação de segredo cujo tempo de resposta não depende de quantos caracteres coincidem, impedindo descoberta por medição.</td></tr>
+    <tr><td>Idempotente</td><td>Operação que pode ser repetida sem gerar efeito duplicado — caso do disparo de convites e das migrações.</td></tr>
+    <tr><td>Trecho indexado (<em>chunk</em>)</td><td>Fragmento do material da disciplina, com índice de busca, usado para embasar as respostas do assistente.</td></tr>
+    <tr><td>Fail-safe (à prova de falha)</td><td>Desenho em que a falha leva ao estado mais seguro — aqui, manter a publicação pendente e não interromper o usuário.</td></tr>
+  </table>
+
+  <div class="nota" style="margin-top:10mm">
+    <span class="rot">Encerramento</span>
+    <p>
+      Este documento reflete o estado do sistema em 4 de agosto de 2026. Cada
+      afirmação técnica corresponde a código, configuração ou dado verificável no
+      ambiente descrito. Alterações relevantes na arquitetura, no modelo de dados
+      ou nos controles de segurança devem gerar nova versão deste documento.
+    </p>
+  </div>
+</section>
+
+</body>
+</html>

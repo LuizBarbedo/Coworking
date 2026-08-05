@@ -1,0 +1,1642 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Guia de Operação — Plataforma CSMG</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 15mm 20mm 15mm;
+  }
+
+  :root {
+    --verde-900: #0c302d;
+    --verde-700: #135049;
+    --verde-600: #17605b;
+    --verde-50: #f0f7f5;
+    --laranja: #c2410c;
+    --laranja-fraco: #fdf1ea;
+    --ambar-700: #935b0f;
+    --ambar-50: #fdf6e8;
+    --cinza-500: #64748b;
+    --cinza-300: #cbd5e1;
+    --cinza-100: #eef2f1;
+    --texto: #1e2b29;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Liberation Sans", Arial, Helvetica, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    color: var(--texto);
+    margin: 0;
+  }
+
+  h1, h2, h3, h4 { color: var(--verde-900); line-height: 1.2; }
+
+  p { margin: 0 0 9px; }
+
+  a { color: var(--verde-600); }
+
+  /* ---------------------------------------------------------------- capa */
+  .capa {
+    height: 245mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    page-break-after: always;
+  }
+  .capa img { width: 34mm; margin: 0 auto 10mm; }
+  .capa .selo {
+    display: inline-block;
+    background: var(--verde-50);
+    color: var(--verde-700);
+    border: 1px solid #cfe2de;
+    border-radius: 999px;
+    padding: 3px 14px;
+    font-size: 9.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 8mm;
+  }
+  .capa h1 {
+    font-size: 30pt;
+    margin: 0 0 4mm;
+    letter-spacing: -0.5px;
+  }
+  .capa .sub {
+    font-size: 13pt;
+    color: var(--verde-700);
+    margin-bottom: 14mm;
+  }
+  .capa .rodape-capa {
+    font-size: 9.5pt;
+    color: var(--cinza-500);
+    border-top: 1px solid var(--cinza-300);
+    padding-top: 5mm;
+    width: 70%;
+    margin: 0 auto;
+  }
+
+  /* -------------------------------------------------------------- partes */
+  .parte { page-break-before: always; }
+
+  .parte > h2 {
+    font-size: 19pt;
+    border-bottom: 3px solid var(--verde-600);
+    padding-bottom: 4px;
+    margin: 0 0 3mm;
+  }
+  .parte .chapeu {
+    color: var(--cinza-500);
+    font-size: 10pt;
+    margin-bottom: 7mm;
+  }
+
+  h3 {
+    font-size: 13pt;
+    margin: 9mm 0 2mm;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 11pt;
+    margin: 6mm 0 2mm;
+    page-break-after: avoid;
+  }
+
+  /* --------------------------------------------------------------- telas */
+  figure.tela {
+    margin: 4mm 0 3mm;
+    page-break-inside: avoid;
+  }
+  figure.tela img {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 165mm;
+    width: auto;
+    height: auto;
+    border: 1px solid var(--cinza-300);
+    border-radius: 5px;
+  }
+  figure.tela figcaption {
+    font-size: 8.5pt;
+    color: var(--cinza-500);
+    text-align: center;
+    margin-top: 2mm;
+  }
+
+  /* legenda numerada, casando com as bolinhas do print */
+  ol.legenda {
+    list-style: none;
+    margin: 3mm 0 0;
+    padding: 0;
+    counter-reset: marca;
+  }
+  ol.legenda li {
+    counter-increment: marca;
+    position: relative;
+    padding-left: 9mm;
+    margin-bottom: 2.5mm;
+    page-break-inside: avoid;
+  }
+  ol.legenda li::before {
+    content: counter(marca);
+    position: absolute;
+    left: 0;
+    top: 0.2mm;
+    width: 6mm;
+    height: 6mm;
+    border-radius: 50%;
+    background: var(--laranja);
+    color: #fff;
+    font-weight: bold;
+    font-size: 9pt;
+    text-align: center;
+    line-height: 6mm;
+  }
+
+  /* --------------------------------------------------------------- listas */
+  ol.passos {
+    margin: 2mm 0 3mm;
+    padding-left: 6mm;
+  }
+  ol.passos > li { margin-bottom: 2mm; }
+
+  ul.marcadores {
+    margin: 2mm 0 3mm;
+    padding-left: 6mm;
+  }
+  ul.marcadores > li { margin-bottom: 1.5mm; }
+
+  /* --------------------------------------------------------------- caixas */
+  .caixa {
+    border-left: 4px solid var(--verde-600);
+    background: var(--verde-50);
+    padding: 4mm 5mm;
+    margin: 4mm 0;
+    border-radius: 0 5px 5px 0;
+    page-break-inside: avoid;
+  }
+  .caixa.atencao {
+    border-left-color: var(--ambar-700);
+    background: var(--ambar-50);
+  }
+  .caixa.cuidado {
+    border-left-color: #b91c1c;
+    background: #fdf0ef;
+  }
+  .caixa p:last-child { margin-bottom: 0; }
+  .caixa .rotulo {
+    display: block;
+    font-weight: bold;
+    font-size: 9pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 1.5mm;
+    color: var(--verde-700);
+  }
+  .caixa.atencao .rotulo { color: var(--ambar-700); }
+  .caixa.cuidado .rotulo { color: #b91c1c; }
+
+  /* -------------------------------------------------------------- tabelas */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 3mm 0 4mm;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid var(--cinza-300);
+    padding: 2mm 3mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--cinza-100);
+    color: var(--verde-900);
+  }
+
+  /* -------------------------------------------------------------- sumário */
+  .sumario ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: cap;
+  }
+  .sumario li {
+    counter-increment: cap;
+    border-bottom: 1px dotted var(--cinza-300);
+    padding: 2.2mm 0;
+  }
+  .sumario li::before {
+    content: "Parte " counter(cap) " — ";
+    color: var(--verde-600);
+    font-weight: bold;
+  }
+  .sumario li span {
+    display: block;
+    color: var(--cinza-500);
+    font-size: 9pt;
+    padding-left: 0;
+  }
+
+  code, .tecla {
+    background: var(--cinza-100);
+    border: 1px solid var(--cinza-300);
+    border-radius: 3px;
+    padding: 0 4px;
+    font-family: "Liberation Mono", monospace;
+    font-size: 9pt;
+  }
+
+  .termo { font-weight: bold; color: var(--verde-700); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ CAPA ═══ -->
+<section class="capa">
+  <img src="logo-roda.svg" alt="A Roda — símbolo do CSMG">
+  <span class="selo">Manual de treinamento da equipe</span>
+  <h1>Guia de Operação da Plataforma</h1>
+  <p class="sub">Coworking Social de Mudanças Globais<br>Ambiente Virtual de Aprendizagem</p>
+  <p class="rodape-capa">
+    Passo a passo, com as telas reais do sistema, de tudo que a equipe precisa
+    saber para operar a plataforma no dia a dia.<br>
+    Documento de uso interno · Agosto de 2026
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════ COMO USAR / SUMÁRIO ═══ -->
+<section class="parte">
+  <h2>Como usar este guia</h2>
+  <p class="chapeu">Leia esta página antes de começar. São dois minutos.</p>
+
+  <p>
+    Este guia foi escrito para quem vai <strong>operar</strong> a plataforma —
+    monitores, coordenação e apoio administrativo. Não é preciso entender nada
+    de tecnologia: tudo aqui é feito clicando em botões dentro do navegador,
+    como em qualquer site.
+  </p>
+
+  <h3>O que você encontra em cada trecho</h3>
+  <ul class="marcadores">
+    <li>
+      <strong>A foto da tela.</strong> Cada assunto começa com uma imagem real do
+      sistema, com <strong>bolinhas laranja numeradas</strong> nos pontos
+      importantes.
+    </li>
+    <li>
+      <strong>A legenda.</strong> Logo abaixo da imagem, uma lista com os mesmos
+      números explicando o que é cada ponto.
+    </li>
+    <li>
+      <strong>O passo a passo.</strong> A sequência exata de cliques para
+      realizar a tarefa.
+    </li>
+  </ul>
+
+  <div class="caixa">
+    <span class="rotulo">Os três tipos de aviso</span>
+    <p>
+      <strong>Caixa verde</strong> — dica ou explicação que ajuda a entender melhor.
+      <br>
+      <strong>Caixa amarela</strong> — atenção: algo que costuma gerar dúvida ou erro.
+      <br>
+      <strong>Caixa vermelha</strong> — cuidado: ação que apaga informação e não
+      tem como desfazer.
+    </p>
+  </div>
+
+  <div class="caixa atencao">
+    <span class="rotulo">Sobre os nomes e e-mails das imagens</span>
+    <p>
+      Todos os nomes, e-mails, telefones, CPFs e matrículas que aparecem nas
+      fotos deste guia são <strong>fictícios</strong>, trocados na hora de tirar
+      a foto justamente para proteger os dados dos alunos. Na plataforma de
+      verdade você verá os dados reais das pessoas. Trate essa informação com
+      cuidado: ela é confidencial e protegida por lei.
+    </p>
+  </div>
+
+  <h3 style="margin-top:10mm">Sumário</h3>
+  <div class="sumario">
+    <ol>
+      <li>Entendendo a plataforma
+        <span>Os dois ambientes, os papéis da equipe e o vocabulário do sistema</span></li>
+      <li>Entrar e se localizar
+        <span>Login, primeiro acesso e o cabeçalho que acompanha você em toda tela</span></li>
+      <li>Conteúdo: módulos
+        <span>Criar, editar, ordenar, publicar e agendar módulos</span></li>
+      <li>Conteúdo: disciplinas, aulas, materiais e avaliação
+        <span>O coração da operação — onde o curso é montado</span></li>
+      <li>Alunos
+        <span>Buscar, acompanhar, cadastrar e falar com cada aluno</span></li>
+      <li>E-mails de acesso
+        <span>Liberar inscrições e disparar os convites em massa</span></li>
+      <li>Fórum de dúvidas e moderação
+        <span>Aprovar ou recusar o que os alunos publicam</span></li>
+      <li>Relatórios
+        <span>Como está a inscrição e como está a turma</span></li>
+      <li>Equipe e permissões
+        <span>Quem pode fazer o quê dentro da plataforma</span></li>
+      <li>Eventos: o histórico da plataforma
+        <span>Quem fez o quê e quando</span></li>
+      <li>A plataforma pelos olhos do aluno
+        <span>Para dar suporte, é preciso conhecer o que o aluno vê</span></li>
+      <li>Painel de inscrições
+        <span>A tela de acompanhamento que abre só com senha</span></li>
+      <li>Rotinas do dia a dia
+        <span>Checklists prontos: o que fazer todo dia e toda semana</span></li>
+      <li>Problemas comuns e como resolver
+        <span>As situações que mais aparecem no suporte</span></li>
+      <li>Glossário
+        <span>As palavras do sistema em português claro</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 1 ═══ -->
+<section class="parte">
+  <h2>Parte 1 — Entendendo a plataforma</h2>
+  <p class="chapeu">O mapa geral antes de qualquer clique.</p>
+
+  <h3>O que é a plataforma</h3>
+  <p>
+    A plataforma é o <span class="termo">Ambiente Virtual de Aprendizagem (AVA)</span>
+    do Coworking Social de Mudanças Globais: o site onde o aluno assiste às
+    aulas, baixa os materiais, faz as avaliações, tira dúvidas e conversa no
+    fórum. Ela fica no endereço:
+  </p>
+  <p style="text-align:center;font-size:13pt;margin:5mm 0">
+    <strong>app.coworkingsocial.com.br</strong>
+  </p>
+  <p>
+    Esse é o endereço que você passa para os alunos. Ele funciona no computador,
+    no tablet e no celular, em qualquer navegador (Chrome, Safari, Edge,
+    Firefox). Não existe aplicativo para instalar.
+  </p>
+
+  <h3>Os dois ambientes</h3>
+  <p>
+    A mesma conta e o mesmo endereço dão acesso a dois ambientes diferentes,
+    dependendo de quem entra:
+  </p>
+
+  <table>
+    <tr>
+      <th style="width:32%">Ambiente</th>
+      <th>Quem entra e para quê</th>
+    </tr>
+    <tr>
+      <td><strong>Área do aluno</strong><br><span style="color:var(--cinza-500)">"Meus módulos"</span></td>
+      <td>
+        O aluno inscrito e selecionado. Assiste às aulas, marca o que já
+        concluiu, baixa materiais, faz a avaliação de cada disciplina e usa o
+        fórum e o assistente de dúvidas.
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Área do Master</strong><br><span style="color:var(--cinza-500)">a área da equipe</span></td>
+      <td>
+        Você. É onde o curso é montado, os alunos são acompanhados, os convites
+        são enviados, o fórum é moderado e os relatórios são consultados.
+      </td>
+    </tr>
+  </table>
+
+  <div class="caixa">
+    <span class="rotulo">Uma pessoa pode ver os dois</span>
+    <p>
+      Quem é da equipe consegue alternar entre os dois ambientes a qualquer
+      momento, pelos botões <strong>"Ver como aluno"</strong> e
+      <strong>"Área do Master"</strong> no alto da tela. Isso é muito útil no
+      suporte: dá para conferir na hora exatamente o que o aluno está vendo.
+    </p>
+  </div>
+
+  <h3>Os dois níveis da equipe</h3>
+  <p>
+    Nem todo mundo da equipe enxerga as mesmas telas. Existem dois níveis:
+  </p>
+
+  <table>
+    <tr>
+      <th style="width:26%">Nível</th>
+      <th>O que alcança</th>
+    </tr>
+    <tr>
+      <td><strong>Administrador</strong></td>
+      <td>
+        Tudo, sem exceção: conteúdo, alunos, e-mails, fórum, relatórios,
+        histórico de eventos e o cadastro da própria equipe.
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Monitor</strong></td>
+      <td>
+        Só o que um administrador liberar, uma permissão de cada vez. Um monitor
+        pode, por exemplo, moderar o fórum e ver relatórios, sem poder mexer no
+        conteúdo do curso nem enviar e-mails.
+      </td>
+    </tr>
+  </table>
+
+  <p>São cinco permissões que podem ser dadas a um monitor:</p>
+  <table>
+    <tr><th style="width:38%">Permissão</th><th>Libera</th></tr>
+    <tr><td>Visão de aluno</td><td>Navegar pelo ambiente do aluno, com o botão "Ver como aluno".</td></tr>
+    <tr><td>Moderação do fórum</td><td>A aba "Fórum de dúvidas": aprovar e recusar publicações.</td></tr>
+    <tr><td>Edição de conteúdo</td><td>A aba "Conteúdo": módulos, disciplinas, aulas, materiais e avaliações.</td></tr>
+    <tr><td>Ver relatórios</td><td>A aba "Relatórios": números de inscrição e desempenho da turma.</td></tr>
+    <tr><td>E-mails e convites de acesso</td><td>As abas "Alunos" e "E-mails".</td></tr>
+  </table>
+
+  <div class="caixa atencao">
+    <span class="rotulo">Se uma aba não aparece para você</span>
+    <p>
+      Não é defeito: é permissão. A plataforma esconde as abas que o seu nível
+      não alcança. Peça a um administrador para liberar a permissão que falta
+      (Parte 9 mostra como se faz).
+    </p>
+  </div>
+
+  <h3>O vocabulário do sistema</h3>
+  <p>
+    O curso é organizado em quatro níveis, um dentro do outro. Guardar essa
+    hierarquia resolve metade das dúvidas:
+  </p>
+  <table>
+    <tr><th style="width:26%">Nome</th><th>O que é</th></tr>
+    <tr>
+      <td><strong>Módulo</strong></td>
+      <td>O bloco maior do curso, com capa e instrutor. É o que o aluno vê como
+      "card" na tela inicial. Ex.: "Técnicas de Compra e Venda".</td>
+    </tr>
+    <tr>
+      <td><strong>Disciplina</strong></td>
+      <td>A divisão dentro do módulo. Um módulo pode ter uma ou várias. É a
+      disciplina que reúne as aulas, os materiais e a avaliação.</td>
+    </tr>
+    <tr>
+      <td><strong>Aula</strong></td>
+      <td>Um vídeo, com título e descrição. Fica dentro de uma disciplina.</td>
+    </tr>
+    <tr>
+      <td><strong>Material</strong></td>
+      <td>Um arquivo ou link de apoio (PDF, planilha, site) da disciplina.</td>
+    </tr>
+    <tr>
+      <td><strong>Avaliação final</strong></td>
+      <td>O questionário de múltipla escolha da disciplina, com nota mínima para
+      aprovação.</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 2 ═══ -->
+<section class="parte">
+  <h2>Parte 2 — Entrar e se localizar</h2>
+  <p class="chapeu">Login, primeiro acesso e o cabeçalho que acompanha você.</p>
+
+  <h3>2.1 A tela de entrada</h3>
+  <p>
+    Digite <strong>app.coworkingsocial.com.br</strong> na barra de endereço do
+    navegador. Quem ainda não entrou cai direto nesta tela:
+  </p>
+
+  <figure class="tela">
+    <img src="prints/01-login.jpg" alt="Tela de login da plataforma">
+    <figcaption>Tela de entrada — app.coworkingsocial.com.br</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>E-mail</strong> — o mesmo e-mail que a pessoa usou na inscrição
+      (ou o e-mail para o qual o convite da equipe foi enviado).</li>
+    <li><strong>Senha</strong> — a senha criada por ela no primeiro acesso. A
+      equipe <em>nunca</em> tem acesso à senha de ninguém.</li>
+    <li><strong>Entrar</strong> — confirma e abre a plataforma.</li>
+    <li><strong>Ative sua conta</strong> — para quem ainda não tem senha. Leva à
+      tela do item 2.2.</li>
+  </ol>
+
+  <div class="caixa">
+    <span class="rotulo">Dica de suporte</span>
+    <p>
+      "Não consigo entrar" quase sempre é uma destas três coisas: a pessoa ainda
+      não ativou a conta, digitou um e-mail diferente do da inscrição, ou errou a
+      senha. A Parte 14 traz o roteiro completo para cada caso.
+    </p>
+  </div>
+
+  <h3>2.2 Primeiro acesso: criar a senha</h3>
+  <p>
+    Quem foi selecionado recebe por e-mail um convite com a
+    <span class="termo">matrícula</span> — um número que identifica a inscrição.
+    Com esse número em mãos, a pessoa cria a própria senha aqui:
+  </p>
+
+  <figure class="tela">
+    <img src="prints/02-primeiro-acesso.jpg" alt="Tela de ativação de conta">
+    <figcaption>Ativar meu acesso — a tela do primeiro acesso do aluno</figcaption>
+  </figure>
+
+  <p>São quatro campos, nesta ordem:</p>
+  <ol class="passos">
+    <li><strong>Matrícula</strong> — o número que veio no e-mail de convite
+      (algo como 2026000123).</li>
+    <li><strong>E-mail</strong> — precisa ser exatamente o mesmo e-mail da
+      inscrição.</li>
+    <li><strong>Senha</strong> — a pessoa escolhe. Vale qualquer senha, mas
+      oriente a usar uma que ela lembre.</li>
+    <li><strong>Confirmar senha</strong> — repetir a mesma senha.</li>
+  </ol>
+  <p>
+    Ao concluir, a conta fica ativa e a plataforma abre já no painel do aluno.
+    Depois disso ela entra sempre pela tela de login normal.
+  </p>
+
+  <div class="caixa atencao">
+    <span class="rotulo">Onde achar a matrícula de um aluno</span>
+    <p>
+      Você não precisa esperar o aluno achar o e-mail. Abra a aba
+      <strong>Alunos</strong>, busque pelo nome e a matrícula aparece embaixo do
+      e-mail dele, na própria lista (veja a Parte 5).
+    </p>
+  </div>
+
+  <h3>2.3 O cabeçalho: seu ponto de referência</h3>
+  <p>
+    Depois de entrar, essa faixa verde-escura fica no alto de todas as telas da
+    área da equipe. Se você se perder em algum momento, é para cá que se volta.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/03-cabecalho.jpg" alt="Cabeçalho da Área do Master com as abas">
+    <figcaption>O cabeçalho e as abas da Área do Master</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>CSMG / Área do Master</strong> — clicando aqui você volta para a
+      tela inicial da equipe (a aba Conteúdo), de onde estiver.</li>
+    <li><strong>As abas</strong> — o menu principal do sistema. Cada aba é uma
+      Parte deste guia: Conteúdo, Relatórios, Fórum de dúvidas, Alunos, Equipe,
+      E-mails e Eventos. Você só enxerga as abas que sua permissão libera.</li>
+    <li><strong>Ver como aluno</strong> — troca para o ambiente do aluno. Para
+      voltar, use o botão "Área do Master", que aparece no mesmo lugar.</li>
+    <li><strong>Ajuda (?)</strong> — inicia o tour guiado, uma apresentação
+      narrada que percorre as telas explicando cada uma. Excelente no
+      treinamento de alguém novo.</li>
+    <li><strong>Som</strong> — liga e desliga os efeitos sonoros de conclusão.
+      Vem desligado.</li>
+    <li><strong>Tema</strong> — alterna entre o modo claro e o modo escuro da
+      tela. É só preferência visual; não muda nada no funcionamento.</li>
+    <li><strong>Sair</strong> — encerra a sessão. Use sempre que estiver em um
+      computador compartilhado.</li>
+  </ol>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 3 ═══ -->
+<section class="parte">
+  <h2>Parte 3 — Conteúdo: módulos</h2>
+  <p class="chapeu">Aba <strong>Conteúdo</strong> · permissão "Edição de conteúdo".</p>
+
+  <p>
+    Esta é a tela inicial da equipe. Ela lista todos os módulos do curso, na
+    mesma ordem em que o aluno os vê, e traz à direita o formulário para criar
+    um módulo novo.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/04-conteudo.jpg" alt="Tela Gerenciar conteúdo com a lista de módulos">
+    <figcaption>Aba Conteúdo — a lista de módulos do curso</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Um módulo da lista.</strong> Clique em qualquer ponto do retângulo
+      para abrir o módulo e trabalhar dentro dele. O selo à direita diz se ele
+      está <strong>Publicado</strong> (o aluno vê) ou em <strong>Rascunho</strong>
+      (só a equipe vê).</li>
+    <li><strong>Setas de ordem.</strong> Sobem e descem o módulo na lista. Você
+      também pode arrastar pelo punhado de pontinhos à esquerda. A ordem daqui é
+      exatamente a ordem que o aluno enxerga.</li>
+    <li><strong>Título do novo módulo.</strong> Único campo obrigatório para
+      criar.</li>
+    <li><strong>Disponibilizar em.</strong> Data e hora (horário de Brasília) em
+      que o módulo deve aparecer sozinho para a turma. Até lá o aluno vê apenas
+      um card "Em breve". Deixe em branco se não quiser agendar.</li>
+    <li><strong>Criar módulo.</strong> Cria o módulo — sempre como rascunho, sem
+      aparecer para ninguém até você publicar.</li>
+  </ol>
+
+  <h3>Como criar um módulo</h3>
+  <ol class="passos">
+    <li>Na aba <strong>Conteúdo</strong>, preencha o <strong>Título</strong> no
+      quadro "Novo módulo", à direita.</li>
+    <li>Preencha <strong>Instrutor</strong> e <strong>Descrição</strong> se já
+      souber; os dois são opcionais e podem ser preenchidos depois.</li>
+    <li>Clique em <strong>Criar módulo</strong>. Ele aparece no fim da lista,
+      como rascunho.</li>
+    <li>Clique no módulo recém-criado para entrar nele e montar o conteúdo
+      (próxima página).</li>
+  </ol>
+
+  <h3>Dentro de um módulo</h3>
+  <p>
+    Clicando em um módulo você chega a esta tela. À esquerda ficam as disciplinas
+    dele; à direita, os dados do próprio módulo.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/05-modulo.jpg" alt="Tela de edição de um módulo">
+    <figcaption>Dentro do módulo "Técnicas de Compra e Venda"</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Disciplina do módulo.</strong> Clique para abrir e montar aulas,
+      materiais e avaliação (Parte 4). Se houver mais de uma, use as setas à
+      direita para ordenar.</li>
+    <li><strong>Título e instrutor.</strong> O nome do instrutor aparece para o
+      aluno logo abaixo do título do módulo.</li>
+    <li><strong>Capa do módulo.</strong> A imagem que ilustra o card do aluno.
+      Clique em "Escolher arquivo", selecione uma imagem JPG, PNG ou WebP de até
+      5 MB e depois clique em Salvar.</li>
+    <li><strong>Disponibilizar em.</strong> O agendamento. Preencha para o módulo
+      abrir sozinho na data e hora marcadas; apague o conteúdo do campo para
+      cancelar o agendamento.</li>
+    <li><strong>Publicado.</strong> A chave que liga o módulo para a turma.
+      Marcado, o aluno vê; desmarcado, só a equipe.</li>
+    <li><strong>Salvar.</strong> Nada do que você digitou vale antes de clicar
+      aqui.</li>
+  </ol>
+
+  <div class="caixa">
+    <span class="rotulo">Publicar agora ou agendar?</span>
+    <p>
+      As duas coisas fazem a mesma coisa em momentos diferentes. Marcar
+      <strong>Publicado</strong> libera na hora. Preencher
+      <strong>Disponibilizar em</strong> deixa a plataforma publicar sozinha na
+      data marcada — útil para abrir um módulo às 8h de uma segunda-feira sem
+      ninguém precisar estar na frente do computador.
+    </p>
+  </div>
+
+  <div class="caixa cuidado">
+    <span class="rotulo">Cuidado — Excluir módulo</span>
+    <p>
+      O botão vermelho <strong>Excluir módulo</strong>, no fim da coluna da
+      direita, apaga o módulo com <strong>todas as disciplinas, aulas, materiais
+      e avaliações dentro dele</strong>. Não há como desfazer. Se a intenção é
+      apenas tirar o módulo do ar temporariamente,
+      <strong>desmarque "Publicado" e salve</strong> — nada se perde.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 4 ═══ -->
+<section class="parte">
+  <h2>Parte 4 — Disciplinas, aulas, materiais e avaliação</h2>
+  <p class="chapeu">Aba <strong>Conteúdo</strong> · a tela onde o curso é realmente montado.</p>
+
+  <p>
+    Ao abrir uma disciplina você encontra cinco blocos, um embaixo do outro, na
+    mesma ordem em que aparecem aqui: dados da disciplina, aulas, materiais, base
+    de conhecimento da IA e avaliação final. Vamos por partes.
+  </p>
+
+  <h3>4.1 Dados da disciplina</h3>
+  <figure class="tela">
+    <img src="prints/06-disciplina-dados.jpg" alt="Bloco de dados da disciplina">
+    <figcaption>O primeiro bloco da tela da disciplina</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Título</strong> — o nome que o aluno vê.</li>
+    <li><strong>Descrição</strong> — um resumo curto do que a disciplina trata.</li>
+    <li><strong>Publicada</strong> — mesma lógica do módulo: marcada, a
+      disciplina aparece para a turma. Depois de mexer, clique em
+      <strong>Salvar</strong>.</li>
+  </ol>
+
+  <div class="caixa atencao">
+    <span class="rotulo">Publicado do módulo × publicada da disciplina</span>
+    <p>
+      Para o aluno ver o conteúdo, <strong>os dois</strong> precisam estar
+      ligados: o módulo publicado e a disciplina publicada. Se o aluno diz que
+      "não está aparecendo", confira sempre os dois.
+    </p>
+  </div>
+
+  <h3>4.2 Aulas</h3>
+  <p>
+    O bloco de aulas lista o que já existe, na ordem em que o aluno assiste, e
+    traz no fim o botão <strong>+ Adicionar aula</strong> — que abre o formulário
+    mostrado aqui:
+  </p>
+
+  <figure class="tela">
+    <img src="prints/07-aulas.jpg" alt="Bloco de aulas com o formulário de adicionar aula aberto">
+    <figcaption>Bloco "Aulas (vídeo)" com o formulário de nova aula aberto</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Uma aula já cadastrada.</strong> À direita de cada linha ficam
+      <strong>Editar</strong> (abre o formulário daquela aula) e
+      <strong>Excluir</strong>. A palavra cinza depois do título diz de onde vem
+      o vídeo: "youtube", "vídeo próprio" ou "sem vídeo".</li>
+    <li><strong>Título da aula.</strong> Obrigatório. É o que o aluno lê na
+      lista.</li>
+    <li><strong>Link do vídeo.</strong> Cole aqui o endereço do YouTube. Deixe em
+      branco se for enviar um arquivo de vídeo.</li>
+  </ol>
+
+  <h4>Como adicionar uma aula com vídeo do YouTube</h4>
+  <ol class="passos">
+    <li>Clique em <strong>+ Adicionar aula</strong>.</li>
+    <li>Escreva o <strong>Título da aula</strong>.</li>
+    <li>No YouTube, copie o endereço do vídeo da barra do navegador e cole no
+      campo <strong>Link do vídeo</strong>.</li>
+    <li>Escreva a <strong>Descrição</strong> — é o resuminho que aparece embaixo
+      do título para o aluno. Opcional, mas ajuda muito.</li>
+    <li>Clique em <strong>Adicionar aula</strong>. Ela entra no fim da lista.</li>
+  </ol>
+
+  <h4>Como adicionar uma aula com arquivo de vídeo</h4>
+  <p>
+    Quando o vídeo não está no YouTube, a plataforma hospeda o arquivo. Nesse
+    caso, no mesmo formulário:
+  </p>
+  <ol class="passos">
+    <li>Escreva o <strong>Título da aula</strong> e deixe o campo de link
+      <strong>vazio</strong>.</li>
+    <li>No quadro pontilhado "ou envie um arquivo de vídeo", clique em
+      <strong>Escolher arquivo</strong> e selecione o vídeo no computador
+      (MP4, MOV, WEBM ou MKV).</li>
+    <li>Clique em <strong>Adicionar aula</strong> e
+      <strong>espere a barra de envio chegar ao fim</strong>, sem fechar a aba do
+      navegador.</li>
+    <li>A aula fica marcada como "processando". A plataforma converte o vídeo
+      sozinha e ele aparece para os alunos quando terminar — pode levar alguns
+      minutos, dependendo do tamanho.</li>
+  </ol>
+
+  <div class="caixa atencao">
+    <span class="rotulo">Um vídeo por aula</span>
+    <p>
+      Cada aula tem uma única fonte de vídeo: <strong>ou</strong> um link,
+      <strong>ou</strong> um arquivo enviado. Se preencher os dois, o link é o
+      que vale. Para trocar um vídeo depois, clique em "Editar" na aula e faça a
+      alteração ali.
+    </p>
+  </div>
+
+  <h4>Editar uma aula que já existe</h4>
+  <figure class="tela">
+    <img src="prints/08-aula-editar.jpg" alt="Formulário de edição de uma aula">
+    <figcaption>O que abre ao clicar em "Editar" numa aula</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Título</strong> da aula.</li>
+    <li><strong>Link do vídeo</strong> — troque aqui para apontar para outro
+      vídeo do YouTube.</li>
+    <li><strong>Descrição</strong> da aula.</li>
+    <li><strong>Enviar arquivo de vídeo</strong> — a alternativa ao link, para
+      hospedar o vídeo na própria plataforma.</li>
+  </ol>
+  <p>Depois de alterar, clique em <strong>Salvar aula</strong>.</p>
+
+  <h3>4.3 Materiais</h3>
+  <p>
+    Materiais são os apoios da disciplina: apostila em PDF, planilha modelo, um
+    site de referência. Aparecem para o aluno numa aba própria dentro da
+    disciplina.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/09-materiais.jpg" alt="Bloco de materiais com o formulário aberto">
+    <figcaption>Bloco "Materiais" com o formulário de novo material aberto</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Título</strong> — o nome que o aluno vê e clica.</li>
+    <li><strong>Tipo</strong> — uma palavrinha que descreve o formato ("pdf",
+      "planilha", "link"). Já vem preenchido com "pdf".</li>
+    <li><strong>URL</strong> — o endereço do arquivo ou da página. Precisa ser um
+      endereço que abra sozinho no navegador.</li>
+  </ol>
+
+  <div class="caixa">
+    <span class="rotulo">De onde tirar a URL de um PDF</span>
+    <p>
+      O material precisa estar publicado em algum lugar da internet (Google
+      Drive com link público, site do projeto etc.). Copie o endereço de
+      compartilhamento e cole no campo URL. Confira sempre clicando no título do
+      material depois de salvar: se abrir para você sem pedir permissão, vai
+      abrir para o aluno também.
+    </p>
+  </div>
+
+  <h3>4.4 Base de conhecimento da IA</h3>
+  <p>
+    A plataforma tem um assistente que responde dúvidas dos alunos. Ele
+    <strong>só sabe o que estiver cadastrado aqui</strong> — não inventa e não
+    busca na internet. Este bloco é o "material de estudo" desse assistente,
+    disciplina por disciplina.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/10-conhecimento-ia.jpg" alt="Bloco base de conhecimento da IA">
+    <figcaption>Bloco "Base de conhecimento da IA" com o formulário aberto</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Título do conteúdo</strong> — como você quer identificar esse
+      material na lista. Se deixar em branco e anexar um arquivo, o nome do
+      arquivo é usado.</li>
+    <li><strong>Anexar arquivo</strong> — aceita PDF, DOCX, XLSX, TXT, MD e CSV,
+      até 20 MB. A plataforma lê o texto de dentro do arquivo automaticamente.</li>
+    <li><strong>Conteúdo em texto</strong> — alternativa ao arquivo: cole aqui o
+      texto direto. Pode usar os dois juntos.</li>
+  </ol>
+
+  <div class="caixa atencao">
+    <span class="rotulo">PDF escaneado não serve</span>
+    <p>
+      Se o PDF for uma foto ou digitalização de páginas, não existe texto para a
+      plataforma ler — o assistente não vai aprender nada com ele. Use um PDF
+      "de verdade" (aquele em que dá para selecionar o texto com o mouse) ou cole
+      o conteúdo no campo de texto.
+    </p>
+  </div>
+
+  <div class="caixa">
+    <span class="rotulo">O que acontece se este bloco ficar vazio</span>
+    <p>
+      Nada quebra. O assistente simplesmente responde ao aluno que não encontrou
+      conteúdo sobre a pergunta naquela disciplina. Os títulos e descrições das
+      aulas e materiais já são lidos automaticamente, então ele sempre sabe pelo
+      menos o "índice" da disciplina.
+    </p>
+  </div>
+
+  <h3>4.5 Avaliação final</h3>
+  <p>
+    Cada disciplina pode ter uma avaliação de múltipla escolha. Ela é corrigida
+    na hora pela plataforma, e a nota mínima define quem passa.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/11-avaliacao.jpg" alt="Bloco de avaliação final">
+    <figcaption>Bloco "Avaliação final" — configuração e perguntas já cadastradas</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Título da avaliação</strong> — já vem como "Avaliação final".</li>
+    <li><strong>Nota mínima (%)</strong> — o percentual de acerto para ser
+      aprovado. O padrão é 70.</li>
+    <li><strong>Uma pergunta cadastrada.</strong> A alternativa correta aparece
+      em verde, com um ✓. Cada pergunta tem "Editar" e "Excluir" à direita.</li>
+  </ol>
+
+  <h4>Como acrescentar uma pergunta</h4>
+  <figure class="tela">
+    <img src="prints/11b-nova-pergunta.jpg" alt="Formulário de nova pergunta da avaliação">
+    <figcaption>O formulário que abre em "+ Adicionar pergunta"</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Enunciado</strong> — a pergunta em si.</li>
+    <li><strong>Alternativas A a E</strong> — escreva as opções. Deixe em branco
+      as que não for usar; o mínimo são duas.</li>
+    <li><strong>A bolinha à esquerda</strong> — marque a alternativa
+      <strong>correta</strong>. É obrigatório marcar uma.</li>
+  </ol>
+  <ol class="passos">
+    <li>Clique em <strong>+ Adicionar pergunta</strong>.</li>
+    <li>Escreva o enunciado.</li>
+    <li>Preencha as alternativas e marque a bolinha da correta.</li>
+    <li>Clique em <strong>Adicionar pergunta</strong>. Ela entra no fim da lista
+      e você já pode cadastrar a próxima.</li>
+  </ol>
+
+  <div class="caixa">
+    <span class="rotulo">O gabarito nunca vaza</span>
+    <p>
+      A resposta certa fica guardada no servidor. O navegador do aluno recebe
+      apenas as alternativas, sem nenhuma marca de qual é a correta — mesmo quem
+      entende de tecnologia não consegue "espiar" o gabarito pela tela.
+    </p>
+  </div>
+
+  <div class="caixa cuidado">
+    <span class="rotulo">Cuidado — mexer em avaliação com a turma andando</span>
+    <p>
+      Trocar o gabarito ou apagar perguntas depois que alunos já fizeram a prova
+      não recalcula as notas antigas. Prefira corrigir enunciados e, quando a
+      mudança for de conteúdo mesmo, avise a coordenação antes.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 5 ═══ -->
+<section class="parte">
+  <h2>Parte 5 — Alunos</h2>
+  <p class="chapeu">Aba <strong>Alunos</strong> · permissão "E-mails e convites de acesso".</p>
+
+  <p>
+    Esta é a tela do atendimento. Aqui está todo mundo que se inscreveu, com o
+    status de cada um, a busca, e as ações de falar com a pessoa.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/12-alunos.jpg" alt="Lista de alunos">
+    <figcaption>Aba Alunos — busca, filtros e a lista de inscrições</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Busca.</strong> Procure por nome, e-mail ou matrícula. Serve
+      pedaço do nome: digitar "mari" já encontra "Mariana". Clique em
+      <strong>Buscar</strong> ou aperte Enter.</li>
+    <li><strong>Filtros de status.</strong> Quatro botões:
+      <em>Todos</em>; <em>Aguardando liberação</em> (inscritos que ainda não foram
+      selecionados); <em>Convite enviado</em> (já receberam o e-mail mas não
+      criaram senha); <em>Ativos</em> (já entraram na plataforma).</li>
+    <li><strong>O nome do aluno.</strong> É um link: clique para abrir a ficha
+      completa dele.</li>
+    <li><strong>As ações da linha.</strong> Aparecem só para quem ainda não
+      ativou a conta: <strong>Chamar no WhatsApp</strong> abre a conversa com uma
+      mensagem já escrita, com o link e a matrícula; <strong>Reenviar
+      convite</strong> dispara o e-mail de novo. Quem já entrou aparece com o
+      selo verde <strong>Ativo</strong>.</li>
+    <li><strong>Novo aluno.</strong> Cadastro manual de uma pessoa, disponível
+      apenas para administradores.</li>
+  </ol>
+
+  <div class="caixa">
+    <span class="rotulo">O rastro do WhatsApp</span>
+    <p>
+      Quando alguém da equipe usa o botão "Chamar no WhatsApp", a plataforma
+      registra e passa a mostrar na linha do aluno algo como
+      "✓ chamado por Ana · 28/07, 14:10". Isso evita que três pessoas liguem para
+      o mesmo aluno no mesmo dia. O botão muda para "Chamar de novo".
+    </p>
+  </div>
+
+  <h3>Cadastrar um aluno na mão</h3>
+  <p>
+    Use quando a pessoa não conseguiu se inscrever pelo site e a coordenação
+    autorizou a entrada.
+  </p>
+  <ol class="passos">
+    <li>Preencha <strong>Nome completo</strong>, <strong>CPF</strong>,
+      <strong>E-mail</strong> e <strong>Telefone</strong>. CPF e telefone se
+      formatam sozinhos enquanto você digita.</li>
+    <li>Confira o e-mail letra por letra — é por ele que o convite sai e é com
+      ele que a pessoa vai entrar.</li>
+    <li>Clique em <strong>Cadastrar e convidar</strong>. A inscrição já nasce
+      liberada e o convite sai na hora.</li>
+    <li>Aparece um link de convite na tela, com um botão
+      <strong>Copiar</strong>. Guarde: se o e-mail não chegar, você manda esse
+      link direto por WhatsApp.</li>
+  </ol>
+
+  <h3>A ficha do aluno</h3>
+  <p>
+    Clicando no nome de um aluno você vê tudo o que a plataforma sabe sobre a
+    trajetória dele. É a tela para responder "esse aluno está indo bem?".
+  </p>
+
+  <figure class="tela">
+    <img src="prints/13-ficha-aluno.jpg" alt="Ficha completa de um aluno">
+    <figcaption>Ficha do aluno — cadastro, convites, desempenho e atividade</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Cadastro.</strong> E-mail, telefone, CPF, matrícula, data da
+      inscrição e data em que a conta foi ativada. Se "Conta ativada em" estiver
+      com um traço, a pessoa ainda não criou a senha.</li>
+    <li><strong>Convites de acesso.</strong> O histórico de e-mails enviados
+      para essa pessoa e o que aconteceu com cada um: <em>enviado</em>,
+      <em>falhou</em> ou <em>devolvido</em> (o e-mail voltou — endereço errado ou
+      caixa cheia).</li>
+    <li><strong>Os cinco números.</strong> Avanço no curso, aulas assistidas,
+      avaliações aprovadas, nota média e participações no fórum.</li>
+    <li><strong>Avanço por disciplina.</strong> Linha a linha: quantas aulas
+      assistiu de quantas, e como foi na avaliação (aprovado ou reprovado, nota e
+      número de tentativas).</li>
+  </ol>
+  <p>
+    Mais abaixo, a seção <strong>Atividade recente</strong> mostra a data do
+    último acesso e as últimas ações da pessoa — quando entrou, que aula
+    concluiu, que avaliação fez.
+  </p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 6 ═══ -->
+<section class="parte">
+  <h2>Parte 6 — E-mails de acesso</h2>
+  <p class="chapeu">Aba <strong>E-mails</strong> · permissão "E-mails e convites de acesso".</p>
+
+  <p>
+    Enquanto a aba Alunos trata de uma pessoa por vez, esta trata da turma
+    inteira: é daqui que saem os convites em massa e é aqui que se confere se os
+    e-mails chegaram.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/14-emails.jpg" alt="Tela de e-mails de acesso">
+    <figcaption>Aba E-mails — contadores, disparo e registro de cada envio</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Os seis contadores.</strong> Da esquerda para a direita:
+      <em>Inscritos</em> (todo mundo que se inscreveu), <em>Liberados</em>
+      (selecionados para a turma), <em>Já ativaram</em> (criaram a senha e
+      entraram), <em>Enviados</em>, <em>Falhas</em> e <em>Devolvidos</em>.</li>
+    <li><strong>Liberar inscrições e enviar convites.</strong> O disparo em
+      massa: libera quem ainda não estava liberado e manda o convite com a
+      matrícula.</li>
+    <li><strong>Conferir devoluções na caixa.</strong> A plataforma lê a caixa de
+      e-mail e marca como "devolvido" os convites que voltaram. Rode depois de
+      cada disparo grande.</li>
+    <li><strong>O registro de envios.</strong> Uma linha por e-mail enviado, com
+      data, endereço, situação e o motivo do erro quando houve.</li>
+  </ol>
+
+  <div class="caixa">
+    <span class="rotulo">Pode clicar sem medo de duplicar</span>
+    <p>
+      O botão de disparo <strong>pula quem já recebeu convite e quem já ativou a
+      conta</strong>. Rodar duas vezes não manda e-mail repetido. Quem falhou ou
+      teve o e-mail devolvido volta a entrar na próxima rodada — então rodar de
+      novo é justamente a forma de tentar outra vez com quem não recebeu.
+    </p>
+  </div>
+
+  <div class="caixa atencao">
+    <span class="rotulo">Convite indo para o spam</span>
+    <p>
+      Os convites saem hoje de um endereço comum de e-mail, e por isso muitos
+      caem na caixa de spam ou de promoções do aluno. Ao falar com alguém que
+      "não recebeu nada", peça sempre para conferir essas pastas antes de
+      reenviar. Se ainda assim não achar, use o
+      <strong>Chamar no WhatsApp</strong> da aba Alunos: a mensagem já vai com o
+      link e a matrícula, e resolve na hora.
+    </p>
+  </div>
+
+  <h3>Como fazer um disparo de convites</h3>
+  <ol class="passos">
+    <li>Antes de tudo, confira na aba <strong>Alunos</strong>, filtro
+      <em>Aguardando liberação</em>, se as pessoas ali são mesmo as que a
+      coordenação selecionou.</li>
+    <li>Na aba <strong>E-mails</strong>, anote o número de "Liberados" antes de
+      começar.</li>
+    <li>Clique em <strong>Liberar inscrições e enviar convites</strong> e aguarde
+      sem fechar a aba.</li>
+    <li>Confira o registro embaixo: as linhas novas devem estar verdes
+      ("enviado"). Vermelhas ("falha") indicam endereço inválido.</li>
+    <li>Alguns minutos depois, clique em <strong>Conferir devoluções na
+      caixa</strong> e trate quem aparecer como devolvido — normalmente é erro de
+      digitação no e-mail.</li>
+  </ol>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 7 ═══ -->
+<section class="parte">
+  <h2>Parte 7 — Fórum de dúvidas e moderação</h2>
+  <p class="chapeu">Aba <strong>Fórum de dúvidas</strong> · permissão "Moderação do fórum".</p>
+
+  <p>
+    O fórum é o espaço onde os alunos publicam dúvidas e enquetes e respondem uns
+    aos outros. Toda publicação passa antes por uma <strong>leitura automática
+    feita por inteligência artificial</strong>. O que a IA considera tranquilo
+    entra no ar direto; o que ela acha estranho — ou que ela não conseguiu
+    avaliar — cai nesta fila, para uma pessoa decidir.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/15-forum-moderacao.jpg" alt="Fila de moderação do fórum">
+    <figcaption>Aba Fórum de dúvidas — uma publicação aguardando revisão</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>O parecer da IA.</strong> A tarja amarela diz por que a
+      publicação parou aqui. Nesse exemplo: contém um telefone pessoal.</li>
+    <li><strong>O conteúdo completo.</strong> Título e texto, exatamente como o
+      aluno escreveu. Acima, em cinza, aparecem o nome do autor, a disciplina e a
+      data.</li>
+    <li><strong>Aprovar.</strong> A publicação entra no fórum na hora.</li>
+    <li><strong>Rejeitar.</strong> Abre um campo de motivo. O que você escrever
+      ali <strong>o autor vai ler</strong> — escreva com cuidado e de forma
+      respeitosa.</li>
+  </ol>
+
+  <h3>Como decidir</h3>
+  <ul class="marcadores">
+    <li><strong>Aprove</strong> quando é uma dúvida legítima sobre o curso, mesmo
+      que mal escrita ou fora do tema da disciplina.</li>
+    <li><strong>Rejeite</strong> quando há ofensa, propaganda, corrente,
+      conteúdo sem relação com o curso, ou dado pessoal exposto (telefone,
+      endereço, CPF). No motivo, oriente: "removi porque o texto trazia seu
+      telefone; pode publicar de novo sem ele".</li>
+    <li><strong>Na dúvida</strong>, aprove e converse com o aluno em separado. O
+      fórum vazio desanima mais a turma do que um post imperfeito.</li>
+  </ul>
+
+  <div class="caixa">
+    <span class="rotulo">Quando a fila está vazia</span>
+    <p>
+      Aparece a mensagem "Caixa zerada — nada aguardando revisão". É o estado
+      normal e desejável. Vale passar aqui uma vez por dia.
+    </p>
+  </div>
+
+  <div class="caixa atencao">
+    <span class="rotulo">O que a equipe publica não passa pela fila</span>
+    <p>
+      Publicações feitas por quem é da equipe entram direto no fórum e levam o
+      selo <strong>Equipe</strong> — o que dá peso à resposta e ajuda o aluno a
+      identificar a informação oficial. Use o botão
+      <strong>Abrir o fórum →</strong>, no alto da tela, para participar.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 8 ═══ -->
+<section class="parte">
+  <h2>Parte 8 — Relatórios</h2>
+  <p class="chapeu">Aba <strong>Relatórios</strong> · permissão "Ver relatórios".</p>
+
+  <p>
+    A aba tem duas visões, escolhidas pelos botões redondos no alto:
+    <strong>Inscrições</strong> (quem está chegando) e <strong>Turma</strong>
+    (quem já está estudando).
+  </p>
+
+  <h3>8.1 Visão Inscrições</h3>
+  <figure class="tela">
+    <img src="prints/16-relatorios-inscricoes.jpg" alt="Relatório de inscrições">
+    <figcaption>Relatórios — visão Inscrições</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Alternar para a visão Turma.</strong></li>
+    <li><strong>Total de inscritos</strong> desde o início. Ao lado ficam as
+      inscrições de hoje e dos últimos 7 dias, com a comparação em relação ao
+      período anterior.</li>
+  </ol>
+  <p>
+    Descendo a página você encontra o gráfico <strong>Evolução do funil</strong>
+    (barras claras = visitas ao site; barras escuras = inscrições) e a tabela
+    <strong>Origem do tráfego</strong>, que mostra de onde vieram as pessoas —
+    anúncios do Instagram, busca do Google, WhatsApp, acesso direto. Os botões
+    <em>7 dias</em>, <em>30 dias</em> e <em>90 dias</em>, no canto direito,
+    mudam o período de tudo.
+  </p>
+
+  <h3>8.2 Visão Turma</h3>
+  <figure class="tela">
+    <img src="prints/17-relatorios-turma.jpg" alt="Relatório da turma">
+    <figcaption>Relatórios — visão Turma</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Avanço por disciplina.</strong> A tabela mais útil da operação:
+      quantos por cento da turma <em>começaram</em> a disciplina, quantos
+      <em>concluíram as aulas</em>, como foi na avaliação e a nota que a turma
+      deu para a disciplina.</li>
+  </ol>
+  <p>
+    Acima da tabela ficam os números gerais da turma (alunos com conta, ativos
+    nos últimos 7 dias, aulas assistidas, avanço médio e taxa de aprovação).
+    Abaixo, em <strong>Comentários da turma</strong>, aparece o feedback
+    <strong>anônimo</strong> de quem concluiu cada disciplina — leitura
+    obrigatória para a coordenação.
+  </p>
+
+  <div class="caixa">
+    <span class="rotulo">Como ler esses números na prática</span>
+    <p>
+      Uma disciplina com muita gente que <em>começou</em> e pouca gente que
+      <em>concluiu</em> é sinal de que algo trava no meio dela — uma aula longa
+      demais, um vídeo com problema, um material confuso. Vale abrir a
+      disciplina e conferir. Já uma disciplina com nota baixa na avaliação pede
+      revisão do conteúdo ou das perguntas.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ PARTE 9 ═══ -->
+<section class="parte">
+  <h2>Parte 9 — Equipe e permissões</h2>
+  <p class="chapeu">Aba <strong>Equipe</strong> · exclusiva de administradores.</p>
+
+  <p>
+    Aqui se cadastra quem trabalha na plataforma e se decide o que cada pessoa
+    alcança.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/18-equipe.jpg" alt="Tela da equipe">
+    <figcaption>Aba Equipe — membros cadastrados e o convite de novo monitor</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Um membro da equipe.</strong> Nome, e-mail e a etiqueta do nível
+      (<em>Administrador</em> ou <em>Monitor</em>). Administradores aparecem só
+      com a frase "Acesso total à plataforma" — não há o que configurar. Nos
+      monitores aparecem as caixinhas de permissão, o botão
+      <strong>Salvar permissões</strong>, o <strong>Reenviar convite</strong> e o
+      <strong>Remover da equipe</strong>.</li>
+    <li><strong>Nome e e-mail do novo monitor.</strong></li>
+    <li><strong>As permissões do novo monitor.</strong> Marque só o que a pessoa
+      precisa para o trabalho dela.</li>
+  </ol>
+
+  <h3>Como cadastrar um monitor</h3>
+  <ol class="passos">
+    <li>Preencha <strong>Nome</strong> e <strong>E-mail</strong> no quadro "Novo
+      monitor".</li>
+    <li>Marque as permissões. Para um monitor de atendimento, o conjunto usual é
+      <em>Visão de aluno</em>, <em>Moderação do fórum</em> e
+      <em>E-mails e convites de acesso</em>.</li>
+    <li>Clique em <strong>Cadastrar e convidar</strong>. Sai um e-mail para a
+      pessoa criar a senha dela.</li>
+    <li>Copie o link de convite que aparece na tela e mande também por WhatsApp
+      — é o caminho mais rápido.</li>
+  </ol>
+
+  <h3>Como mudar as permissões de alguém</h3>
+  <ol class="passos">
+    <li>Ache a pessoa na lista.</li>
+    <li>Marque ou desmarque as caixinhas.</li>
+    <li>Clique em <strong>Salvar permissões</strong>. A mudança vale no próximo
+      carregamento de tela da pessoa.</li>
+  </ol>
+
+  <div class="caixa cuidado">
+    <span class="rotulo">Cuidado — Remover da equipe</span>
+    <p>
+      <strong>Remover da equipe</strong> apaga a conta daquela pessoa. Ela perde
+      o acesso imediatamente e o histórico do que ela fez fica registrado, mas
+      sem o nome vinculado. Se for afastamento temporário, prefira
+      <strong>desmarcar todas as permissões</strong> — o acesso fica bloqueado na
+      prática e a conta continua existindo.
+    </p>
+  </div>
+
+  <div class="caixa">
+    <span class="rotulo">Princípio simples de segurança</span>
+    <p>
+      Dê a cada pessoa o mínimo que ela precisa para trabalhar. Não é
+      desconfiança: é o que evita apagões acidentais de conteúdo e vazamento de
+      dado pessoal de aluno.
+    </p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════ PARTE 10 ═══ -->
+<section class="parte">
+  <h2>Parte 10 — Eventos: o histórico da plataforma</h2>
+  <p class="chapeu">Aba <strong>Eventos</strong> · exclusiva de administradores.</p>
+
+  <p>
+    A plataforma anota tudo o que acontece dentro dela: quem entrou, quem
+    concluiu uma aula, quem publicou no fórum, quem alterou um módulo, quem
+    aprovou uma publicação. Essa aba é onde se consulta esse registro.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/19-eventos.jpg" alt="Tela de eventos">
+    <figcaption>Aba Eventos — a trilha do que aconteceu na plataforma</figcaption>
+  </figure>
+
+  <ol class="legenda">
+    <li><strong>Busca.</strong> Procure por tipo de ação (digite "quiz", "login")
+      ou pelo nome/e-mail de uma pessoa.</li>
+    <li><strong>Filtros por assunto.</strong> Sessões, Ativações, Aulas,
+      Avaliações, Fórum, Moderação, Conteúdo e Equipe.</li>
+    <li><strong>A tabela.</strong> Quando aconteceu, quem fez, qual foi a ação e
+      os detalhes.</li>
+  </ol>
+
+  <h3>Para que isso serve no dia a dia</h3>
+  <ul class="marcadores">
+    <li>Conferir se um aluno realmente acessou a plataforma quando ele diz que
+      "não conseguiu entrar".</li>
+    <li>Descobrir quem apagou ou alterou um conteúdo, e quando.</li>
+    <li>Verificar se um convite foi mesmo enviado.</li>
+    <li>Acompanhar o movimento da turma em dia de abertura de módulo.</li>
+  </ul>
+
+  <div class="caixa">
+    <span class="rotulo">Este registro não se apaga pela tela</span>
+    <p>
+      Não existe botão de excluir nesta aba, de propósito: o valor de um
+      histórico está justamente em ninguém poder reescrevê-lo.
+    </p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════ PARTE 11 ═══ -->
+<section class="parte">
+  <h2>Parte 11 — A plataforma pelos olhos do aluno</h2>
+  <p class="chapeu">Botão <strong>Ver como aluno</strong> · permissão "Visão de aluno".</p>
+
+  <p>
+    Não dá para dar suporte a uma tela que você nunca viu. Use o botão
+    <strong>Ver como aluno</strong>, no cabeçalho, sempre que precisar conferir o
+    que a turma está enxergando. Para voltar, clique em
+    <strong>Área do Master</strong>, no mesmo lugar.
+  </p>
+
+  <h3>11.1 Meus módulos — a tela inicial do aluno</h3>
+  <figure class="tela">
+    <img src="prints/20-painel-aluno.jpg" alt="Painel do aluno">
+    <figcaption>O que o aluno vê ao entrar</figcaption>
+  </figure>
+
+  <p>
+    No alto fica o <strong>Progresso geral</strong> (quantas aulas assistiu e
+    quantas avaliações passou). Abaixo, os módulos em forma de card, cada um com
+    capa, instrutor, descrição e a barrinha de avanço. Módulos ainda não
+    publicados aparecem como <strong>"Em breve"</strong>, sem link. Os dois
+    botõezinhos à direita alternam entre ver em cards e ver em lista.
+  </p>
+
+  <h3>11.2 Dentro de uma disciplina</h3>
+  <figure class="tela">
+    <img src="prints/21-disciplina-aluno.jpg" alt="Disciplina na visão do aluno">
+    <figcaption>A tela de estudo, com as quatro abas do aluno</figcaption>
+  </figure>
+
+  <p>São quatro abas, e é bom conhecer as quatro:</p>
+  <ul class="marcadores">
+    <li><strong>Aulas</strong> — a lista de vídeos, na ordem. O botão
+      <em>Assistir</em> abre o vídeo; ao terminar, o aluno marca a aula como
+      concluída e a barrinha de progresso sobe.</li>
+    <li><strong>Materiais</strong> — os apoios que você cadastrou na Parte 4.3.</li>
+    <li><strong>Avaliação final</strong> — o questionário. A correção é
+      imediata: o aluno vê acertos, erros e a nota na hora.</li>
+    <li><strong>Tirar dúvidas (IA)</strong> — o assistente respondendo apenas com
+      base no material daquela disciplina.</li>
+  </ul>
+  <p>
+    No rodapé ficam os atalhos <strong>Anterior</strong> e
+    <strong>Próxima</strong>, que levam o aluno para as disciplinas vizinhas sem
+    ter que voltar ao início.
+  </p>
+
+  <h3>11.3 O fórum do aluno</h3>
+  <figure class="tela">
+    <img src="prints/22-forum-aluno.jpg" alt="Fórum na visão do aluno">
+    <figcaption>O fórum de dúvidas, como o aluno vê</figcaption>
+  </figure>
+  <p>
+    É a mesma comunidade que você modera na Parte 7, aqui do lado de quem
+    pergunta. O aluno escolhe entre publicar uma dúvida ou uma enquete, pode
+    responder outros colegas e votar nas respostas. Lembre-se: o que você
+    publicar por aqui sai com o selo <strong>Equipe</strong>.
+  </p>
+
+  <h3>11.4 O assistente de dúvidas</h3>
+  <figure class="tela">
+    <img src="prints/23-assistente.jpg" alt="Assistente de IA aberto">
+    <figcaption>O assistente, aberto pelo botão redondo no canto da tela</figcaption>
+  </figure>
+  <p>
+    O botão redondo no canto inferior direito acompanha o aluno em todas as
+    telas. Aberto dentro de uma disciplina, o assistente responde com o material
+    daquela disciplina; aberto no painel, responde sobre como usar a plataforma.
+    Ele avisa em letras miúdas que as respostas são geradas por IA e podem conter
+    imprecisões — e é bom que a equipe reforce isso quando o aluno perguntar.
+  </p>
+</section>
+
+<!-- ═════════════════════════════════════════════════════ PARTE 12 ═══ -->
+<section class="parte">
+  <h2>Parte 12 — Painel de inscrições</h2>
+  <p class="chapeu">Endereço <code>/relatorios</code> · abre só com senha.</p>
+
+  <p>
+    Existe uma tela de acompanhamento de inscrições que <strong>não exige conta
+    na plataforma</strong>: entra-se apenas com uma senha combinada. Ela serve
+    para quem precisa acompanhar os números da campanha — direção, parceiros,
+    comunicação — sem receber acesso à área da equipe.
+  </p>
+
+  <figure class="tela">
+    <img src="prints/24-painel-senha.jpg" alt="Tela de senha do painel de inscrições">
+    <figcaption>A porta de entrada do painel de inscrições</figcaption>
+  </figure>
+
+  <ol class="passos">
+    <li>Acesse o endereço da plataforma seguido de <code>/relatorios</code>.</li>
+    <li>Digite a <strong>senha de acesso</strong> combinada com a coordenação.</li>
+    <li>Clique em <strong>Entrar</strong>.</li>
+  </ol>
+
+  <p>
+    O conteúdo que abre é o mesmo da visão <strong>Inscrições</strong> da Parte
+    8: total de inscritos, movimento do dia e da semana, gráfico do funil e
+    origem do tráfego.
+  </p>
+
+  <div class="caixa atencao">
+    <span class="rotulo">Essa senha é uma chave</span>
+    <p>
+      Quem tem a senha vê os números da campanha. Não a mande em grupos de
+      WhatsApp nem a reaproveite de outros sistemas. Se ela circular demais, peça
+      à coordenação para trocá-la.
+    </p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════ PARTE 13 ═══ -->
+<section class="parte">
+  <h2>Parte 13 — Rotinas do dia a dia</h2>
+  <p class="chapeu">Checklists prontos para imprimir e seguir.</p>
+
+  <h3>Todo dia (10 a 15 minutos)</h3>
+  <ol class="passos">
+    <li><strong>Fórum de dúvidas</strong> — zerar a fila de moderação. Aprovar ou
+      recusar tudo que estiver esperando.</li>
+    <li><strong>Fórum, do lado do aluno</strong> — ver se há dúvida sem resposta
+      há mais de um dia e responder com o selo Equipe.</li>
+    <li><strong>Alunos, filtro "Convite enviado"</strong> — quem recebeu convite
+      e ainda não ativou há alguns dias merece um toque no WhatsApp.</li>
+    <li><strong>Relatórios, visão Turma</strong> — bater o olho no número de
+      ativos nos últimos 7 dias.</li>
+  </ol>
+
+  <h3>Toda semana (30 minutos)</h3>
+  <ol class="passos">
+    <li><strong>Relatórios, visão Turma</strong> — ler a tabela de avanço por
+      disciplina e anotar onde a turma está travando.</li>
+    <li><strong>Comentários da turma</strong> — ler o feedback anônimo novo e
+      levar o que for relevante para a coordenação.</li>
+    <li><strong>E-mails</strong> — conferir devoluções e reenviar convites de
+      quem ficou para trás.</li>
+    <li><strong>Conteúdo</strong> — conferir se o próximo módulo da programação
+      está montado, com capa, aulas, materiais e avaliação.</li>
+  </ol>
+
+  <h3>Abrir um módulo novo para a turma</h3>
+  <ol class="passos">
+    <li>Aba <strong>Conteúdo</strong> → abra o módulo.</li>
+    <li>Confira a <strong>capa</strong>, o <strong>instrutor</strong> e a
+      <strong>descrição</strong>.</li>
+    <li>Entre em cada disciplina e confira: aulas com vídeo funcionando,
+      materiais abrindo, base de conhecimento da IA preenchida e avaliação com
+      perguntas e gabarito.</li>
+    <li>Marque <strong>Publicada</strong> em cada disciplina e salve.</li>
+    <li>No módulo, marque <strong>Publicado</strong> (ou preencha
+      <strong>Disponibilizar em</strong> com a data e hora combinadas) e salve.</li>
+    <li>Clique em <strong>Ver como aluno</strong> e confira: o card aparece? A
+      aula abre? A avaliação carrega?</li>
+    <li>Avise a turma pelos canais combinados.</li>
+  </ol>
+
+  <div class="caixa">
+    <span class="rotulo">A regra de ouro</span>
+    <p>
+      Antes de anunciar qualquer coisa para a turma, olhe pela
+      <strong>visão de aluno</strong>. É o único jeito de ter certeza de que o
+      que você montou está mesmo no ar.
+    </p>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════ PARTE 14 ═══ -->
+<section class="parte">
+  <h2>Parte 14 — Problemas comuns e como resolver</h2>
+  <p class="chapeu">O roteiro de atendimento para as situações que mais aparecem.</p>
+
+  <h3>"Não recebi o e-mail de acesso"</h3>
+  <ol class="passos">
+    <li>Peça para conferir as pastas de <strong>spam / lixo eletrônico</strong> e
+      <strong>promoções</strong>. É de longe a causa mais comum.</li>
+    <li>Aba <strong>Alunos</strong> → busque a pessoa. Confira se o e-mail
+      cadastrado está escrito corretamente.</li>
+    <li>Se o e-mail estiver errado, avise a coordenação para corrigir o cadastro.</li>
+    <li>Se estiver certo, clique em <strong>Reenviar convite</strong>.</li>
+    <li>Resolvendo na hora: clique em <strong>Chamar no WhatsApp</strong> — a
+      mensagem já sai com o link e a matrícula.</li>
+  </ol>
+
+  <h3>"Minha senha não funciona"</h3>
+  <ol class="passos">
+    <li>Confirme se a pessoa já <strong>ativou</strong> a conta: na ficha dela,
+      o campo "Conta ativada em" precisa ter data. Se estiver com traço, ela
+      ainda não criou senha — mande fazer o primeiro acesso (Parte 2.2).</li>
+    <li>Confirme se está usando o <strong>mesmo e-mail</strong> do cadastro.</li>
+    <li>Peça para tentar em outro navegador ou em uma janela anônima — senha
+      salva errada no navegador engana muita gente.</li>
+    <li>Se ainda assim não entrar, use o <strong>Reenviar convite</strong>: ele
+      manda um link novo para a pessoa definir a senha de novo.</li>
+  </ol>
+
+  <h3>"O módulo não aparece para mim"</h3>
+  <ol class="passos">
+    <li>Aba <strong>Conteúdo</strong> → abra o módulo e confira se
+      <strong>Publicado</strong> está marcado.</li>
+    <li>Confira se a <strong>disciplina</strong> dentro dele também está marcada
+      como <strong>Publicada</strong>.</li>
+    <li>Confira o campo <strong>Disponibilizar em</strong>: se tiver uma data
+      futura, o módulo só abre naquele momento.</li>
+    <li>Clique em <strong>Ver como aluno</strong> e confirme com os próprios
+      olhos.</li>
+    <li>Se estiver tudo certo, peça ao aluno para atualizar a página
+      (tecla <span class="tecla">F5</span>).</li>
+  </ol>
+
+  <h3>"O vídeo da aula não abre"</h3>
+  <ol class="passos">
+    <li>Aba <strong>Conteúdo</strong> → disciplina → clique em
+      <strong>Editar</strong> na aula e veja o campo do link.</li>
+    <li>Cole esse link numa aba nova do navegador. Se não abrir para você, o
+      problema é do vídeo, não da plataforma — vídeo do YouTube marcado como
+      privado é a causa clássica. Peça para marcar como "não listado".</li>
+    <li>Se a aula estiver marcada como <strong>"processando"</strong>, o arquivo
+      ainda está sendo convertido. Espere alguns minutos e recarregue.</li>
+  </ol>
+
+  <h3>"Publiquei no fórum e não apareceu"</h3>
+  <p>
+    Provavelmente está na fila de moderação (Parte 7). Abra a aba
+    <strong>Fórum de dúvidas</strong> e decida. Se você já tinha recusado, o autor
+    consegue ver o motivo que você escreveu.
+  </p>
+
+  <h3>"Fiz a avaliação e não passei"</h3>
+  <p>
+    Confira a <strong>nota mínima</strong> configurada na disciplina (Parte 4.5) e
+    a nota que o aluno tirou, na ficha dele (Parte 5). O aluno pode refazer a
+    avaliação. Se muita gente está reprovando na mesma disciplina, o caso é de
+    revisar as perguntas com a coordenação, não de mexer em nota.
+  </p>
+
+  <h3>"Sumiu uma aba do meu menu"</h3>
+  <p>
+    É permissão, não defeito. Peça a um administrador para conferir suas
+    permissões na aba <strong>Equipe</strong> (Parte 9).
+  </p>
+
+  <h3>Quando escalar</h3>
+  <p>
+    Chame o responsável técnico quando: a plataforma inteira não abrir; os
+    números do relatório estiverem visivelmente errados; um disparo de e-mails
+    falhar para todo mundo; ou alguém relatar ter visto dado de outro aluno.
+    Nesses casos, anote o horário e o que estava fazendo — isso acelera muito o
+    diagnóstico.
+  </p>
+</section>
+
+<!-- ═════════════════════════════════════════════════════ PARTE 15 ═══ -->
+<section class="parte">
+  <h2>Parte 15 — Glossário</h2>
+  <p class="chapeu">As palavras do sistema, em português claro.</p>
+
+  <table>
+    <tr><th style="width:30%">Palavra</th><th>O que quer dizer</th></tr>
+    <tr><td><strong>AVA</strong></td><td>Ambiente Virtual de Aprendizagem. O nome técnico da plataforma.</td></tr>
+    <tr><td><strong>Área do Master</strong></td><td>A área da equipe, com as abas de administração.</td></tr>
+    <tr><td><strong>Administrador</strong></td><td>Nível de equipe com acesso a tudo.</td></tr>
+    <tr><td><strong>Monitor</strong></td><td>Nível de equipe que só alcança o que foi liberado por um administrador.</td></tr>
+    <tr><td><strong>Permissão</strong></td><td>Cada autorização individual dada a um monitor (moderar fórum, ver relatórios etc.).</td></tr>
+    <tr><td><strong>Módulo</strong></td><td>O bloco maior do curso; é o card que o aluno vê na tela inicial.</td></tr>
+    <tr><td><strong>Disciplina</strong></td><td>A divisão dentro de um módulo, que reúne aulas, materiais e avaliação.</td></tr>
+    <tr><td><strong>Rascunho</strong></td><td>Conteúdo criado mas ainda não visível para os alunos.</td></tr>
+    <tr><td><strong>Publicado</strong></td><td>Conteúdo no ar, visível para a turma.</td></tr>
+    <tr><td><strong>Agendar / Disponibilizar em</strong></td><td>Marcar data e hora para a plataforma publicar sozinha.</td></tr>
+    <tr><td><strong>Matrícula</strong></td><td>O número que identifica a inscrição; é pedido no primeiro acesso.</td></tr>
+    <tr><td><strong>Ativar a conta</strong></td><td>Criar a senha pela primeira vez, na tela "Ativar meu acesso".</td></tr>
+    <tr><td><strong>Convite</strong></td><td>O e-mail com o link e a matrícula que permite ativar a conta.</td></tr>
+    <tr><td><strong>Devolvido</strong></td><td>E-mail que voltou sem ser entregue (endereço errado, caixa cheia).</td></tr>
+    <tr><td><strong>Liberado / Selecionado</strong></td><td>Inscrito aprovado para a turma, apto a receber o convite.</td></tr>
+    <tr><td><strong>Moderação</strong></td><td>A revisão humana das publicações do fórum antes de entrarem no ar.</td></tr>
+    <tr><td><strong>Base de conhecimento</strong></td><td>O material que o assistente de IA usa para responder as dúvidas de uma disciplina.</td></tr>
+    <tr><td><strong>Avanço</strong></td><td>O percentual do curso que o aluno já concluiu.</td></tr>
+    <tr><td><strong>Eventos</strong></td><td>O registro histórico de tudo que acontece na plataforma.</td></tr>
+  </table>
+
+  <div class="caixa" style="margin-top:12mm">
+    <span class="rotulo">Para fechar</span>
+    <p>
+      Nenhuma tela deste guia é perigosa de explorar. Clicar, abrir, olhar e
+      voltar não quebra nada — o que exige cuidado são os botões vermelhos de
+      excluir e o disparo de e-mails. Fora isso, o melhor treinamento é abrir a
+      plataforma ao lado deste guia e percorrer aba por aba.
+    </p>
+  </div>
+</section>
+
+</body>
+</html>
