@@ -76,6 +76,12 @@ export function LinhaAluno({
         <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
           Ativo
         </span>
+      ) : turma?.aguardando ? (
+        // Turma fechada: convite e WhatsApp prometeriam acesso que ainda não
+        // existe (o servidor já recusa; aqui nem oferecemos).
+        <span className="text-xs text-slate-400">
+          Convite e WhatsApp liberam quando a turma abrir
+        </span>
       ) : (
         <div className="flex flex-wrap items-center justify-end gap-2">
           {contato ? (
@@ -86,7 +92,7 @@ export function LinhaAluno({
               ✓ chamado por {contato.por} · {contato.quando}
             </span>
           ) : null}
-          {linkWhatsApp && !turma?.aguardando ? (
+          {linkWhatsApp ? (
             <a
               href={linkWhatsApp}
               target="_blank"
