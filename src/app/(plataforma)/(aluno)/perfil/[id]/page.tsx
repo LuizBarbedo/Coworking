@@ -37,10 +37,10 @@ export default async function PerfilPublicoPage({
   const admin = createSupabaseAdminClient();
   const { data: conta } = await admin.auth.admin.getUserById(id);
   if (!conta?.user) notFound();
+  // NUNCA cair pro e-mail: esta página é aberta por qualquer aluno logado
+  // (os ids aparecem no fórum), então o e-mail viraria dado público da turma.
   const nome =
-    (conta.user.user_metadata as { nome?: string })?.nome ??
-    conta.user.email ??
-    "Aluno(a)";
+    (conta.user.user_metadata as { nome?: string })?.nome?.trim() || "Aluno(a)";
 
   const supabase = await createSupabaseServerClient();
   const [{ data: perfil }, stats] = await Promise.all([
