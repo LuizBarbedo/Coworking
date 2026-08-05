@@ -64,4 +64,10 @@ describe("gerarCsvSerie", () => {
     expect(linhas[1]).toBe("2026-07-01;10;3;30%");
     expect(linhas[2]).toBe("2026-07-02;0;0;—");
   });
+
+  it("sem visitas (recorte por turma) deixa a coluna vazia e conversão sem valor", () => {
+    const csv = gerarCsvSerie([{ dia: "2026-07-01", total: 3 }]);
+    const linha = csv.replace("﻿", "").trim().split("\r\n")[1];
+    expect(linha).toBe("2026-07-01;;3;—");
+  });
 });
