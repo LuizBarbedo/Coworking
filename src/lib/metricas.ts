@@ -39,9 +39,28 @@ export type Metricas = {
  * Roda com o cliente administrativo (service_role) no servidor: a tabela
  * inscricoes tem RLS e não é legível pelo público. Só números agregados
  * trafegam — nenhum dado pessoal.
+ *
+ * Com `turma`, o recorte é feito na RPC (migração 0024); se ela ainda não
+ * foi aplicada (PGRST202) ou o cache do PostgREST está ambíguo (PGRST203),
+ * refaz sem o filtro — a visão volta ao total, sem quebrar.
  */
-export async function obterMetricas(dias = 30): Promise<Metricas> {
+export async function obterMetricas(
+  dias = 30,
+  turma: number | null = null,
+): Promise<Metricas> {
   const admin = createSupabaseAdminClient();
+
+  if (turma !== null) {
+    const { data, error } = await admin.rpc("metricas_painel", {
+      p_dias: dias,
+      p_turma: turma,
+    });
+    if (!error) return data as Metricas;
+    if (error.code !== "PGRST202" && error.code !== "PGRST203") {
+      throw new Error(`Falha ao carregar métricas do painel: ${error.message}`);
+    }
+  }
+
   const { data, error } = await admin.rpc("metricas_painel", { p_dias: dias });
 
   if (error) {
