@@ -180,6 +180,48 @@ export async function criarAlunoSemAtivacao(email: string): Promise<string> {
   return data.matricula as string;
 }
 
+/** Turmas da migração 0023 — null quando a migração não foi aplicada. */
+export async function listarTurmas(): Promise<Array<{
+  numero: number;
+  nome: string | null;
+  liberacao_em: string | null;
+}> | null> {
+  const admin = criarAdmin();
+  const { data, error } = await admin
+    .from("turmas")
+    .select("numero, nome, liberacao_em")
+    .order("numero");
+  if (error) return null;
+  return data ?? [];
+}
+
+/**
+ * Inscrição SEM seleção numa turma específica — o fluxo de quem se inscreve
+ * enquanto a turma ainda não abriu. Devolve a matrícula.
+ */
+export async function criarInscricaoNaTurma(
+  email: string,
+  turma: number,
+): Promise<string> {
+  const admin = criarAdmin();
+  const { data, error } = await admin
+    .from("inscricoes")
+    .insert({
+      nome: "Aluno E2E Turma Fechada",
+      cpf: gerarCpfValido(),
+      email,
+      telefone: "21999999999",
+      selecionado: false,
+      turma,
+    })
+    .select("matricula")
+    .single();
+  if (error || !data) {
+    throw new Error(`Falha ao criar inscrição de teste: ${error?.message}`);
+  }
+  return data.matricula as string;
+}
+
 /** Apaga tudo que os E2E criaram (contas, inscrições, visitas marcadas). */
 export async function limparDadosDeTeste(): Promise<void> {
   const admin = criarAdmin();
