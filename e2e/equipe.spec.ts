@@ -67,9 +67,14 @@ test.describe("níveis de acesso da equipe", () => {
     await expect(
       page.getByRole("link", { name: "Relatórios" }),
     ).toBeVisible();
-    // Formulários de cadastro presentes.
+    // Formulário de cadastro de monitor presente; o de aluno mora na aba
+    // Alunos desde que ela foi separada da Equipe.
     await expect(
       page.getByRole("button", { name: "Cadastrar e convidar" }),
-    ).toHaveCount(2);
+    ).toHaveCount(1);
+    await page.goto("/master/alunos");
+    await expect(
+      page.getByRole("button", { name: "Cadastrar e convidar" }),
+    ).toHaveCount(1);
   });
 });
