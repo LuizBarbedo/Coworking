@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   avancoPorDisciplina,
   desempenhoDoAluno,
+  filtrarPorTurma,
   linhasDosAlunos,
   resumoGeral,
   type DadosTurma,
@@ -122,6 +123,48 @@ describe("desempenhoDoAluno", () => {
     expect(ninguem.resumo.aulasVistas).toBe(0);
     expect(ninguem.resumo.notaMedia).toBeNull();
     expect(ninguem.resumo.avancoPct).toBe(0);
+  });
+});
+
+describe("filtrarPorTurma", () => {
+  // Conta ↔ inscrição casam por e-mail, sem diferenciar maiúsculas.
+  const inscricoes = [
+    { email: "Ana@X.com", turma: 1 },
+    { email: "bia@x.com", turma: 2 },
+  ];
+
+  it("recorta alunos e atividades da turma pedida", () => {
+    const t1 = filtrarPorTurma(dados, inscricoes, 1);
+    expect(t1.alunos.map((a) => a.id)).toEqual(["ana"]);
+    expect(t1.progresso).toHaveLength(3);
+    expect(t1.tentativas).toHaveLength(2);
+    expect(t1.participacoesForum).toHaveLength(2);
+    expect(t1.ultimoLoginPorAluno).toEqual({ ana: "2026-07-20T10:00:00Z" });
+    // Disciplinas são o currículo — não dependem da turma.
+    expect(t1.disciplinas).toEqual(dados.disciplinas);
+
+    const t2 = filtrarPorTurma(dados, inscricoes, 2);
+    expect(t2.alunos.map((a) => a.id)).toEqual(["bia"]);
+    expect(t2.progresso).toHaveLength(1);
+    expect(t2.tentativas).toHaveLength(1);
+    expect(t2.participacoesForum).toHaveLength(0);
+    expect(t2.ultimoLoginPorAluno).toEqual({});
+  });
+
+  it("conta sem inscrição correspondente fica fora do recorte", () => {
+    const semBia = filtrarPorTurma(dados, [inscricoes[0]], 2);
+    expect(semBia.alunos).toHaveLength(0);
+    const t3 = filtrarPorTurma(dados, inscricoes, 3);
+    expect(t3.alunos).toHaveLength(0);
+    expect(t3.progresso).toHaveLength(0);
+  });
+
+  it("agregações funcionam sobre o recorte", () => {
+    const t1 = filtrarPorTurma(dados, inscricoes, 1);
+    const r = resumoGeral(t1);
+    expect(r.totalAlunos).toBe(1);
+    expect(r.avancoMedioPct).toBe(100); // só a Ana, que viu 3/3
+    expect(r.aprovacaoPct).toBe(100);
   });
 });
 

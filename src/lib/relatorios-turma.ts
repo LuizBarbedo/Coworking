@@ -27,6 +27,46 @@ export type DadosTurma = {
 const pct = (parte: number, todo: number) =>
   todo === 0 ? 0 : Math.round((parte / todo) * 100);
 
+export type InscricaoDeTurma = { email: string; turma: number };
+
+/**
+ * Recorta os dados da visão Turma para uma turma específica. Conta e
+ * inscrição casam por e-mail (sem diferenciar maiúsculas); conta sem
+ * inscrição correspondente fica fora do recorte. As disciplinas são o
+ * currículo e não dependem da turma.
+ */
+export function filtrarPorTurma(
+  dados: DadosTurma,
+  inscricoes: InscricaoDeTurma[],
+  turma: number,
+): DadosTurma {
+  const emailsDaTurma = new Set(
+    inscricoes
+      .filter((i) => i.turma === turma)
+      .map((i) => i.email.toLowerCase()),
+  );
+  const alunos = dados.alunos.filter((a) =>
+    emailsDaTurma.has(a.email.toLowerCase()),
+  );
+  const ids = new Set(alunos.map((a) => a.id));
+
+  const ultimoLoginPorAluno: Record<string, string> = {};
+  for (const [id, iso] of Object.entries(dados.ultimoLoginPorAluno)) {
+    if (ids.has(id)) ultimoLoginPorAluno[id] = iso;
+  }
+
+  return {
+    ...dados,
+    alunos,
+    progresso: dados.progresso.filter((p) => ids.has(p.aluno_id)),
+    tentativas: dados.tentativas.filter((t) => ids.has(t.aluno_id)),
+    ultimoLoginPorAluno,
+    participacoesForum: dados.participacoesForum.filter((p) =>
+      ids.has(p.autor_id),
+    ),
+  };
+}
+
 /** Melhor tentativa de cada aluno em cada quiz (nota mais alta). */
 function melhoresTentativas(dados: DadosTurma) {
   const melhor = new Map<string, { nota: number; aprovado: boolean }>();

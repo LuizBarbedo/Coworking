@@ -3,13 +3,16 @@
 // pura de lib/relatorios-turma.
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { buscarTurmas } from "@/lib/turmas-dados";
 import {
   avancoPorDisciplina,
+  filtrarPorTurma,
   linhasDosAlunos,
   resumoFeedback,
   resumoGeral,
   type AvaliacaoDisciplina,
   type DadosTurma,
+  type InscricaoDeTurma,
 } from "@/lib/relatorios-turma";
 
 /** Contas internas (equipe, testes) ficam fora das estatísticas da turma. */
@@ -36,11 +39,23 @@ const ALUNOS_POR_PAGINA = 25;
 export async function DesempenhoTurma({
   busca = "",
   pagina = 1,
+  turma = null,
 }: {
   busca?: string;
   pagina?: number;
+  /** Recorte por turma (número) — null mostra todas. */
+  turma?: number | null;
 } = {}) {
   const admin = createSupabaseAdminClient();
+
+  // Turmas (0023) — antes da migração a lista vem vazia, o filtro some e o
+  // relatório segue mostrando todo mundo (mesmo padrão da aba Alunos).
+  const turmas = await buscarTurmas();
+  const temTurmas = turmas.length > 0;
+  const turmaAtiva =
+    temTurmas && turma != null && turmas.some((t) => t.numero === turma)
+      ? turma
+      : null;
 
   const [
     usuariosRes,
@@ -80,14 +95,22 @@ export async function DesempenhoTurma({
       .order("created_at", { ascending: false })
       .limit(200),
     // Vínculo pro detalhe do aluno (/master/alunos/[id]) — casa por e-mail.
-    admin.from("inscricoes").select("id, email"),
+    // A coluna turma só entra quando a 0023 existe (senão derruba a query).
+    admin
+      .from("inscricoes")
+      .select(temTurmas ? "id, email, turma" : "id, email"),
   ]);
 
+  const inscricoes = (inscricoesRes.data ?? []) as {
+    id: string;
+    email: string;
+    turma?: number | null;
+  }[];
   const inscricaoPorEmail = new Map(
-    (inscricoesRes.data ?? []).map((i) => [
-      (i.email as string).toLowerCase(),
-      i.id as string,
-    ]),
+    inscricoes.map((i) => [i.email.toLowerCase(), i.id]),
+  );
+  const inscricoesDeTurma: InscricaoDeTurma[] = inscricoes.flatMap((i) =>
+    typeof i.turma === "number" ? [{ email: i.email, turma: i.turma }] : [],
   );
 
   // Alunos = contas que não são da equipe nem internas/de teste.
@@ -150,7 +173,7 @@ export async function DesempenhoTurma({
     }
   }
 
-  const dados: DadosTurma = {
+  const completos: DadosTurma = {
     alunos,
     disciplinas,
     progresso: ((progressoRes.data ?? []) as DadosTurma["progresso"]).filter(
@@ -165,6 +188,10 @@ export async function DesempenhoTurma({
       ...((respostasRes.data ?? []) as { autor_id: string }[]),
     ].filter((p) => idsDeAlunos.has(p.autor_id)),
   };
+  const dados =
+    turmaAtiva === null
+      ? completos
+      : filtrarPorTurma(completos, inscricoesDeTurma, turmaAtiva);
 
   const geral = resumoGeral(dados);
   const porDisciplina = avancoPorDisciplina(dados);
@@ -188,9 +215,14 @@ export async function DesempenhoTurma({
     (paginaAlunos - 1) * ALUNOS_POR_PAGINA,
     paginaAlunos * ALUNOS_POR_PAGINA,
   );
-  const linkAlunos = (params: { aluno?: string; pagina?: number }) => {
+  const linkAlunos = (params: {
+    aluno?: string;
+    pagina?: number;
+    turma?: number | null;
+  }) => {
     const query = new URLSearchParams({ visao: "turma" });
-    const final = { aluno: termoAluno, pagina: 1, ...params };
+    const final = { aluno: termoAluno, pagina: 1, turma: turmaAtiva, ...params };
+    if (final.turma !== null) query.set("turma", String(final.turma));
     if (final.aluno) query.set("aluno", final.aluno);
     if (final.pagina > 1) query.set("pagina", String(final.pagina));
     return `/master/relatorios?${query.toString()}`;
@@ -202,12 +234,38 @@ export async function DesempenhoTurma({
   const tituloDaDisciplina = new Map(disciplinas.map((d) => [d.id, d.titulo]));
   const comentarios = avaliacoes.filter((a) => a.comentario);
   const seteDias = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const ativos7d = Object.values(ultimoLoginPorAluno).filter(
+  const ativos7d = Object.values(dados.ultimoLoginPorAluno).filter(
     (iso) => new Date(iso).getTime() >= seteDias,
   ).length;
 
   return (
     <div className="space-y-8">
+      {temTurmas ? (
+        <nav aria-label="Filtro de turma" className="flex flex-wrap gap-1.5">
+          {[{ valor: null as number | null, rotulo: "Todas as turmas" }]
+            .concat(
+              turmas.map((t) => ({
+                valor: t.numero as number | null,
+                rotulo: t.nome ?? `Turma ${t.numero}`,
+              })),
+            )
+            .map((t) => (
+              <Link
+                key={t.rotulo}
+                href={linkAlunos({ turma: t.valor, pagina: 1 })}
+                aria-current={turmaAtiva === t.valor ? "page" : undefined}
+                className={`rounded-full border px-3.5 py-1 text-xs transition ${
+                  turmaAtiva === t.valor
+                    ? "border-brand-600 bg-brand-50 font-medium text-brand-900 dark:bg-brand-950/60 dark:text-brand-200"
+                    : "border-slate-200 text-slate-500 hover:border-brand-300"
+                }`}
+              >
+                {t.rotulo}
+              </Link>
+            ))}
+        </nav>
+      ) : null}
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {(
           [
@@ -330,6 +388,9 @@ export async function DesempenhoTurma({
 
         <form action="/master/relatorios" className="mt-3 flex max-w-xl gap-2">
           <input type="hidden" name="visao" value="turma" />
+          {turmaAtiva !== null ? (
+            <input type="hidden" name="turma" value={turmaAtiva} />
+          ) : null}
           <input
             type="search"
             name="aluno"

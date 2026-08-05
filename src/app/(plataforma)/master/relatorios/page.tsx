@@ -27,12 +27,14 @@ export default async function RelatoriosMasterPage({
     visao?: string;
     aluno?: string;
     pagina?: string;
+    turma?: string;
   }>;
 }) {
   await exigirPermissao("ver_relatorios");
   const parametros = await searchParams;
   const dias = resolverDias(parametros.dias);
   const visao = parametros.visao === "turma" ? "turma" : "inscricoes";
+  const turma = Number.parseInt(parametros.turma ?? "", 10);
 
   return (
     <div className="animate-aparecer space-y-6">
@@ -61,6 +63,7 @@ export default async function RelatoriosMasterPage({
         <DesempenhoTurma
           busca={parametros.aluno ?? ""}
           pagina={Math.max(1, Number.parseInt(parametros.pagina ?? "1", 10) || 1)}
+          turma={Number.isNaN(turma) ? null : turma}
         />
       ) : (
         <>
