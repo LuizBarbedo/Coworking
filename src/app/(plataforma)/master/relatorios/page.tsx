@@ -3,6 +3,12 @@ import Link from "next/link";
 import { exigirPermissao } from "@/lib/auth";
 import { obterMetricas } from "@/lib/metricas";
 import {
+  linkRelatorio,
+  resolverTurma,
+  turmaValida,
+} from "@/lib/relatorios-links";
+import { buscarTurmas } from "@/lib/turmas-dados";
+import {
   PainelMetricas,
   resolverDias,
 } from "@/components/painel/painel-metricas";
@@ -34,7 +40,8 @@ export default async function RelatoriosMasterPage({
   const parametros = await searchParams;
   const dias = resolverDias(parametros.dias);
   const visao = parametros.visao === "turma" ? "turma" : "inscricoes";
-  const turma = Number.parseInt(parametros.turma ?? "", 10);
+  const turmas = await buscarTurmas();
+  const turma = turmaValida(resolverTurma(parametros.turma), turmas);
 
   return (
     <div className="animate-aparecer space-y-6">
@@ -42,11 +49,7 @@ export default async function RelatoriosMasterPage({
         {VISOES.map((v) => (
           <Link
             key={v.valor}
-            href={
-              v.valor === "inscricoes"
-                ? "/master/relatorios"
-                : `/master/relatorios?visao=${v.valor}`
-            }
+            href={linkRelatorio("/master/relatorios", { visao: v.valor, turma })}
             aria-current={visao === v.valor ? "page" : undefined}
             className={`rounded-full border px-4 py-1.5 text-sm transition ${
               visao === v.valor
@@ -63,14 +66,16 @@ export default async function RelatoriosMasterPage({
         <DesempenhoTurma
           busca={parametros.aluno ?? ""}
           pagina={Math.max(1, Number.parseInt(parametros.pagina ?? "1", 10) || 1)}
-          turma={Number.isNaN(turma) ? null : turma}
+          turma={turma}
         />
       ) : (
         <>
           <PainelMetricas
-            metricas={await obterMetricas(dias)}
+            metricas={await obterMetricas(dias, turma)}
             dias={dias}
             basePath="/master/relatorios"
+            turma={turma}
+            turmas={turmas}
           />
           <CardSaudeForum />
         </>

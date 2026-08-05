@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { painelAutenticado } from "@/lib/painel-auth";
 import { obterMetricas } from "@/lib/metricas";
+import { resolverTurma, turmaValida } from "@/lib/relatorios-links";
+import { buscarTurmas } from "@/lib/turmas-dados";
 import { sairPainel } from "@/app/(painel)/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SenhaForm } from "@/components/painel/senha-form";
@@ -22,7 +24,7 @@ export const dynamic = "force-dynamic";
 export default async function RelatoriosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dias?: string }>;
+  searchParams: Promise<{ dias?: string; turma?: string }>;
 }) {
   // Portão de senha: quem não está autenticado vê só o formulário.
   if (!(await painelAutenticado())) {
@@ -38,7 +40,9 @@ export default async function RelatoriosPage({
 
   const parametros = await searchParams;
   const dias = resolverDias(parametros.dias);
-  const metricas = await obterMetricas(dias);
+  const turmas = await buscarTurmas();
+  const turma = turmaValida(resolverTurma(parametros.turma), turmas);
+  const metricas = await obterMetricas(dias, turma);
 
   return (
     <main className="flex flex-1 flex-col bg-background">
@@ -68,7 +72,13 @@ export default async function RelatoriosPage({
       </header>
 
       <div className="animate-aparecer mx-auto w-full max-w-5xl flex-1 px-6 py-8">
-        <PainelMetricas metricas={metricas} dias={dias} basePath="/relatorios" />
+        <PainelMetricas
+          metricas={metricas}
+          dias={dias}
+          basePath="/relatorios"
+          turma={turma}
+          turmas={turmas}
+        />
       </div>
     </main>
   );

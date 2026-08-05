@@ -4,8 +4,11 @@
 
 import Link from "next/link";
 import type { Metricas } from "@/lib/metricas";
+import { linkRelatorio } from "@/lib/relatorios-links";
+import type { Turma } from "@/lib/turmas";
 import { compararPeriodos, type Variacao } from "@/lib/variacao";
 import { Contador } from "@/components/ui/contador";
+import { FiltroTurma } from "@/components/painel/filtro-turma";
 import { GraficoEvolucao } from "@/components/painel/grafico-evolucao";
 import { TabelaOrigens } from "@/components/painel/tabela-origens";
 import { GeradorUtm } from "@/components/painel/gerador-utm";
@@ -77,7 +80,15 @@ function Cartao({
   );
 }
 
-function FiltroPeriodo({ dias, basePath }: { dias: number; basePath: string }) {
+function FiltroPeriodo({
+  dias,
+  basePath,
+  turma,
+}: {
+  dias: number;
+  basePath: string;
+  turma: number | null;
+}) {
   return (
     <nav
       aria-label="Período do relatório"
@@ -86,7 +97,7 @@ function FiltroPeriodo({ dias, basePath }: { dias: number; basePath: string }) {
       {PERIODOS.map((p) => (
         <Link
           key={p.dias}
-          href={`${basePath}?dias=${p.dias}`}
+          href={linkRelatorio(basePath, { dias: p.dias, turma })}
           aria-current={p.dias === dias ? "page" : undefined}
           className={
             p.dias === dias
@@ -105,10 +116,15 @@ export function PainelMetricas({
   metricas,
   dias,
   basePath,
+  turma = null,
+  turmas = [],
 }: {
   metricas: Metricas;
   dias: number;
   basePath: string;
+  /** Recorte por turma ativo — null mostra todas (padrão pré-0023). */
+  turma?: number | null;
+  turmas?: Turma[];
 }) {
   return (
     <div className="space-y-6">
@@ -121,8 +137,14 @@ export function PainelMetricas({
             Última inscrição em {formatarUltima(metricas.ultima)}.
           </p>
         </div>
-        <FiltroPeriodo dias={dias} basePath={basePath} />
+        <FiltroPeriodo dias={dias} basePath={basePath} turma={turma} />
       </div>
+
+      <FiltroTurma
+        turmas={turmas}
+        turmaAtiva={turma}
+        hrefPara={(t) => linkRelatorio(basePath, { dias, turma: t })}
+      />
 
       <div className="escalonado grid gap-4 sm:grid-cols-3">
         <Cartao
@@ -163,14 +185,14 @@ export function PainelMetricas({
       <p className="text-xs text-slate-400">
         Exportar CSV:{" "}
         <a
-          href={`/relatorios/exportar?tipo=origens&dias=${dias}`}
+          href={linkRelatorio("/relatorios/exportar", { tipo: "origens", dias, turma })}
           className="underline transition hover:text-brand-900 dark:hover:text-brand-100"
         >
           origens do tráfego
         </a>{" "}
         ·{" "}
         <a
-          href={`/relatorios/exportar?tipo=serie&dias=${dias}`}
+          href={linkRelatorio("/relatorios/exportar", { tipo: "serie", dias, turma })}
           className="underline transition hover:text-brand-900 dark:hover:text-brand-100"
         >
           série diária
