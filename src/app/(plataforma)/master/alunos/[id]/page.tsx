@@ -7,6 +7,8 @@ import {
   desempenhoDoAluno,
   type DadosTurma,
 } from "@/lib/relatorios-turma";
+import { dataLiberacaoFormatada, turmaLiberada } from "@/lib/turmas";
+import { buscarTurmaDaInscricao } from "@/lib/turmas-dados";
 
 export const metadata: Metadata = { title: "Aluno — CSMG Master" };
 export const dynamic = "force-dynamic";
@@ -169,17 +171,35 @@ export default async function AlunoMasterPage({
     desempenho = desempenhoDoAluno(dados, usuario.id);
   }
 
+  // Turma (0023): consulta separada e best-effort — sem a migração, some.
+  const turma = await buscarTurmaDaInscricao(inscricao.id);
+  const turmaAguardando = Boolean(turma && !turmaLiberada(turma));
+
   const status = inscricao.ativado_em
     ? { rotulo: "Ativo", cor: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" }
-    : inscricao.selecionado
-      ? { rotulo: "Convidado", cor: "bg-ambar-100/60 text-ambar-700 dark:bg-brand-900/40 dark:text-ambar-400" }
-      : { rotulo: "Aguardando liberação", cor: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" };
+    : turmaAguardando
+      ? { rotulo: `Aguardando a turma abrir`, cor: "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300" }
+      : inscricao.selecionado
+        ? { rotulo: "Convidado", cor: "bg-ambar-100/60 text-ambar-700 dark:bg-brand-900/40 dark:text-ambar-400" }
+        : { rotulo: "Aguardando liberação", cor: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" };
 
   const cadastro: [string, string][] = [
     ["E-mail", inscricao.email],
     ["Telefone", inscricao.telefone ?? "—"],
     ["CPF", inscricao.cpf ?? "—"],
     ["Matrícula", inscricao.matricula],
+    ...(turma
+      ? ([
+          [
+            "Turma",
+            `${turma.nome ?? `Turma ${turma.numero}`}${
+              turmaAguardando
+                ? ` — acesso abre em ${dataLiberacaoFormatada(turma)}`
+                : ""
+            }`,
+          ],
+        ] as [string, string][])
+      : []),
     ["Inscrição em", dataHora(inscricao.created_at)],
     ["Conta ativada em", dataHora(inscricao.ativado_em)],
   ];

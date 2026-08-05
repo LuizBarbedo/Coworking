@@ -15,6 +15,7 @@ export function LinhaAluno({
   email,
   matricula,
   ativado,
+  turma,
   linkWhatsApp,
   contatoWhatsApp,
 }: {
@@ -23,6 +24,8 @@ export function LinhaAluno({
   email: string;
   matricula: string;
   ativado: boolean;
+  /** Turma da inscrição (0023); aguardando = a turma ainda não abriu. */
+  turma?: { rotulo: string; aguardando: boolean; abreEm?: string } | null;
   /** wa.me com a mensagem pronta (montado no servidor); null sem telefone. */
   linkWhatsApp?: string | null;
   /** Último clique da equipe no botão de WhatsApp deste aluno. */
@@ -49,6 +52,23 @@ export function LinhaAluno({
         </Link>
         <p className="truncate text-xs text-slate-500">
           {email} · matrícula {matricula}
+          {turma ? (
+            <>
+              {" · "}
+              <span
+                className={
+                  turma.aguardando
+                    ? "font-medium text-amber-700 dark:text-amber-300"
+                    : undefined
+                }
+              >
+                {turma.rotulo}
+                {turma.aguardando && turma.abreEm
+                  ? ` · abre ${turma.abreEm}`
+                  : ""}
+              </span>
+            </>
+          ) : null}
         </p>
         <MensagemEquipe state={state} />
       </div>

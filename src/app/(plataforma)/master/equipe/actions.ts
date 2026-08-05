@@ -15,7 +15,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   enviarEmailConviteAluno,
   enviarEmailConviteMonitor,
+  enviarEmailInscricaoAguardandoTurma,
 } from "@/lib/email";
+import { dataLiberacaoFormatada, turmaLiberada } from "@/lib/turmas";
+import { buscarTurmaDaInscricao, buscarTurmas } from "@/lib/turmas-dados";
 import { isValidCPF, unmaskCPF } from "@/lib/cpf";
 import { isValidPhone, unmaskPhone } from "@/lib/phone";
 import { urlDaPlataforma } from "@/lib/urls";
@@ -223,12 +226,30 @@ export async function cadastrarAluno(
   if (!EMAIL_REGEX.test(email)) return { error: "E-mail inválido." };
   if (!isValidPhone(telefone)) return { error: "Telefone inválido." };
 
+  // Turma escolhida no formulário (0023). Turma que ainda não abriu: entra
+  // sem selecionado e com a confirmação da data — o convite sai no disparo
+  // da liberação. Sem seletor (migração pendente), fluxo antigo.
+  const turmaCampo = String(formData.get("turma") ?? "").trim();
+  const turmaEscolhida = turmaCampo
+    ? ((await buscarTurmas()).find((t) => t.numero === Number(turmaCampo)) ??
+      null)
+    : null;
+  if (turmaCampo && !turmaEscolhida) return { error: "Turma inválida." };
+  const aguardaTurma = Boolean(turmaEscolhida && !turmaLiberada(turmaEscolhida));
+
   const admin = createSupabaseAdminClient();
-  // Mesma porta do público: inscrição já selecionada; matrícula vem do
-  // default da coluna; o aluno define a senha no /primeiro-acesso.
+  // Mesma porta do público: matrícula vem do default da coluna; o aluno
+  // define a senha no /primeiro-acesso quando a turma dele estiver aberta.
   const { data, error } = await admin
     .from("inscricoes")
-    .insert({ nome, cpf, email, telefone, selecionado: true })
+    .insert({
+      nome,
+      cpf,
+      email,
+      telefone,
+      selecionado: !aguardaTurma,
+      ...(turmaEscolhida ? { turma: turmaEscolhida.numero } : {}),
+    })
     .select("id, matricula")
     .single();
 
@@ -244,6 +265,41 @@ export async function cadastrarAluno(
   revalidatePath("/master/equipe");
   const linkPrimeiroAcesso = `${urlDaPlataforma()}/primeiro-acesso`;
   const inscricaoId = (data as { id?: string }).id ?? null;
+
+  if (aguardaTurma && turmaEscolhida) {
+    const nomeTurma = turmaEscolhida.nome ?? `Turma ${turmaEscolhida.numero}`;
+    const dataLiberacao = dataLiberacaoFormatada(turmaEscolhida);
+    try {
+      await enviarEmailInscricaoAguardandoTurma({
+        nome,
+        email,
+        matricula: data.matricula as string,
+        nomeTurma,
+        dataLiberacao,
+      });
+      await registrarConviteIndividual({
+        inscricaoId,
+        email,
+        ok: true,
+        tipo: "confirmacao_turma",
+      });
+    } catch (erro) {
+      await registrarConviteIndividual({
+        inscricaoId,
+        email,
+        ok: false,
+        erro: erro instanceof Error ? erro.message.slice(0, 500) : "erro",
+        tipo: "confirmacao_turma",
+      });
+      return {
+        ok: `Aluno cadastrado na ${nomeTurma} (matrícula ${data.matricula}), mas o e-mail de confirmação falhou — avise que o acesso abre em ${dataLiberacao}.`,
+      };
+    }
+    return {
+      ok: `Aluno cadastrado na ${nomeTurma} (matrícula ${data.matricula}) — confirmação enviada; o convite de acesso sai em ${dataLiberacao}.`,
+    };
+  }
+
   try {
     await enviarEmailConviteAluno({
       nome,
@@ -286,7 +342,16 @@ export async function reenviarConviteAluno(
     .single();
 
   if (error || !data) return { error: "Inscrição não encontrada." };
-  if (!data.selecionado) return { error: "Inscrição ainda não selecionada." };
+  if (!data.selecionado) {
+    // Turma que ainda não abriu explica a espera; o resto mantém a regra.
+    const turma = await buscarTurmaDaInscricao(data.id);
+    if (turma && !turmaLiberada(turma)) {
+      return {
+        error: `Aluno da ${turma.nome ?? `Turma ${turma.numero}`} — o acesso abre em ${dataLiberacaoFormatada(turma)} e o convite sai no disparo dessa data.`,
+      };
+    }
+    return { error: "Inscrição ainda não selecionada." };
+  }
   if (data.ativado_em) return { error: "Esse aluno já ativou a conta." };
 
   try {

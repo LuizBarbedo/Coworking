@@ -6,6 +6,8 @@ import { urlDaPlataforma } from "@/lib/urls";
 import { linkConviteWhatsApp } from "@/lib/whatsapp";
 import { FormCadastrarAluno } from "@/components/master/form-cadastrar-aluno";
 import { LinhaAluno } from "@/components/master/linha-aluno";
+import { dataLiberacaoFormatada, turmaLiberada } from "@/lib/turmas";
+import { buscarTurmas } from "@/lib/turmas-dados";
 
 export const metadata: Metadata = { title: "Alunos — CSMG Master" };
 export const dynamic = "force-dynamic";
@@ -19,7 +21,7 @@ const STATUS = [
   { valor: "ativado", rotulo: "Ativos" },
 ] as const;
 
-type Busca = { q?: string; status?: string; pagina?: string };
+type Busca = { q?: string; status?: string; turma?: string; pagina?: string };
 
 export default async function AlunosMasterPage({
   searchParams,
@@ -30,16 +32,28 @@ export default async function AlunosMasterPage({
   // cadastrar aluno novo segue só pra admin (formulário condicionado abaixo).
   await exigirPermissao("gerenciar_emails");
   const sessao = await getSessaoEquipe();
-  const { q = "", status = "", pagina = "1" } = await searchParams;
+  const { q = "", status = "", turma = "", pagina = "1" } = await searchParams;
   const paginaAtual = Math.max(1, Number.parseInt(pagina, 10) || 1);
   const admin = createSupabaseAdminClient();
 
+  // Turmas (0023): sem a migração a lista vem vazia e a coluna não entra
+  // no select — a aba funciona exatamente como antes.
+  const turmas = await buscarTurmas();
+  const temTurmas = turmas.length > 0;
+  const rotuloDaTurma = new Map(
+    turmas.map((t) => [t.numero, t.nome ?? `Turma ${t.numero}`]),
+  );
+
   let consulta = admin
     .from("inscricoes")
-    .select("id, nome, email, telefone, matricula, selecionado, ativado_em", {
-      count: "exact",
-    })
+    .select(
+      temTurmas
+        ? "id, nome, email, telefone, matricula, selecionado, ativado_em, turma"
+        : "id, nome, email, telefone, matricula, selecionado, ativado_em",
+      { count: "exact" },
+    )
     .order("created_at", { ascending: false });
+  if (temTurmas && turma) consulta = consulta.eq("turma", Number(turma));
 
   const termo = q.trim();
   if (termo) {
@@ -105,9 +119,10 @@ export default async function AlunosMasterPage({
 
   function link(params: Partial<Busca>): string {
     const query = new URLSearchParams();
-    const final = { q: termo, status, pagina: "1", ...params };
+    const final = { q: termo, status, turma, pagina: "1", ...params };
     if (final.q) query.set("q", final.q);
     if (final.status) query.set("status", final.status);
+    if (final.turma) query.set("turma", final.turma);
     if (final.pagina !== "1") query.set("pagina", final.pagina);
     const s = query.toString();
     return s ? `/master/alunos?${s}` : "/master/alunos";
@@ -158,6 +173,29 @@ export default async function AlunosMasterPage({
             ))}
           </div>
 
+          {temTurmas ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[{ valor: "", rotulo: "Todas as turmas" }].concat(
+                turmas.map((t) => ({
+                  valor: String(t.numero),
+                  rotulo: rotuloDaTurma.get(t.numero) ?? `Turma ${t.numero}`,
+                })),
+              ).map((t) => (
+                <Link
+                  key={t.valor}
+                  href={link({ turma: t.valor })}
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    turma === t.valor
+                      ? "border-brand-600 bg-brand-50 font-medium text-brand-900 dark:bg-brand-950/60 dark:text-brand-200"
+                      : "border-slate-200 text-slate-500 hover:border-brand-300"
+                  }`}
+                >
+                  {t.rotulo}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
           <div className="mt-4 rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm">
             <p className="text-xs text-slate-500">
               {total} inscrição(ões){termo ? ` pra “${termo}”` : ""} — página{" "}
@@ -177,6 +215,20 @@ export default async function AlunosMasterPage({
                     email={i.email}
                     matricula={i.matricula}
                     ativado={i.ativado_em !== null}
+                    turma={(() => {
+                      const numero = (i as { turma?: number | null }).turma;
+                      const dados =
+                        numero == null
+                          ? null
+                          : turmas.find((t) => t.numero === numero);
+                      if (!dados) return null;
+                      const liberada = turmaLiberada(dados);
+                      return {
+                        rotulo: rotuloDaTurma.get(numero!) ?? `Turma ${numero}`,
+                        aguardando: !liberada,
+                        abreEm: liberada ? undefined : dataLiberacaoFormatada(dados),
+                      };
+                    })()}
                     contatoWhatsApp={contatoPorInscricao.get(i.id) ?? null}
                     linkWhatsApp={
                       i.ativado_em === null
@@ -231,7 +283,19 @@ export default async function AlunosMasterPage({
               Novo aluno
             </h2>
             <div className="mt-3 rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm">
-              <FormCadastrarAluno />
+              <FormCadastrarAluno
+                turmas={turmas.map((t) => {
+                  const liberada = turmaLiberada(t);
+                  return {
+                    numero: t.numero,
+                    rotulo: `${rotuloDaTurma.get(t.numero) ?? `Turma ${t.numero}`}${
+                      liberada
+                        ? " — acesso imediato"
+                        : ` — abre ${dataLiberacaoFormatada(t)}`
+                    }`,
+                  };
+                })}
+              />
             </div>
           </div>
         ) : null}
