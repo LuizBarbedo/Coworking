@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { exigirPermissao } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { FormAcao } from "@/components/ui/form-acao";
+import { resumoConvitesPorTurma } from "@/lib/convites-resumo";
 import { filtrarPorTurmaLiberada } from "@/lib/turmas";
 import { buscarTurmas } from "@/lib/turmas-dados";
 import { dispararConvites, conferirDevolucoes } from "./actions";
@@ -21,22 +22,47 @@ export default async function EmailsMasterPage() {
   await exigirPermissao("gerenciar_emails");
   const admin = createSupabaseAdminClient();
 
-  const [primeiraBusca, enviosRes, turmas] = await Promise.all([
-    admin.from("inscricoes").select("id, selecionado, ativado_em, turma"),
+  const contarPorStatus = (status: string) =>
+    admin
+      .from("envios_email")
+      .select("id", { count: "exact", head: true })
+      .eq("status", status);
+
+  const [
+    primeiraBusca,
+    enviosRes,
+    turmas,
+    convidadosRes,
+    enviadosRes,
+    falhasRes,
+    devolvidosRes,
+  ] = await Promise.all([
+    admin.from("inscricoes").select("id, email, selecionado, ativado_em, turma"),
     admin
       .from("envios_email")
       .select("id, email, status, erro, created_at")
       .order("created_at", { ascending: false })
       .limit(300),
     buscarTurmas(),
+    // Quem já recebeu convite — a tabela inteira, mesma régua do disparo.
+    admin
+      .from("envios_email")
+      .select("email")
+      .eq("tipo", "convite_acesso")
+      .eq("status", "enviado"),
+    // Totais por status sem o viés dos 300 últimos.
+    contarPorStatus("enviado"),
+    contarPorStatus("falha"),
+    contarPorStatus("devolvido"),
   ]);
   // Coluna turma só existe com a 0023 — sem ela, refaz sem a coluna.
   const inscricoesRes = primeiraBusca.error
-    ? await admin.from("inscricoes").select("id, selecionado, ativado_em")
+    ? await admin.from("inscricoes").select("id, email, selecionado, ativado_em")
     : primeiraBusca;
 
   const inscricoes = (inscricoesRes.data ?? []) as Array<{
     id: string;
+    email: string;
     selecionado: boolean;
     ativado_em: string | null;
     turma?: number | null;
@@ -52,10 +78,20 @@ export default async function EmailsMasterPage() {
     liberados: inscricoes.filter((i) => i.selecionado).length,
     ativados: inscricoes.filter((i) => i.ativado_em).length,
     aguardandoTurma: aguardando.length,
-    enviados: (envios ?? []).filter((e) => e.status === "enviado").length,
-    falhas: (envios ?? []).filter((e) => e.status === "falha").length,
-    devolvidos: (envios ?? []).filter((e) => e.status === "devolvido").length,
+    enviados: enviadosRes.count ?? 0,
+    falhas: falhasRes.count ?? 0,
+    devolvidos: devolvidosRes.count ?? 0,
   };
+
+  const emailsConvidados = new Set(
+    (convidadosRes.data ?? []).map((e) => e.email.toLowerCase()),
+  );
+  // Cards só das turmas com data de liberação (a 1 é liberada desde sempre).
+  const resumoTurmas = resumoConvitesPorTurma(
+    inscricoes,
+    emailsConvidados,
+    turmas,
+  ).filter((t) => t.dataLiberacao !== "");
 
   return (
     <div className="animate-aparecer">
@@ -92,6 +128,46 @@ export default async function EmailsMasterPage() {
           </div>
         ))}
       </div>
+
+      {resumoTurmas.map((t) => (
+        <section
+          key={t.numero}
+          className={`mt-6 rounded-xl border p-5 shadow-sm ${
+            t.liberada
+              ? "border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/30"
+              : "border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/30"
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">
+              {t.nome}
+            </h2>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                t.liberada
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200"
+                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+              }`}
+            >
+              {t.liberada
+                ? `Liberada em ${t.dataLiberacao}`
+                : `Libera em ${t.dataLiberacao}`}
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            <strong>{t.inscritos}</strong>{" "}
+            {t.inscritos === 1 ? "inscrito" : "inscritos"} ·{" "}
+            <strong>{t.semConvite}</strong> sem convite ·{" "}
+            <strong>{t.ativados}</strong>{" "}
+            {t.ativados === 1 ? "conta ativada" : "contas ativadas"}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {t.liberada
+              ? "A turma já abriu: o botão abaixo envia o convite de quem ainda não recebeu."
+              : "Os convites desta turma só saem a partir da liberação — o botão abaixo não os envia antes disso."}
+          </p>
+        </section>
+      ))}
 
       <div className="mt-6 flex flex-wrap gap-3">
         <FormAcao action={dispararConvites}>
