@@ -2,7 +2,15 @@
 
 // Card de avaliação da disciplina: aparece quando o aluno conclui (aulas
 // vistas e avaliação aprovada, quando houver). Estrelas 1–5 + comentário
-// opcional; o feedback vai anônimo pro relatório da equipe.
+// opcional.
+//
+// SOBRE O "ANÔNIMO": o relatório da equipe mostra nota e comentário SEM
+// identificar quem escreveu, e o RLS impede um aluno ver a avaliação do
+// outro. Mas a tabela guarda o aluno_id (é o que garante uma avaliação por
+// aluno e permite editar a própria), então quem tem acesso direto ao banco
+// consegue ligar comentário a pessoa. Por isso o texto abaixo promete o que
+// a implementação entrega — "sem identificação no relatório" — e não
+// anonimato absoluto.
 import { useState } from "react";
 import { FormAcao } from "@/components/ui/form-acao";
 import { avaliarDisciplina } from "@/app/(plataforma)/(aluno)/actions";
@@ -24,8 +32,8 @@ export function AvaliacaoDisciplina({
           : "Você concluiu — o que achou desta disciplina?"}
       </h2>
       <p className="mt-0.5 text-sm text-slate-500">
-        Sua opinião vai anônima pra equipe do curso e ajuda a melhorar as
-        próximas turmas.
+        A equipe do curso vê sua nota e seu comentário sem identificação de
+        quem escreveu, e isso ajuda a melhorar as próximas turmas.
       </p>
 
       <FormAcao action={avaliarDisciplina} className="mt-4 space-y-3">
