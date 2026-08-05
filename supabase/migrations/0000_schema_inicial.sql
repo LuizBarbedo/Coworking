@@ -51,3 +51,19 @@ select
   ) as "Data de inscrição"
 from public.inscricoes
 order by created_at desc;
+
+-- ─── Grants padrão do Supabase ────────────────────────────────────────────
+-- A baseline veio de um dump sem ACLs; sem estes grants o PostgREST nega
+-- tudo na homologação (a produção os tem desde o restore com ACL). O modelo
+-- de segurança é RLS-first: os grants são amplos e as policies restringem;
+-- RPCs sensíveis fazem revoke explícito nas migrações que as criam.
+grant usage on schema public to anon, authenticated, service_role;
+grant all on all tables in schema public to anon, authenticated, service_role;
+grant all on all sequences in schema public to anon, authenticated, service_role;
+grant all on all functions in schema public to anon, authenticated, service_role;
+alter default privileges in schema public
+  grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public
+  grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public
+  grant all on functions to anon, authenticated, service_role;
