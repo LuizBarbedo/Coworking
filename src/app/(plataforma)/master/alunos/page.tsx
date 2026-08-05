@@ -209,47 +209,54 @@ export default async function AlunosMasterPage({
               </p>
             ) : (
               <ul className="mt-2">
-                {(inscricoes ?? []).map((i) => (
-                  <LinhaAluno
-                    key={i.id}
-                    id={i.id}
-                    nome={i.nome}
-                    email={i.email}
-                    matricula={i.matricula}
-                    ativado={i.ativado_em !== null}
-                    turma={(() => {
-                      const numero = (i as { turma?: number | null }).turma;
-                      const dados =
-                        numero == null
-                          ? null
-                          : turmas.find((t) => t.numero === numero);
-                      if (!dados) return null;
-                      const liberada = turmaLiberada(dados);
-                      return {
-                        rotulo: rotuloDaTurma.get(numero!) ?? `Turma ${numero}`,
-                        aguardando: !liberada,
-                        abreEm: liberada ? undefined : dataLiberacaoFormatada(dados),
-                      };
-                    })()}
-                    contatoWhatsApp={contatoPorInscricao.get(i.id) ?? null}
-                    linkWhatsApp={
-                      i.ativado_em === null
-                        ? linkConviteWhatsApp(
-                            {
-                              nome: i.nome,
-                              email: i.email,
-                              matricula: i.matricula,
-                              telefone: i.telefone,
-                              emailDevolvido: emailsDevolvidos.has(
-                                i.email.toLowerCase(),
-                              ),
-                            },
-                            urlApp,
-                          )
-                        : null
-                    }
-                  />
-                ))}
+                {(inscricoes ?? []).map((i) => {
+                  const numero = (i as { turma?: number | null }).turma;
+                  const dados =
+                    numero == null
+                      ? null
+                      : turmas.find((t) => t.numero === numero);
+                  const liberada = dados ? turmaLiberada(dados) : true;
+                  return (
+                    <LinhaAluno
+                      key={i.id}
+                      id={i.id}
+                      nome={i.nome}
+                      email={i.email}
+                      matricula={i.matricula}
+                      ativado={i.ativado_em !== null}
+                      turma={
+                        dados
+                          ? {
+                              rotulo:
+                                rotuloDaTurma.get(numero!) ?? `Turma ${numero}`,
+                              aguardando: !liberada,
+                              abreEm: liberada
+                                ? undefined
+                                : dataLiberacaoFormatada(dados),
+                            }
+                          : null
+                      }
+                      contatoWhatsApp={contatoPorInscricao.get(i.id) ?? null}
+                      linkWhatsApp={
+                        i.ativado_em === null
+                          ? linkConviteWhatsApp(
+                              {
+                                nome: i.nome,
+                                email: i.email,
+                                matricula: i.matricula,
+                                telefone: i.telefone,
+                                emailDevolvido: emailsDevolvidos.has(
+                                  i.email.toLowerCase(),
+                                ),
+                                turmaAguardando: !liberada,
+                              },
+                              urlApp,
+                            )
+                          : null
+                      }
+                    />
+                  );
+                })}
               </ul>
             )}
             {paginas > 1 ? (

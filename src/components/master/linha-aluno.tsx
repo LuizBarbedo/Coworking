@@ -86,7 +86,7 @@ export function LinhaAluno({
               ✓ chamado por {contato.por} · {contato.quando}
             </span>
           ) : null}
-          {linkWhatsApp ? (
+          {linkWhatsApp && !turma?.aguardando ? (
             <a
               href={linkWhatsApp}
               target="_blank"

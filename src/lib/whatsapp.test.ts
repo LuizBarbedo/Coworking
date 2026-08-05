@@ -34,6 +34,12 @@ describe("linkConviteWhatsApp", () => {
     expect(linkConviteWhatsApp({ ...aluna, telefone: "123" }, url)).toBeNull();
   });
 
+  it("turma que ainda não abriu não gera link — a mensagem prometeria acesso que não existe", () => {
+    expect(
+      linkConviteWhatsApp({ ...aluna, turmaAguardando: true }, url),
+    ).toBeNull();
+  });
+
   it("e-mail devolvido troca a mensagem: pede o e-mail correto", () => {
     const link = linkConviteWhatsApp(
       { ...aluna, emailDevolvido: true },

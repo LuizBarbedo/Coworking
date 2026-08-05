@@ -10,6 +10,8 @@ export type AlunoParaAviso = {
   telefone: string | null;
   /** Convite quicou (envio 'devolvido'): a mensagem pede o e-mail correto. */
   emailDevolvido?: boolean;
+  /** Turma do aluno ainda não abriu: não há acesso a avisar. */
+  turmaAguardando?: boolean;
 };
 
 function primeiroNome(nome: string): string {
@@ -20,6 +22,9 @@ export function linkConviteWhatsApp(
   aluno: AlunoParaAviso,
   urlPlataforma: string,
 ): string | null {
+  // Turma bloqueada = a mensagem ("seu acesso foi liberado!") seria falsa e o
+  // aluno tentaria entrar antes da hora. A chamada libera junto com a turma.
+  if (aluno.turmaAguardando) return null;
   const digitos = (aluno.telefone ?? "").replace(/\D/g, "");
   if (digitos.length < 10) return null;
   const numero =
