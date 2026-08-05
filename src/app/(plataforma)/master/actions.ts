@@ -138,7 +138,7 @@ export async function criarModulo(
         : "Não foi possível criar o módulo.",
     };
   }
-  revalidatePath("/master");
+  revalidatePath("/master/conteudo");
   redirect(`/master/modulos/${data.id}`);
 }
 
@@ -229,7 +229,7 @@ export async function atualizarModulo(
     detalhes: { publicado: Boolean(dados.publicado) },
   });
   revalidatePath(`/master/modulos/${id}`);
-  revalidatePath("/master");
+  revalidatePath("/master/conteudo");
   return { ok: "Módulo salvo." };
 }
 
@@ -250,8 +250,8 @@ export async function excluirModulo(
     alvoTipo: "modulo",
     alvoId: id,
   });
-  revalidatePath("/master");
-  redirect("/master");
+  revalidatePath("/master/conteudo");
+  redirect("/master/conteudo");
 }
 
 /**
@@ -288,7 +288,7 @@ export async function reordenarModulos(
     detalhes: { ordem: novaOrdem },
   });
 
-  revalidatePath("/master");
+  revalidatePath("/master/conteudo");
   revalidatePath("/painel");
   return { ok: "Ordem dos módulos salva." };
 }

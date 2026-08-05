@@ -5,7 +5,7 @@
 // reordenarModulos.
 
 import Link from "next/link";
-import { reordenarModulos } from "./actions";
+import { reordenarModulos } from "../actions";
 import { ListaOrdenavel } from "@/components/master/lista-ordenavel";
 
 type Modulo = {

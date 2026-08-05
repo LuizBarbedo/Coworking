@@ -1,108 +1,100 @@
-import { FormAcao } from "@/components/ui/form-acao";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import { exigirMaster, getSessaoEquipe } from "@/lib/auth";
-import { primeiraRotaPermitida, temPermissao } from "@/lib/permissoes";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { criarModulo } from "./actions";
-import { ListaModulos } from "./lista-modulos";
+import { temPermissao, type Permissao } from "@/lib/permissoes";
 
 export const metadata: Metadata = { title: "Área do Master — CSMG" };
 
-const inputClass =
-  "w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200";
+// Visão operacional: números ao vivo a cada visita.
+export const dynamic = "force-dynamic";
 
-type Modulo = {
-  id: string;
-  titulo: string;
-  publicado: boolean;
-  instrutor: string | null;
+type Atalho = {
+  href: string;
+  rotulo: string;
+  descricao: string;
+  /** Permissão que libera o atalho — ausente = só admin. */
+  permissao?: Permissao;
+  dataTour?: string;
 };
 
-export default async function MasterHome() {
+const ATALHOS: Atalho[] = [
+  {
+    href: "/master/conteudo",
+    rotulo: "Conteúdo",
+    descricao: "Módulos, disciplinas, aulas, materiais e avaliações.",
+    permissao: "editar_conteudo",
+    dataTour: "master-conteudo",
+  },
+  {
+    href: "/master/relatorios",
+    rotulo: "Relatórios",
+    descricao: "Inscrições, funil e desempenho da turma.",
+    permissao: "ver_relatorios",
+  },
+  {
+    href: "/master/forum",
+    rotulo: "Fórum de dúvidas",
+    descricao: "Fila de moderação e publicações dos alunos.",
+    permissao: "moderar_forum",
+  },
+  {
+    href: "/master/alunos",
+    rotulo: "Alunos",
+    descricao: "Contas, matrículas e reenvio de convites.",
+    permissao: "gerenciar_emails",
+  },
+  {
+    href: "/master/emails",
+    rotulo: "E-mails",
+    descricao: "Convites de acesso, falhas e devoluções.",
+    permissao: "gerenciar_emails",
+  },
+  {
+    href: "/master/turmas",
+    rotulo: "Turmas",
+    descricao: "Datas de liberação de cada turma.",
+  },
+];
+
+export default async function MasterInicioPage() {
   await exigirMaster();
-  // A home do hub é a aba Conteúdo: monitor sem essa permissão vai pra
-  // primeira aba que pode ver (ou pro painel de aluno, se nenhuma).
   const sessao = await getSessaoEquipe();
-  if (sessao && !temPermissao(sessao, "editar_conteudo")) {
-    redirect(primeiraRotaPermitida(sessao) ?? "/painel");
-  }
-  const admin = createSupabaseAdminClient();
-  const { data: modulos } = await admin
-    .from("modulos")
-    .select("id, titulo, publicado, instrutor")
-    .order("ordem", { ascending: true })
-    .order("created_at", { ascending: true })
-    .returns<Modulo[]>();
+
+  const atalhos = ATALHOS.filter((a) =>
+    a.permissao ? temPermissao(sessao, a.permissao) : sessao?.nivel === "admin",
+  );
 
   return (
     <div className="animate-aparecer">
-      <h1 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">Gerenciar conteúdo</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
+        Início
+      </h1>
       <p className="mt-1 text-sm text-slate-500">
-        Crie e organize os módulos, disciplinas, aulas, materiais e avaliações do
-        curso.
+        Visão geral da operação — cada área em detalhe fica nas abas.
       </p>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-        {/* Lista de módulos */}
-        <div data-tour="master-modulos">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Módulos
-          </h2>
-          <ListaModulos modulos={modulos ?? []} />
-          {modulos && modulos.length > 1 ? (
-            <p className="mt-2 text-xs text-slate-500">
-              Arraste pela alça ou use as setas para reordenar. A ordem vale para
-              os alunos.
-            </p>
-          ) : null}
+      {atalhos.length === 0 ? (
+        <p className="mt-8 rounded-xl border border-dashed border-slate-300 bg-superficie p-6 text-center text-sm text-slate-500">
+          Sua conta ainda não tem nenhuma área liberada — peça a um admin
+          para conceder as permissões na aba Equipe.
+        </p>
+      ) : (
+        <div className="escalonado mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {atalhos.map((a) => (
+            <div key={a.href} data-tour={a.dataTour}>
+              <Link
+                href={a.href}
+                className="block h-full rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
+              >
+                <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">
+                  {a.rotulo}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">{a.descricao}</p>
+              </Link>
+            </div>
+          ))}
         </div>
-
-        {/* Criar módulo */}
-        <div className="rounded-xl border border-slate-200 bg-superficie p-5 shadow-sm">
-          <h2 className="font-display font-semibold text-brand-900 dark:text-brand-100">Novo módulo</h2>
-          <FormAcao action={criarModulo} className="mt-4 space-y-3">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Título
-              </label>
-              <input name="titulo" required className={inputClass} />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Instrutor (opcional)
-              </label>
-              <input name="instrutor" className={inputClass} />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Descrição (opcional)
-              </label>
-              <textarea name="descricao" rows={3} className={inputClass} />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Disponibilizar em (opcional)
-              </label>
-              <input
-                type="datetime-local"
-                name="publicar_em"
-                className={inputClass}
-              />
-              <p className="mt-1 text-xs text-slate-500">
-                Horário de Brasília. Na hora marcada o módulo é publicado
-                sozinho; até lá os alunos veem o card &quot;Em breve&quot;.
-              </p>
-            </div>
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98]"
-            >
-              Criar módulo
-            </button>
-          </FormAcao>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

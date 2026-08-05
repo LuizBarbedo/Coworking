@@ -18,9 +18,9 @@ export default async function MasterLayout({
   await exigirMaster();
   const sessao = await getSessaoEquipe();
 
-  const abas: AbaMaster[] = [];
+  const abas: AbaMaster[] = [{ href: "/master", rotulo: "Início" }];
   if (temPermissao(sessao, "editar_conteudo"))
-    abas.push({ href: "/master", rotulo: "Conteúdo" });
+    abas.push({ href: "/master/conteudo", rotulo: "Conteúdo" });
   if (temPermissao(sessao, "ver_relatorios"))
     abas.push({ href: "/master/relatorios", rotulo: "Relatórios" });
   if (temPermissao(sessao, "moderar_forum"))

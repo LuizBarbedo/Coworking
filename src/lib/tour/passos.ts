@@ -103,6 +103,9 @@ const TOURS: Record<PerfilTour, PassoTour[]> = {
     },
     {
       seletor: "master-modulos",
+      // A home do master é o Início (dashboard); o card Conteúdo leva à
+      // lista de módulos — o tour navega por ele sem precisar de passo novo.
+      linkDe: "master-conteudo",
       titulo: "Módulos",
       descricao:
         "Tudo começa pelos módulos, as grandes áreas do curso. Vamos abrir um.",

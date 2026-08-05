@@ -18,12 +18,16 @@ export function NavMaster({ abas }: { abas: AbaMaster[] }) {
       className="flex gap-1 overflow-x-auto border-b border-slate-200"
     >
       {abas.map((aba) => {
-        // A home ("/master") só fica ativa em rota exata; as demais valem
-        // pros filhos (ex.: /master/equipe/…).
+        // A home ("/master") só fica ativa em rota exata; Conteúdo engloba
+        // módulos e disciplinas; as demais valem pros filhos.
         const ativo =
           aba.href === "/master"
-            ? pathname === "/master" || pathname.startsWith("/master/modulos") || pathname.startsWith("/master/disciplinas")
-            : pathname.startsWith(aba.href);
+            ? pathname === "/master"
+            : aba.href === "/master/conteudo"
+              ? pathname.startsWith("/master/conteudo") ||
+                pathname.startsWith("/master/modulos") ||
+                pathname.startsWith("/master/disciplinas")
+              : pathname.startsWith(aba.href);
         return (
           <Link
             key={aba.href}

@@ -67,21 +67,3 @@ export function podeVerComoAluno(sessao: SessaoEquipe | null): boolean {
   return temPermissao(sessao, "visao_aluno");
 }
 
-/** Rotas do hub em ordem de prioridade — permissão que libera cada aba. */
-const ROTAS_HUB: Array<[Permissao, string]> = [
-  ["editar_conteudo", "/master"],
-  ["ver_relatorios", "/master/relatorios"],
-  ["moderar_forum", "/master/forum"],
-  ["gerenciar_emails", "/master/emails"],
-];
-
-/**
- * Primeira aba do hub que a sessão pode ver, ou null se nenhuma (ex.:
- * monitor só com visao_aluno) — quem chama decide o destino.
- */
-export function primeiraRotaPermitida(sessao: SessaoEquipe): string | null {
-  for (const [permissao, rota] of ROTAS_HUB) {
-    if (temPermissao(sessao, permissao)) return rota;
-  }
-  return null;
-}

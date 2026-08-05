@@ -52,8 +52,9 @@ envs-para-luiz.txt
 prod-3000.log
 
 # Artefatos locais da VPS (conteúdo bruto do curso e capas geradas)
-conteudo/
-capas-geradas/
+# Ancorados na raiz: existe rota src/.../master/conteudo/ que é código.
+/conteudo/
+/capas-geradas/
 .next-nova/
 
 

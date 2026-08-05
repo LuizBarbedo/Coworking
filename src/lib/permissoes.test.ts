@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   lerSessaoEquipe,
   podeVerComoAluno,
-  primeiraRotaPermitida,
   temPermissao,
 } from "./permissoes";
 
@@ -102,34 +101,3 @@ describe("podeVerComoAluno", () => {
   });
 });
 
-describe("primeiraRotaPermitida", () => {
-  it("admin vai pro hub de conteúdo", () => {
-    expect(primeiraRotaPermitida(lerSessaoEquipe({ role: "master" })!)).toBe(
-      "/master",
-    );
-  });
-
-  it("monitor cai na primeira aba que pode ver, em ordem de prioridade", () => {
-    const monitor = (permissoes: string[]) =>
-      lerSessaoEquipe({ role: "master", nivel: "monitor", permissoes })!;
-    expect(primeiraRotaPermitida(monitor(["editar_conteudo"]))).toBe("/master");
-    expect(primeiraRotaPermitida(monitor(["ver_relatorios"]))).toBe(
-      "/master/relatorios",
-    );
-    expect(primeiraRotaPermitida(monitor(["moderar_forum"]))).toBe(
-      "/master/forum",
-    );
-    expect(
-      primeiraRotaPermitida(monitor(["moderar_forum", "editar_conteudo"])),
-    ).toBe("/master");
-  });
-
-  it("monitor sem aba nenhuma devolve null (quem chama decide o destino)", () => {
-    const monitor = lerSessaoEquipe({
-      role: "master",
-      nivel: "monitor",
-      permissoes: ["visao_aluno"],
-    })!;
-    expect(primeiraRotaPermitida(monitor)).toBe(null);
-  });
-});
