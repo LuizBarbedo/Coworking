@@ -73,6 +73,16 @@ export function RegistrationForm() {
         // matrícula vai por sessionStorage, nunca pela URL.
         try {
           sessionStorage.setItem("csmg-matricula", result.matricula);
+          // Turma ainda fechada: a confirmação troca o "veja seu e-mail
+          // agora" pela data de liberação do acesso.
+          if (result.aguardandoTurma) {
+            sessionStorage.setItem(
+              "csmg-aguardando-turma",
+              JSON.stringify(result.aguardandoTurma),
+            );
+          } else {
+            sessionStorage.removeItem("csmg-aguardando-turma");
+          }
         } catch {
           // sem storage, a página mostra a mensagem genérica (vai por e-mail)
         }

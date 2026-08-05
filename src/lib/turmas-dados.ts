@@ -39,6 +39,26 @@ export async function buscarTurmaDaInscricao(
 }
 
 /**
+ * Inscrição recém-criada + turma, pela matrícula (fluxo da landing). Antes
+ * da 0023 o embed falha → null, e a inscrição segue o fluxo antigo.
+ */
+export async function buscarInscricaoComTurmaPorMatricula(
+  matricula: string,
+): Promise<{ id: string; turma: Turma | null } | null> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("inscricoes")
+    .select("id, turmas(numero, nome, liberacao_em)")
+    .eq("matricula", matricula)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    id: data.id as string,
+    turma: (data.turmas as unknown as Turma | null) ?? null,
+  };
+}
+
+/**
  * Inscrição + turma pelo e-mail (pro fluxo de erro do login). O e-mail no
  * banco pode ter caixa mista (formulário antigo não normalizava) — busca
  * case-insensitive com curingas escapados.

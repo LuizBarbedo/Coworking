@@ -5,6 +5,7 @@ import {
   numerosLiberados,
   dataLiberacaoFormatada,
   filtrarPorTurmaLiberada,
+  turmaAtualDeInscricao,
   type Turma,
 } from "./turmas";
 
@@ -60,6 +61,20 @@ describe("dataLiberacaoFormatada", () => {
 
   it("turma liberada não tem data pra mostrar", () => {
     expect(dataLiberacaoFormatada(turma({ liberacao_em: null }))).toBe("");
+  });
+});
+
+describe("turmaAtualDeInscricao", () => {
+  it("é a turma de maior número — a mesma do default turma_atual() do banco", () => {
+    const atual = turmaAtualDeInscricao([
+      turma({ numero: 1, liberacao_em: null }),
+      turma({ numero: 2 }),
+    ]);
+    expect(atual?.numero).toBe(2);
+  });
+
+  it("sem turmas cadastradas, não há o que avisar", () => {
+    expect(turmaAtualDeInscricao([])).toBeNull();
   });
 });
 

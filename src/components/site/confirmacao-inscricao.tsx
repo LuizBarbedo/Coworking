@@ -10,15 +10,23 @@ import { AvisoSpam } from "@/components/ui/aviso-spam";
 import { dispararEventoMeta } from "@/lib/meta-pixel";
 
 export const CHAVE_MATRICULA = "csmg-matricula";
+export const CHAVE_AGUARDANDO_TURMA = "csmg-aguardando-turma";
+
+type TurmaAguardando = { nome: string; dataLiberacao: string };
 
 export function ConfirmacaoInscricao() {
   const [matricula, setMatricula] = useState<string | null>(null);
+  const [turmaAguardando, setTurmaAguardando] = useState<TurmaAguardando | null>(null);
 
   useEffect(() => {
     // Adiado pra fora do render do effect (regra react-hooks do projeto).
     const timer = setTimeout(() => {
       try {
         setMatricula(sessionStorage.getItem(CHAVE_MATRICULA));
+        const aguardando = sessionStorage.getItem(CHAVE_AGUARDANDO_TURMA);
+        if (aguardando) {
+          setTurmaAguardando(JSON.parse(aguardando) as TurmaAguardando);
+        }
       } catch {
         // sessionStorage indisponível: segue sem a matrícula (vai por e-mail)
       }
@@ -34,10 +42,20 @@ export function ConfirmacaoInscricao() {
       <h1 className="font-display text-2xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
         Inscrição recebida!
       </h1>
-      <p className="mt-3 text-brand-800/80 dark:text-brand-100/80">
-        Em breve você receberá no seu e-mail os próximos passos para acessar
-        os cursos.
-      </p>
+      {turmaAguardando ? (
+        <p className="mt-3 text-brand-800/80 dark:text-brand-100/80">
+          Você faz parte da <strong>{turmaAguardando.nome}</strong> — seu
+          acesso à plataforma será liberado em{" "}
+          <strong>{turmaAguardando.dataLiberacao}</strong>. Nesse dia você
+          recebe um e-mail com o passo a passo de entrada; a confirmação da
+          inscrição já está a caminho da sua caixa.
+        </p>
+      ) : (
+        <p className="mt-3 text-brand-800/80 dark:text-brand-100/80">
+          Em breve você receberá no seu e-mail os próximos passos para acessar
+          os cursos.
+        </p>
+      )}
       {matricula ? (
         <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-700 dark:bg-brand-900/40">
           <p className="text-xs font-medium uppercase tracking-wide text-brand-800/70 dark:text-brand-100/70">

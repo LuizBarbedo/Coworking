@@ -94,6 +94,48 @@ export async function enviarEmailConviteAluno(dados: {
 }
 
 /**
+ * Confirmação de inscrição em turma que ainda não abriu: a pessoa guarda a
+ * matrícula e sabe QUANDO entra — o convite com o passo a passo só sai no
+ * disparo da data de liberação da turma.
+ */
+export async function enviarEmailInscricaoAguardandoTurma(dados: {
+  nome: string;
+  email: string;
+  matricula: string;
+  nomeTurma: string;
+  /** Já formatada: "17/08/2026". */
+  dataLiberacao: string;
+}) {
+  const remetente = process.env.GMAIL_USER;
+
+  await getTransporter().sendMail({
+    from: `"Coworking Social" <${remetente}>`,
+    to: dados.email,
+    subject: `Inscrição confirmada — seu acesso abre em ${dados.dataLiberacao}`,
+    html: `
+      <p>Olá, ${dados.nome}!</p>
+      <p>Sua inscrição no curso do <strong>Coworking Social de Mudanças
+      Globais</strong> está confirmada: você faz parte da
+      <strong>${dados.nomeTurma}</strong>.</p>
+      <p>O acesso da sua turma à plataforma abre em
+      <strong>${dados.dataLiberacao}</strong>. Nesse dia você recebe um novo
+      e-mail com o passo a passo de entrada — até lá, não precisa fazer
+      nada.</p>
+      <p>Sua matrícula é <strong>${dados.matricula}</strong>. Guarde este
+      e-mail: ela é o seu número de identificação no curso e será pedida no
+      primeiro acesso.</p>
+      <p><strong>O que te espera lá dentro:</strong> videoaulas dos
+      professores, e-books pra baixar, avaliações pra acompanhar seu
+      progresso, um fórum de dúvidas com a turma e um assistente de IA
+      disponível a qualquer hora — tudo gratuito.</p>
+      <p>Qualquer dúvida, é só responder este e-mail.</p>
+      <p>Até ${dados.dataLiberacao}!<br/>Equipe CSMG · Coworking Social de
+      Mudanças Globais</p>
+    `,
+  });
+}
+
+/**
  * Convite de membro da equipe (monitor/admin): link único pra definir a
  * senha — nenhuma credencial viaja no corpo do e-mail.
  */

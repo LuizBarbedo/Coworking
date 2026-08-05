@@ -7,7 +7,10 @@ import { isValidPhone, unmaskPhone } from "@/lib/phone";
 import {
   enviarEmailConfirmacaoInscricao,
   enviarEmailConviteAluno,
+  enviarEmailInscricaoAguardandoTurma,
 } from "@/lib/email";
+import { turmaLiberada, dataLiberacaoFormatada } from "@/lib/turmas";
+import { buscarInscricaoComTurmaPorMatricula } from "@/lib/turmas-dados";
 import { registrarConviteIndividual } from "@/lib/convites";
 import { registrarEvento } from "@/lib/auditoria";
 import { sanitizarOrigem, type Origem } from "@/lib/origem";
@@ -36,7 +39,13 @@ export type RegistrationPayload = {
 };
 
 export type RegistrationResult =
-  | { ok: true; matricula: string }
+  | {
+      ok: true;
+      matricula: string;
+      /** Presente quando a turma da inscrição ainda não abriu: a confirmação
+       *  mostra a data em vez de prometer o e-mail de acesso imediato. */
+      aguardandoTurma?: { nome: string; dataLiberacao: string };
+    }
   | { ok: false; error: string; field?: keyof RegistrationPayload };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -137,10 +146,63 @@ export async function registerInscription(
     };
   }
 
-  // Com o curso lançado, quem se inscreve já entra: a inscrição nasce
-  // liberada e o e-mail traz as instruções de acesso (matrícula + primeiro
-  // acesso). Se a liberação falhar, cai no e-mail de confirmação antigo e a
-  // pessoa entra pela liberação manual da aba E-mails.
+  // Turma da inscrição recém-criada (migração 0023). Consulta separada e
+  // best-effort: sem a migração ela devolve null e tudo segue como sempre.
+  const criada = await buscarInscricaoComTurmaPorMatricula(matricula as string);
+
+  if (criada?.turma && !turmaLiberada(criada.turma)) {
+    // Turma ainda fechada: NÃO seleciona nem convida — o convite de acesso
+    // sai no disparo da data de liberação (aba E-mails). A confirmação de
+    // agora só garante a vaga e informa a data.
+    const nomeTurma = criada.turma.nome ?? `Turma ${criada.turma.numero}`;
+    const dataLiberacao = dataLiberacaoFormatada(criada.turma);
+    try {
+      await enviarEmailInscricaoAguardandoTurma({
+        nome,
+        email,
+        matricula: matricula as string,
+        nomeTurma,
+        dataLiberacao,
+      });
+      await registrarConviteIndividual({
+        inscricaoId: criada.id,
+        email,
+        ok: true,
+        tipo: "confirmacao_turma",
+      });
+    } catch (emailError) {
+      console.error("Falha ao enviar e-mail da inscrição:", emailError);
+      await registrarConviteIndividual({
+        inscricaoId: criada.id,
+        email,
+        ok: false,
+        erro:
+          emailError instanceof Error ? emailError.message.slice(0, 500) : "erro",
+        tipo: "confirmacao_turma",
+      });
+    }
+    await registrarEvento({
+      acao: "inscricao.criada",
+      atorPapel: "sistema",
+      alvoTipo: "inscricao",
+      alvoId: criada.id,
+      detalhes: {
+        liberadaAutomaticamente: false,
+        turma: criada.turma.numero,
+        aguardandoLiberacao: true,
+      },
+    });
+    return {
+      ok: true,
+      matricula: matricula as string,
+      aguardandoTurma: { nome: nomeTurma, dataLiberacao },
+    };
+  }
+
+  // Turma liberada (ou migração pendente): quem se inscreve já entra — a
+  // inscrição nasce liberada e o e-mail traz as instruções de acesso
+  // (matrícula + primeiro acesso). Se a liberação falhar, cai no e-mail de
+  // confirmação antigo e a pessoa entra pela liberação manual da aba E-mails.
   const admin = createSupabaseAdminClient();
   const { data: liberada } = await admin
     .from("inscricoes")

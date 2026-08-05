@@ -19,12 +19,15 @@ async function registrarEnvio(
     email: string;
     status: "enviado" | "falha";
     erro?: string;
+    /** Default convite_acesso. A confirmação de turma usa tipo próprio —
+     *  senão a idempotência do disparo pularia quem só recebeu confirmação. */
+    tipo?: string;
   },
 ): Promise<void> {
   await admin.from("envios_email").insert({
     inscricao_id: dados.inscricao_id,
     email: dados.email.toLowerCase(),
-    tipo: "convite_acesso",
+    tipo: dados.tipo ?? "convite_acesso",
     status: dados.status,
     erro: dados.erro ?? null,
   });
@@ -36,6 +39,7 @@ export async function registrarConviteIndividual(dados: {
   email: string;
   ok: boolean;
   erro?: string;
+  tipo?: string;
 }): Promise<void> {
   const admin = createSupabaseAdminClient();
   await registrarEnvio(admin, {
@@ -43,6 +47,7 @@ export async function registrarConviteIndividual(dados: {
     email: dados.email,
     status: dados.ok ? "enviado" : "falha",
     erro: dados.erro,
+    tipo: dados.tipo,
   });
 }
 

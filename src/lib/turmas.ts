@@ -47,6 +47,16 @@ export function dataLiberacaoFormatada(turma: Turma): string {
 }
 
 /**
+ * A turma em que uma inscrição nova cai — espelha o default turma_atual()
+ * (max(numero)) da migração 0023. A landing usa pra avisar quando a turma
+ * atual ainda não abriu.
+ */
+export function turmaAtualDeInscricao(turmas: Turma[]): Turma | null {
+  if (turmas.length === 0) return null;
+  return turmas.reduce((maior, t) => (t.numero > maior.numero ? t : maior));
+}
+
+/**
  * Separa inscrições entre quem já pode entrar e quem espera a turma abrir.
  * Sem a lista de turmas (migração pendente), turma ausente ou desconhecida:
  * a inscrição passa como liberada.
