@@ -1,14 +1,12 @@
 // Conteúdo do painel de métricas de inscrição, compartilhado entre o
 // /relatorios (senha única, sem conta) e a aba Relatórios da administração.
-// basePath parametriza os links de período/exportação de cada contexto.
+// Os filtros (turma, período) ficam na BarraFiltros de cada página — aqui
+// é só o conteúdo do recorte já resolvido.
 
-import Link from "next/link";
 import type { Metricas } from "@/lib/metricas";
 import { linkRelatorio } from "@/lib/relatorios-links";
-import type { Turma } from "@/lib/turmas";
 import { compararPeriodos, type Variacao } from "@/lib/variacao";
 import { Contador } from "@/components/ui/contador";
-import { FiltroTurma } from "@/components/painel/filtro-turma";
 import { GraficoEvolucao } from "@/components/painel/grafico-evolucao";
 import { TabelaOrigens } from "@/components/painel/tabela-origens";
 import { GeradorUtm } from "@/components/painel/gerador-utm";
@@ -80,71 +78,26 @@ function Cartao({
   );
 }
 
-function FiltroPeriodo({
-  dias,
-  basePath,
-  turma,
-}: {
-  dias: number;
-  basePath: string;
-  turma: number | null;
-}) {
-  return (
-    <nav
-      aria-label="Período do relatório"
-      className="inline-flex rounded-lg border border-slate-200 bg-superficie p-0.5 text-sm shadow-sm"
-    >
-      {PERIODOS.map((p) => (
-        <Link
-          key={p.dias}
-          href={linkRelatorio(basePath, { dias: p.dias, turma })}
-          aria-current={p.dias === dias ? "page" : undefined}
-          className={
-            p.dias === dias
-              ? "rounded-md bg-brand-900 px-3 py-1 font-medium text-white dark:bg-brand-100 dark:text-brand-900"
-              : "rounded-md px-3 py-1 text-slate-500 transition hover:text-brand-900 dark:hover:text-brand-100"
-          }
-        >
-          {p.rotulo}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
 export function PainelMetricas({
   metricas,
   dias,
-  basePath,
   turma = null,
-  turmas = [],
 }: {
   metricas: Metricas;
   dias: number;
-  basePath: string;
   /** Recorte por turma ativo — null mostra todas (padrão pré-0023). */
   turma?: number | null;
-  turmas?: Turma[];
 }) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
-            Acompanhamento de inscrições
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Última inscrição em {formatarUltima(metricas.ultima)}.
-          </p>
-        </div>
-        <FiltroPeriodo dias={dias} basePath={basePath} turma={turma} />
+      <div>
+        <h2 className="font-display text-xl font-semibold text-brand-900 dark:text-brand-100">
+          Acompanhamento de inscrições
+        </h2>
+        <p className="mt-0.5 text-sm text-slate-500">
+          Última inscrição em {formatarUltima(metricas.ultima)}.
+        </p>
       </div>
-
-      <FiltroTurma
-        turmas={turmas}
-        turmaAtiva={turma}
-        hrefPara={(t) => linkRelatorio(basePath, { dias, turma: t })}
-      />
 
       <div className="escalonado grid gap-4 sm:grid-cols-3">
         <Cartao

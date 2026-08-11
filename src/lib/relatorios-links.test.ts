@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Turma } from "@/lib/turmas";
-import { linkRelatorio, resolverTurma, turmaValida } from "./relatorios-links";
+import {
+  linkRelatorio,
+  nomeDaTurma,
+  opcoesDeTurma,
+  resolverTurma,
+  turmaValida,
+} from "./relatorios-links";
 
 const turmas: Turma[] = [
   { numero: 1, nome: "Turma 1", liberacao_em: null },
@@ -81,5 +87,46 @@ describe("linkRelatorio", () => {
     expect(linkRelatorio("/relatorios/exportar", { tipo: "origens", dias: 30 })).toBe(
       "/relatorios/exportar?tipo=origens&dias=30",
     );
+  });
+});
+
+describe("opcoesDeTurma", () => {
+  it("abre com Todas e mantém a ordem das turmas", () => {
+    expect(
+      opcoesDeTurma([
+        { numero: 1, nome: "Turma 1", liberacao_em: null },
+        { numero: 2, nome: "Turma 2", liberacao_em: null },
+      ]),
+    ).toEqual([
+      { valor: null, rotulo: "Todas" },
+      { valor: 1, rotulo: "Turma 1" },
+      { valor: 2, rotulo: "Turma 2" },
+    ]);
+  });
+
+  it("inventa o rótulo quando a turma não tem nome", () => {
+    expect(
+      opcoesDeTurma([{ numero: 3, nome: null, liberacao_em: null }])[1],
+    ).toEqual({ valor: 3, rotulo: "Turma 3" });
+  });
+
+  it("não oferece filtro nenhum sem turmas (0023 ausente)", () => {
+    expect(opcoesDeTurma([])).toEqual([]);
+  });
+});
+
+describe("nomeDaTurma", () => {
+  const turmas = [{ numero: 2, nome: "Turma 2", liberacao_em: null }];
+
+  it("devolve null pro recorte de todas as turmas", () => {
+    expect(nomeDaTurma(null, turmas)).toBeNull();
+  });
+
+  it("acha o nome da turma ativa", () => {
+    expect(nomeDaTurma(2, turmas)).toBe("Turma 2");
+  });
+
+  it("cai no rótulo genérico pra turma fora da lista", () => {
+    expect(nomeDaTurma(9, turmas)).toBe("Turma 9");
   });
 });

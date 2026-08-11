@@ -16,6 +16,26 @@ export function turmaValida(turma: number | null, turmas: Turma[]): number | nul
   return turmas.some((t) => t.numero === turma) ? turma : null;
 }
 
+/** Opção "Todas" + uma por turma, pro grupo de pílulas do filtro. */
+export function opcoesDeTurma(
+  turmas: Turma[],
+): { valor: number | null; rotulo: string }[] {
+  if (turmas.length === 0) return [];
+  return [
+    { valor: null, rotulo: "Todas" },
+    ...turmas.map((t) => ({
+      valor: t.numero as number | null,
+      rotulo: t.nome ?? `Turma ${t.numero}`,
+    })),
+  ];
+}
+
+/** Nome da turma no recorte ativo — null quando são todas. */
+export function nomeDaTurma(turma: number | null, turmas: Turma[]): string | null {
+  if (turma === null) return null;
+  return turmas.find((t) => t.numero === turma)?.nome ?? `Turma ${turma}`;
+}
+
 /**
  * Monta o link de relatório/exportação preservando os filtros. Omite os
  * padrões (turma null, visão "inscricoes") pra manter as URLs atuais limpas.

@@ -2,13 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { painelAutenticado } from "@/lib/painel-auth";
 import { obterMetricas } from "@/lib/metricas";
-import { resolverTurma, turmaValida } from "@/lib/relatorios-links";
+import {
+  linkRelatorio,
+  nomeDaTurma,
+  opcoesDeTurma,
+  resolverTurma,
+  turmaValida,
+} from "@/lib/relatorios-links";
+import { resumoDoRecorte } from "@/lib/resumo-filtros";
 import { buscarTurmas } from "@/lib/turmas-dados";
 import { sairPainel } from "@/app/(painel)/actions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SenhaForm } from "@/components/painel/senha-form";
+import { BarraFiltros } from "@/components/painel/barra-filtros";
 import {
   PainelMetricas,
+  PERIODOS,
   resolverDias,
 } from "@/components/painel/painel-metricas";
 import { TemaToggle } from "@/components/ui/tema-toggle";
@@ -42,6 +51,7 @@ export default async function RelatoriosPage({
   const dias = resolverDias(parametros.dias);
   const turmas = await buscarTurmas();
   const turma = turmaValida(resolverTurma(parametros.turma), turmas);
+  const nomeAtual = nomeDaTurma(turma, turmas);
   const metricas = await obterMetricas(dias, turma);
 
   return (
@@ -71,13 +81,41 @@ export default async function RelatoriosPage({
         </div>
       </header>
 
-      <div className="animate-aparecer mx-auto w-full max-w-5xl flex-1 px-6 py-8">
+      <div className="animate-aparecer mx-auto w-full max-w-5xl flex-1 space-y-6 px-6 py-8">
+        <BarraFiltros
+          linhas={[
+            {
+              rotulo: "Turma",
+              ativo: turma,
+              opcoes: opcoesDeTurma(turmas),
+              hrefPara: (t) =>
+                linkRelatorio("/relatorios", {
+                  dias,
+                  turma: t as number | null,
+                }),
+            },
+            {
+              rotulo: "Período",
+              ativo: dias,
+              opcoes: PERIODOS.map((p) => ({
+                valor: p.dias,
+                rotulo: p.rotulo,
+              })),
+              hrefPara: (d) =>
+                linkRelatorio("/relatorios", { dias: d as number, turma }),
+            },
+          ]}
+          resumo={resumoDoRecorte({ nomeDaTurma: nomeAtual, dias })}
+          hrefLimpar={
+            turma === null && dias === 30
+              ? undefined
+              : linkRelatorio("/relatorios", { dias: 30 })
+          }
+        />
         <PainelMetricas
           metricas={metricas}
           dias={dias}
-          basePath="/relatorios"
           turma={turma}
-          turmas={turmas}
         />
       </div>
     </main>
