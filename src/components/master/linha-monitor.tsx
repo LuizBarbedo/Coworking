@@ -75,7 +75,7 @@ export function LinhaMonitor({
               {PERMISSOES.map((p) => (
                 <label
                   key={p}
-                  className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300"
+                  className="flex items-center gap-1.5 text-sm text-slate-700"
                 >
                   <input
                     type="checkbox"

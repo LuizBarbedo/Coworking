@@ -36,7 +36,7 @@ function CampoLinkConvite({ link }: { link: string }) {
         readOnly
         value={link}
         onFocus={(e) => e.currentTarget.select()}
-        className="w-full min-w-0 rounded-md border border-emerald-200 bg-superficie px-2 py-1 text-xs text-slate-700 dark:border-emerald-900 dark:text-slate-300"
+        className="w-full min-w-0 rounded-md border border-emerald-200 bg-superficie px-2 py-1 text-xs text-slate-700 dark:border-emerald-900"
       />
       <button
         type="button"
@@ -99,7 +99,7 @@ export function FormCadastrarMonitor() {
           {PERMISSOES.map((p) => (
             <label
               key={p}
-              className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
+              className="flex items-center gap-2 text-sm text-slate-700"
             >
               <input
                 type="checkbox"

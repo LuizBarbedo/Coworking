@@ -73,12 +73,12 @@ export function ItemModeracao({
         {titulo}
       </h3>
       {corpo ? (
-        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
           {corpo}
         </p>
       ) : null}
       {opcoes && opcoes.length > 0 ? (
-        <ul className="mt-1 list-inside list-disc text-sm text-slate-600 dark:text-slate-400">
+        <ul className="mt-1 list-inside list-disc text-sm text-slate-600">
           {opcoes.map((o, i) => (
             <li key={i}>{o}</li>
           ))}

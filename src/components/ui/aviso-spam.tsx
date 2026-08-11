@@ -2,7 +2,7 @@
 // principal motivo de inscrito "sem e-mail" — o acesso inteiro depende dele.
 export function AvisoSpam({ titulo }: { titulo: string }) {
   return (
-    <div className="rounded-xl border border-ambar-400/40 bg-ambar-100/50 p-4 text-sm text-slate-700 dark:border-brand-700 dark:bg-brand-900/40 dark:text-slate-300">
+    <div className="rounded-xl border border-ambar-400/40 bg-ambar-100/50 p-4 text-sm text-slate-700 dark:border-brand-700 dark:bg-brand-900/40">
       <p className="font-semibold">{titulo}</p>
       <p className="mt-1">
         Procure por <strong>&ldquo;Coworking Social&rdquo;</strong> na caixa de{" "}

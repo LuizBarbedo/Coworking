@@ -33,7 +33,7 @@ export function Trilha({ itens }: { itens: ItemTrilha[] }) {
             {item.href ? (
               <Link
                 href={item.href}
-                className="inline-flex max-w-56 items-center rounded-lg border border-slate-300 bg-superficie px-2.5 py-1 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 active:scale-[0.98] dark:text-slate-200 dark:hover:text-brand-100"
+                className="inline-flex max-w-56 items-center rounded-lg border border-slate-300 bg-superficie px-2.5 py-1 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 active:scale-[0.98] dark:hover:text-brand-100"
               >
                 <span className="truncate">{item.titulo}</span>
               </Link>

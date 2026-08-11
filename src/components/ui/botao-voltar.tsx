@@ -14,7 +14,7 @@ export function BotaoVoltar({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-superficie px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 active:scale-[0.98] dark:text-slate-200 dark:hover:text-brand-100 ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-superficie px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 active:scale-[0.98] dark:hover:text-brand-100 ${className}`}
     >
       <svg
         width="15"

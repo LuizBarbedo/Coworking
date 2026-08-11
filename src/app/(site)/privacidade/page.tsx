@@ -20,7 +20,7 @@ function Secao({
       <h2 className="font-display text-xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
         {titulo}
       </h2>
-      <div className="space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+      <div className="space-y-2 text-sm leading-relaxed text-slate-600">
         {children}
       </div>
     </section>
@@ -100,7 +100,7 @@ export default function PrivacidadePage() {
           </p>
         </Secao>
 
-        <div className="border-t border-slate-200 pt-6 dark:border-slate-700">
+        <div className="border-t border-slate-200 pt-6">
           <BotaoVoltar href="/">Voltar para a página inicial</BotaoVoltar>
         </div>
       </div>

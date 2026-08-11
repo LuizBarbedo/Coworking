@@ -82,7 +82,7 @@ export function Deflection({ titulo }: { titulo: string }) {
             Ver o que o assistente responde
           </button>
         ) : (
-          <div className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+          <div className="mt-2 text-sm text-slate-700">
             {erro ? (
               <p className="text-red-600">{erro}</p>
             ) : (

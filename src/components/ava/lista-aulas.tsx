@@ -112,7 +112,7 @@ export function ListaAulas({
                 {/* Justificado com hifenização (o root é lang="pt-BR"):
                     sem hífen, justificar abre buracos entre as palavras. */}
                 {aula.descricao ? (
-                  <p className="mt-4 hyphens-auto text-justify text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                  <p className="mt-4 hyphens-auto text-justify text-sm leading-relaxed text-slate-600">
                     {aula.descricao}
                   </p>
                 ) : null}

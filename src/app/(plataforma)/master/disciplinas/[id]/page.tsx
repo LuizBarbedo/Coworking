@@ -255,7 +255,7 @@ export default async function DisciplinaMasterPage({
                 .map((a, i) => (
                   <li
                     key={i}
-                    className="rounded-lg border border-slate-100 bg-background p-3 text-sm dark:border-slate-800"
+                    className="rounded-lg border border-slate-100 bg-background p-3 text-sm"
                   >
                     <p className="text-xs text-amber-500">
                       {"★".repeat(a.estrelas as number)}
@@ -267,7 +267,7 @@ export default async function DisciplinaMasterPage({
                         }).format(new Date(a.created_at as string))}
                       </span>
                     </p>
-                    <p className="mt-1 text-slate-700 dark:text-slate-300">
+                    <p className="mt-1 text-slate-700">
                       {a.comentario}
                     </p>
                   </li>

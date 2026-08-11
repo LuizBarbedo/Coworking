@@ -161,7 +161,7 @@ export function ListaModulos({ modulos }: { modulos: CardModulo[] }) {
                   <Capa modulo={m} className="aspect-video w-full opacity-80" />
                   <div className="p-5">
                     <div className="flex items-center justify-between gap-2">
-                      <h2 className="font-semibold text-slate-600 dark:text-slate-300">
+                      <h2 className="font-semibold text-slate-600">
                         {m.titulo}
                       </h2>
                       <SeloEmBreve quando={m.disponivelEm} />
@@ -207,7 +207,7 @@ export function ListaModulos({ modulos }: { modulos: CardModulo[] }) {
                 <div className="flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-superficie p-3 opacity-70">
                   <Capa modulo={m} className="h-14 w-24 flex-none rounded-lg opacity-80" />
                   <div className="min-w-0 flex-1">
-                    <h2 className="truncate font-semibold text-slate-600 dark:text-slate-300">
+                    <h2 className="truncate font-semibold text-slate-600">
                       {m.titulo}
                     </h2>
                     {m.instrutor ? (

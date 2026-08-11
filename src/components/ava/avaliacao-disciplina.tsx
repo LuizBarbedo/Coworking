@@ -53,7 +53,7 @@ export function AvaliacaoDisciplina({
               aria-label={`${n} estrela${n > 1 ? "s" : ""}`}
               onClick={() => setEstrelas(n)}
               className={`text-3xl transition hover:scale-110 ${
-                n <= estrelas ? "text-amber-400" : "text-slate-300 dark:text-slate-600"
+                n <= estrelas ? "text-amber-400" : "text-slate-300"
               }`}
             >
               ★

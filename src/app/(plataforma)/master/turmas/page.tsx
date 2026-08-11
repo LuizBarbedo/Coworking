@@ -133,7 +133,7 @@ export default async function TurmasMasterPage() {
                 />
                 <button
                   type="submit"
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:scale-[0.98] dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:scale-[0.98]"
                 >
                   Criar turma
                 </button>

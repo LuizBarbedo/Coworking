@@ -264,7 +264,7 @@ export default async function AlunosMasterPage({
                 {paginaAtual > 1 ? (
                   <Link
                     href={link({ pagina: String(paginaAtual - 1) })}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
                   >
                     Anterior
                   </Link>
@@ -274,7 +274,7 @@ export default async function AlunosMasterPage({
                 {paginaAtual < paginas ? (
                   <Link
                     href={link({ pagina: String(paginaAtual + 1) })}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700"
                   >
                     Próxima
                   </Link>

@@ -216,7 +216,7 @@ export default async function PostPage({
           ) : null}
         </p>
         {post.corpo ? (
-          <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+          <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">
             {post.corpo}
           </p>
         ) : null}
@@ -306,7 +306,7 @@ export default async function PostPage({
                         Não aprovada: {r.motivo_rejeicao}
                       </p>
                     ) : null}
-                    <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
                       {r.corpo}
                     </p>
                     {r.status === "aprovado" ? (

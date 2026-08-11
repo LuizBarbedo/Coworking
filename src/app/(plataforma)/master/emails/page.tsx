@@ -154,7 +154,7 @@ export default async function EmailsMasterPage() {
                 : `Libera em ${t.dataLiberacao}`}
             </span>
           </div>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          <p className="mt-2 text-sm text-slate-600">
             <strong>{t.inscritos}</strong>{" "}
             {t.inscritos === 1 ? "inscrito" : "inscritos"} ·{" "}
             <strong>{t.semConvite}</strong> sem convite ·{" "}
@@ -181,7 +181,7 @@ export default async function EmailsMasterPage() {
         <FormAcao action={conferirDevolucoes}>
           <button
             type="submit"
-            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:scale-[0.98] dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:scale-[0.98]"
           >
             Conferir devoluções na caixa
           </button>
@@ -227,7 +227,7 @@ export default async function EmailsMasterPage() {
                       minute: "2-digit",
                     }).format(new Date(e.created_at))}
                   </td>
-                  <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-2 text-slate-700">
                     {e.email}
                   </td>
                   <td className="px-4 py-2">

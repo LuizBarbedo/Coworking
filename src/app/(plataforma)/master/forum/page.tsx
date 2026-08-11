@@ -56,7 +56,7 @@ export default async function ModeracaoForumPage() {
         </h1>
         <Link
           href="/forum"
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
         >
           Abrir o fórum →
         </Link>

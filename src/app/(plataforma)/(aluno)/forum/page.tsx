@@ -141,7 +141,7 @@ export default async function ForumPage({
                 />
                 <Link
                   href={`/forum/${p.id}`}
-                  className="text-slate-700 underline-offset-2 hover:underline dark:text-slate-300"
+                  className="text-slate-700 underline-offset-2 hover:underline"
                 >
                   {p.titulo}
                 </Link>

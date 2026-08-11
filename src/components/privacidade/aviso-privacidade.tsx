@@ -36,7 +36,7 @@ export function AvisoPrivacidade() {
       className="animate-surgir fixed inset-x-0 bottom-0 z-50 p-4 sm:p-6"
     >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 rounded-2xl border border-slate-200 bg-superficie p-5 shadow-lg sm:flex-row sm:items-center">
-        <p className="flex-1 text-sm text-slate-600 dark:text-slate-300">
+        <p className="flex-1 text-sm text-slate-600">
           Este site usa apenas cookies essenciais (sessão e preferências) e
           conta as visitas de forma anônima para medir a divulgação — sem
           cookies de terceiros e sem identificar você.{" "}

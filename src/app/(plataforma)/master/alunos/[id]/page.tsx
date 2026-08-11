@@ -181,7 +181,7 @@ export default async function AlunoMasterPage({
       ? { rotulo: `Aguardando a turma abrir`, cor: "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300" }
       : inscricao.selecionado
         ? { rotulo: "Convidado", cor: "bg-ambar-100/60 text-ambar-700 dark:bg-brand-900/40 dark:text-ambar-400" }
-        : { rotulo: "Aguardando liberação", cor: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" };
+        : { rotulo: "Aguardando liberação", cor: "bg-slate-100 text-slate-600" };
 
   const cadastro: [string, string][] = [
     ["E-mail", inscricao.email],
@@ -234,7 +234,7 @@ export default async function AlunoMasterPage({
               {cadastro.map(([rotulo, valor]) => (
                 <div key={rotulo}>
                   <dt className="text-xs text-slate-500">{rotulo}</dt>
-                  <dd className="break-words text-slate-700 dark:text-slate-200">
+                  <dd className="break-words text-slate-700">
                     {valor}
                   </dd>
                 </div>
@@ -253,7 +253,7 @@ export default async function AlunoMasterPage({
             ) : (
               <ul className="mt-3 space-y-2 text-sm">
                 {(conviteRes.data ?? []).map((e, i) => (
-                  <li key={i} className="text-slate-700 dark:text-slate-200">
+                  <li key={i} className="text-slate-700">
                     {dataHora(e.created_at)} —{" "}
                     {ROTULO_ENVIO[e.status] ?? e.status}
                     {e.erro ? (
@@ -334,10 +334,10 @@ export default async function AlunoMasterPage({
                             </p>
                             <p className="text-xs text-slate-500">{d.modulo}</p>
                           </td>
-                          <td className="whitespace-nowrap px-4 py-2.5 text-slate-600 dark:text-slate-300">
+                          <td className="whitespace-nowrap px-4 py-2.5 text-slate-600">
                             {d.aulasVistas}/{d.totalAulas}
                           </td>
-                          <td className="whitespace-nowrap px-4 py-2.5 text-slate-600 dark:text-slate-300">
+                          <td className="whitespace-nowrap px-4 py-2.5 text-slate-600">
                             {d.quiz
                               ? `${d.quiz.aprovado ? "aprovado" : "reprovado"} · nota ${d.quiz.nota}% · ${d.quiz.tentativas} tentativa(s)`
                               : "não tentou"}
@@ -364,7 +364,7 @@ export default async function AlunoMasterPage({
                   <ul className="mt-3 space-y-1.5 rounded-xl border border-slate-200 bg-superficie p-4 text-sm shadow-sm">
                     {eventos.slice(0, 12).map((e, i) => (
                       <li key={i} className="flex justify-between gap-3">
-                        <span className="text-slate-700 dark:text-slate-200">
+                        <span className="text-slate-700">
                           {ROTULO_EVENTO[e.acao] ?? e.acao}
                         </span>
                         <span className="whitespace-nowrap text-xs text-slate-500">

@@ -62,7 +62,7 @@ export default async function AlunoLayout({
             <span data-tour="forum">
               <Link
                 href="/forum"
-                className="text-sm font-medium text-slate-600 transition hover:text-brand-900 dark:text-slate-300 dark:hover:text-brand-100"
+                className="text-sm font-medium text-slate-600 transition hover:text-brand-900 dark:hover:text-brand-100"
               >
                 Fórum<span className="hidden sm:inline"> de dúvidas</span>
               </Link>

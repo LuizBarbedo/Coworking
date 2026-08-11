@@ -39,7 +39,7 @@ export function NavSequencial({
       {anterior ? (
         <Link
           href={anterior.href}
-          className="inline-flex max-w-[48%] items-center gap-2 rounded-lg border border-slate-300 bg-superficie px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 active:scale-[0.98] dark:text-slate-200 dark:hover:text-brand-100"
+          className="inline-flex max-w-[48%] items-center gap-2 rounded-lg border border-slate-300 bg-superficie px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 active:scale-[0.98] dark:hover:text-brand-100"
         >
           <Chevron lado="esq" />
           <span className="min-w-0">

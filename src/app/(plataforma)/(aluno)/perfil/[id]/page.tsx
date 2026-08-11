@@ -72,7 +72,7 @@ export default async function PerfilPublicoPage({
               {lerSessaoEquipe(conta.user.app_metadata) ? <BadgeEquipe /> : null}
             </h1>
             {perfil?.bio ? (
-              <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-400">
+              <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">
                 {perfil.bio}
               </p>
             ) : (
@@ -113,7 +113,7 @@ export default async function PerfilPublicoPage({
         <div className="mt-4 space-y-4">
           <div>
             <div className="flex items-baseline justify-between text-sm">
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="text-slate-600">
                 Aulas concluídas
               </span>
               <span className="tabular-nums text-slate-500">

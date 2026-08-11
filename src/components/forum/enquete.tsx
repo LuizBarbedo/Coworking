@@ -42,7 +42,7 @@ export function Enquete({
                   className={
                     minha
                       ? "font-medium text-brand-900 dark:text-brand-100"
-                      : "text-slate-700 dark:text-slate-300"
+                      : "text-slate-700"
                   }
                 >
                   {o.texto}
@@ -74,7 +74,7 @@ export function Enquete({
       {opcoes.map((o) => (
         <label
           key={o.id}
-          className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:border-brand-300 dark:text-slate-300"
+          className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:border-brand-300"
         >
           <input
             type="radio"
