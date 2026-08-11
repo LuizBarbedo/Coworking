@@ -109,8 +109,10 @@ export function ListaAulas({
                   poster={aula.poster}
                   videoStatus={aula.videoStatus}
                 />
+                {/* Justificado com hifenização (o root é lang="pt-BR"):
+                    sem hífen, justificar abre buracos entre as palavras. */}
                 {aula.descricao ? (
-                  <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                  <p className="mt-4 max-w-3xl hyphens-auto text-justify text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                     {aula.descricao}
                   </p>
                 ) : null}
