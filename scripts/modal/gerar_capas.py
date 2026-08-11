@@ -55,6 +55,8 @@ TEMAS: dict[str, str] = {
     "gestao-e-planejamento-financeiro": "A safe vault with a growing plant on top, cash flow river, upward chart",
     "aspectos-juridicos-e-formalizacao": "A scale of justice with a signed document and official stamp, pillars",
     "financiamento-e-cooperativismo-de-credito": "Many hands joined in a circle around a coin, cooperative unity, credit union spirit",
+    "empreendedorismo-social": "A young apprentice in work uniform receiving a badge, a hillside community of small houses behind, open door to a first job, hopeful atmosphere",
+    "cooperativismo-principios-e-aplicacoes": "A circle of people holding hands around two simple wheat stalks, one raised hand voting, simple composition, plenty of empty background",
 }
 
 
