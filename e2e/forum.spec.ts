@@ -97,7 +97,8 @@ test.describe("fórum com moderação prévia", () => {
     });
     const paginaMod = await contextoMod.newPage();
     await logarNumaNovaSessao(paginaMod, modEmail, modSenha);
-    await paginaMod.waitForURL(/\/master\/forum/, { timeout: 30_000 });
+    // O login da equipe cai no dashboard "Início"; a fila fica na aba Fórum.
+    await paginaMod.goto("/master/forum");
     const itemSpam = paginaMod
       .locator("li", { hasText: SPAM.titulo })
       .first();
