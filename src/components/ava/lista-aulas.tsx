@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { VideoPlayer } from "@/components/ava/video-player";
 import { MarcarAssistidaButton } from "@/components/ava/marcar-assistida-button";
+import { aulaInicial } from "@/lib/aulas";
 
 export type AulaItem = {
   id: string;
@@ -23,7 +25,30 @@ export function ListaAulas({
   aulas: AulaItem[];
   caminho: string;
 }) {
-  const [aberta, setAberta] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const [aberta, setAberta] = useState<string | null>(() =>
+    aulaInicial(aulas, searchParams.get("aula")),
+  );
+
+  /**
+   * Abre/fecha e deixa a aula na URL, para o link ser compartilhável e a
+   * posição sobreviver ao refresh. `replaceState` conversa com o router do
+   * Next (useSearchParams enxerga a mudança) sem refazer a navegação.
+   */
+  function alternar(id: string) {
+    const proxima = aberta === id ? null : id;
+    setAberta(proxima);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (proxima) params.set("aula", proxima);
+    else params.delete("aula");
+    const busca = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      busca ? `${window.location.pathname}?${busca}` : window.location.pathname,
+    );
+  }
 
   if (aulas.length === 0) {
     return (
@@ -44,7 +69,7 @@ export function ListaAulas({
           >
             <button
               type="button"
-              onClick={() => setAberta(expandida ? null : aula.id)}
+              onClick={() => alternar(aula.id)}
               aria-expanded={expandida}
               className="flex w-full items-center gap-4 px-5 py-4 text-left transition hover:bg-slate-50"
             >
@@ -61,7 +86,9 @@ export function ListaAulas({
                 <span className="block font-semibold text-brand-900 dark:text-brand-100">
                   {aula.titulo}
                 </span>
-                {aula.descricao ? (
+                {/* Fechada, a descrição é só uma prévia de uma linha; aberta,
+                    ela aparece inteira embaixo do player. */}
+                {aula.descricao && !expandida ? (
                   <span className="mt-0.5 block truncate text-sm text-slate-500">
                     {aula.descricao}
                   </span>
@@ -82,6 +109,11 @@ export function ListaAulas({
                   poster={aula.poster}
                   videoStatus={aula.videoStatus}
                 />
+                {aula.descricao ? (
+                  <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                    {aula.descricao}
+                  </p>
+                ) : null}
                 <div className="mt-4 flex justify-end">
                   <MarcarAssistidaButton
                     aulaId={aula.id}

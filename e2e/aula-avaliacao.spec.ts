@@ -28,10 +28,22 @@ test.describe("aula e avaliação", () => {
   test("marca aula como assistida", async ({ page }) => {
     await page.goto("/modulos/fundamentos/introducao");
 
-    const aulas = page.locator('[data-tour="aulas"]');
-    await aulas.getByRole("button", { name: /assistir/i }).first().click();
-    // Player (ou placeholder de vídeo em preparação) visível na aula aberta.
-    await expect(page.locator('[data-tour="video"]').first()).toBeVisible();
+    // A aula já vem aberta: o player (ou o placeholder de vídeo em preparação)
+    // aparece sem clique nenhum. O cabeçalho segue servindo de fechar/abrir, e
+    // fechar registra a aula na URL (link compartilhável).
+    const video = page.locator('[data-tour="video"]').first();
+    await expect(video).toBeVisible();
+
+    const cabecalho = page
+      .locator('[data-tour="aulas"] > li')
+      .first()
+      .getByRole("button")
+      .first();
+    await cabecalho.click();
+    await expect(video).toBeHidden();
+    await cabecalho.click();
+    await expect(video).toBeVisible();
+    await expect(page).toHaveURL(/[?&]aula=/);
 
     const marcar = page.getByRole("button", { name: /marcar como assistida/i });
     if (await marcar.isVisible().catch(() => false)) {
