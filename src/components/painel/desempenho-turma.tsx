@@ -4,8 +4,10 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buscarTurmas } from "@/lib/turmas-dados";
+import { Paginacao } from "@/components/master/paginacao";
 import {
   avancoPorDisciplina,
+  contarAtivosDesde,
   filtrarPorTurma,
   linhasDosAlunos,
   resumoFeedback,
@@ -35,6 +37,30 @@ function dataCurta(iso: string | null): string {
 }
 
 const ALUNOS_POR_PAGINA = 25;
+
+/**
+ * Percentual com barra: com 15 disciplinas na tela, a coluna de números
+ * sozinha obriga a comparar de cabeça. A barra dá a forma; o número segue
+ * sendo o dado.
+ */
+function BarraPct({ valor }: { valor: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-9 shrink-0 tabular-nums text-slate-600">
+        {valor}%
+      </span>
+      <span
+        aria-hidden="true"
+        className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-slate-100"
+      >
+        <span
+          className="block h-full rounded-full bg-brand-500"
+          style={{ width: `${Math.min(100, Math.max(0, valor))}%` }}
+        />
+      </span>
+    </div>
+  );
+}
 
 export async function DesempenhoTurma({
   busca = "",
@@ -235,39 +261,12 @@ export async function DesempenhoTurma({
   const feedback = resumoFeedback(avaliacoes);
   const tituloDaDisciplina = new Map(disciplinas.map((d) => [d.id, d.titulo]));
   const comentarios = avaliacoes.filter((a) => a.comentario);
-  const seteDias = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const ativos7d = Object.values(dados.ultimoLoginPorAluno).filter(
-    (iso) => new Date(iso).getTime() >= seteDias,
-  ).length;
+  const ativos7d = contarAtivosDesde(dados.ultimoLoginPorAluno, 7, new Date());
 
   return (
     <div className="space-y-8">
-      {temTurmas ? (
-        <nav aria-label="Filtro de turma" className="flex flex-wrap gap-1.5">
-          {[{ valor: null as number | null, rotulo: "Todas as turmas" }]
-            .concat(
-              turmas.map((t) => ({
-                valor: t.numero as number | null,
-                rotulo: t.nome ?? `Turma ${t.numero}`,
-              })),
-            )
-            .map((t) => (
-              <Link
-                key={t.rotulo}
-                href={linkAlunos({ turma: t.valor, pagina: 1 })}
-                aria-current={turmaAtiva === t.valor ? "page" : undefined}
-                className={`rounded-full border px-3.5 py-1 text-xs transition ${
-                  turmaAtiva === t.valor
-                    ? "border-brand-600 bg-brand-50 font-medium text-brand-900 dark:bg-brand-950/60 dark:text-brand-200"
-                    : "border-slate-200 text-slate-500 hover:border-brand-300"
-                }`}
-              >
-                {t.rotulo}
-              </Link>
-            ))}
-        </nav>
-      ) : null}
-
+      {/* O filtro de turma vive na barra de filtros da página, junto com a
+          visão e o período — aqui só entra o conteúdo do recorte. */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {(
           [
@@ -280,12 +279,12 @@ export async function DesempenhoTurma({
         ).map(([rotulo, valor]) => (
           <div
             key={rotulo}
-            className="rounded-xl border border-slate-200 bg-superficie p-4 text-center shadow-sm"
+            className="rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm"
           >
-            <p className="font-display text-2xl font-bold text-brand-900 dark:text-brand-100">
+            <p className="font-display text-2xl font-bold tabular-nums text-brand-900 dark:text-brand-100">
               {valor}
             </p>
-            <p className="text-xs text-slate-500">{rotulo}</p>
+            <p className="mt-0.5 text-xs text-slate-500">{rotulo}</p>
           </div>
         ))}
       </div>
@@ -312,27 +311,28 @@ export async function DesempenhoTurma({
               {porDisciplina.map((d) => (
                 <tr
                   key={d.disciplina}
-                  className="border-b border-slate-100 last:border-0"
+                  className="border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50"
                 >
                   <td className="px-4 py-2.5">
                     <p className="font-medium text-brand-900 dark:text-brand-100">
                       {d.disciplina}
                     </p>
+                    <p className="text-xs text-slate-400">{d.modulo}</p>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
-                    {d.comecaramPct}%
+                  <td className="px-4 py-2.5">
+                    <BarraPct valor={d.comecaramPct} />
                   </td>
-                  <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
-                    {d.concluiramPct}%
+                  <td className="px-4 py-2.5">
+                    <BarraPct valor={d.concluiramPct} />
                   </td>
-                  <td className="px-4 py-2.5 text-slate-600 dark:text-slate-300">
+                  <td className="px-4 py-2.5 text-slate-600">
                     {d.quizId
                       ? d.tentaram === 0
                         ? "ninguém tentou ainda"
                         : `${d.aprovadas}/${d.tentaram} aprovados · nota média ${d.notaMedia}%`
                       : "sem avaliação"}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-slate-600 dark:text-slate-300">
+                  <td className="whitespace-nowrap px-4 py-2.5 text-slate-600">
                     {feedback.has(d.id)
                       ? `★ ${feedback.get(d.id)!.media} (${feedback.get(d.id)!.total})`
                       : "—"}
@@ -369,7 +369,7 @@ export async function DesempenhoTurma({
                     month: "2-digit",
                   }).format(new Date(c.created_at))}
                 </p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+                <p className="mt-1 text-sm text-slate-700">
                   {c.comentario}
                 </p>
               </li>
@@ -426,7 +426,10 @@ export async function DesempenhoTurma({
             </thead>
             <tbody>
               {linhasDaPagina.map((a) => (
-                <tr key={a.id} className="border-b border-slate-100 last:border-0">
+                <tr
+                  key={a.id}
+                  className="border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50"
+                >
                   <td className="max-w-56 px-4 py-2">
                     {inscricaoPorEmail.has(a.email.toLowerCase()) ? (
                       <Link
@@ -442,19 +445,29 @@ export async function DesempenhoTurma({
                     )}
                     <p className="truncate text-xs text-slate-500">{a.email}</p>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-slate-600 dark:text-slate-300">
+                  <td className="whitespace-nowrap px-4 py-2 tabular-nums text-slate-600">
                     {a.aulasVistas}/{a.totalAulas}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-slate-600 dark:text-slate-300">
+                  <td className="whitespace-nowrap px-4 py-2 tabular-nums text-slate-600">
                     {a.notaMedia === null
                       ? "—"
                       : `${a.quizzesAprovados} aprovadas · média ${a.notaMedia}%`}
                   </td>
-                  <td className="px-4 py-2 text-slate-600 dark:text-slate-300">
+                  <td className="px-4 py-2 tabular-nums text-slate-600">
                     {a.participacoesForum}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-xs text-slate-500">
-                    {dataCurta(a.ultimoLogin)}
+                  <td className="whitespace-nowrap px-4 py-2 text-xs">
+                    {a.ultimoLogin === null ? (
+                      // Quem nunca entrou é a fila da monitoria — não some
+                      // no meio da coluna em cinza claro.
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800 dark:bg-amber-950/60 dark:text-amber-200">
+                        nunca entrou
+                      </span>
+                    ) : (
+                      <span className="tabular-nums text-slate-500">
+                        {dataCurta(a.ultimoLogin)}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -462,30 +475,11 @@ export async function DesempenhoTurma({
           </table>
         </div>
 
-        {totalPaginas > 1 ? (
-          <div className="mt-4 flex items-center justify-between text-sm">
-            {paginaAlunos > 1 ? (
-              <Link
-                href={linkAlunos({ pagina: paginaAlunos - 1 })}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
-              >
-                Anterior
-              </Link>
-            ) : (
-              <span />
-            )}
-            {paginaAlunos < totalPaginas ? (
-              <Link
-                href={linkAlunos({ pagina: paginaAlunos + 1 })}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:text-slate-200"
-              >
-                Próxima
-              </Link>
-            ) : (
-              <span />
-            )}
-          </div>
-        ) : null}
+        <Paginacao
+          pagina={paginaAlunos}
+          paginas={totalPaginas}
+          hrefPara={(p) => linkAlunos({ pagina: p })}
+        />
       </section>
     </div>
   );

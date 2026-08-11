@@ -168,6 +168,42 @@ describe("filtrarPorTurma", () => {
   });
 });
 
+describe("contarAtivosDesde", () => {
+  const agora = new Date("2026-08-11T12:00:00Z");
+
+  it("conta quem acessou dentro da janela", async () => {
+    const { contarAtivosDesde } = await import("./relatorios-turma");
+    expect(
+      contarAtivosDesde(
+        { a: "2026-08-10T12:00:00Z", b: "2026-08-09T12:00:00Z" },
+        7,
+        agora,
+      ),
+    ).toBe(2);
+  });
+
+  it("deixa de fora quem acessou antes da janela", async () => {
+    const { contarAtivosDesde } = await import("./relatorios-turma");
+    expect(
+      contarAtivosDesde(
+        { a: "2026-08-10T12:00:00Z", velho: "2026-07-01T12:00:00Z" },
+        7,
+        agora,
+      ),
+    ).toBe(1);
+  });
+
+  it("conta zero sem ninguém", async () => {
+    const { contarAtivosDesde } = await import("./relatorios-turma");
+    expect(contarAtivosDesde({}, 7, agora)).toBe(0);
+  });
+
+  it("ignora data ilegível em vez de contar como ativo", async () => {
+    const { contarAtivosDesde } = await import("./relatorios-turma");
+    expect(contarAtivosDesde({ a: "nao-e-data" }, 7, agora)).toBe(0);
+  });
+});
+
 describe("resumoFeedback", () => {
   it("agrega média de estrelas e comentários por disciplina", async () => {
     const { resumoFeedback } = await import("./relatorios-turma");

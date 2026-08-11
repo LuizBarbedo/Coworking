@@ -154,6 +154,23 @@ export function avancoPorDisciplina(dados: DadosTurma) {
     });
 }
 
+/**
+ * Quantos alunos acessaram nos últimos N dias. O relógio entra por
+ * parâmetro (mesmo padrão de calcularSaudeForum): mantém a função pura e
+ * tira o Date.now() de dentro do render do Server Component.
+ */
+export function contarAtivosDesde(
+  ultimoLoginPorAluno: Record<string, string>,
+  dias: number,
+  agora: Date,
+): number {
+  const corte = agora.getTime() - dias * 24 * 60 * 60 * 1000;
+  return Object.values(ultimoLoginPorAluno).filter((iso) => {
+    const quando = new Date(iso).getTime();
+    return !Number.isNaN(quando) && quando >= corte;
+  }).length;
+}
+
 export type AvaliacaoDisciplina = {
   disciplina_id: string;
   estrelas: number;
