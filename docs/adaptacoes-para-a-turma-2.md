@@ -77,6 +77,37 @@ acesso da turma 1 não é tocado em nenhum ponto.
 - Conferir devoluções algumas horas depois (botão da aba ou
   `verificarDevolucoes`).
 
+## Conteúdo em conta-gotas (migração 0026 — 17/08)
+
+A turma 2 não recebe o curso inteiro de uma vez: entra com os **3 primeiros
+módulos** (Tutorial da plataforma, Apresentação do Curso e Empreendendo com
+Legado Cultural), que abrem junto com a turma, às 8h de 17/08. Os outros 12
+ficam fechados até alguém liberar.
+
+- **Onde se mexe**: `/master/turmas` → bloco **"Conteúdo liberado"** de cada
+  turma. Por módulo: *Liberado*, *Abre em `<data>`* (abre sozinho na hora,
+  sem cron, igual à liberação da turma) ou *Fechado*. Um submit salva a turma
+  inteira.
+- **A chave geral** é a caixa "Liberar o conteúdo aos poucos para esta turma"
+  (`turmas.conteudo_restrito`). Desmarcada, a turma volta a ver todo módulo
+  publicado — é como a **turma 1** está, e nada nesta migração a toca.
+- **Quem esconde é o banco**: o RLS de `modulos`, `disciplinas`, `aulas`,
+  `materiais` e `disciplina_chunks` consulta `modulos_liberados_do_aluno()`.
+  Vale para o painel, a página da disciplina, a navegação anterior/próxima,
+  os materiais e também para o **assistente de IA** — ele não responde sobre
+  módulo fechado porque não enxerga os trechos.
+- **O aluno vê o card esmaecido** com "Em breve · 24/08 às 8h" quando há data
+  marcada; sem data, só "Em breve". Título, instrutor e capa aparecem — o
+  conteúdo, não.
+- **Progresso**: as porcentagens contam só o que a turma enxerga, então quem
+  está com 3 módulos pode chegar a 100% e voltar a subir quando o próximo
+  lote abrir.
+- **Turma nova nasce fechada**: criar a turma 3 em `/master/turmas` já vem com
+  `conteudo_restrito` ligado e nenhum módulo liberado — planeje o lote antes
+  de mandar os convites.
+- **Módulo novo criado depois** não entra em turma restrita sozinho: ele
+  aparece na lista como *Fechado* até ser liberado ali.
+
 ## Detalhes que valem saber
 
 - Para **adiar** a liberação: mudar a data em `/master/turmas` — landing,
