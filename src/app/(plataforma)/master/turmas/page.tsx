@@ -4,8 +4,13 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { FormAcao } from "@/components/ui/form-acao";
 import { paraInputLocal } from "@/lib/datas";
 import { dataLiberacaoFormatada, turmaLiberada } from "@/lib/turmas";
-import { buscarTurmas } from "@/lib/turmas-dados";
-import { salvarTurma, criarTurma } from "./actions";
+import { buscarTurmas, buscarPlanoDaTurma } from "@/lib/turmas-dados";
+import {
+  LiberacaoConteudo,
+  type ModuloDoPlano,
+} from "@/components/master/liberacao-conteudo";
+import type { LinhaPlano } from "@/lib/liberacao-modulos";
+import { salvarTurma, criarTurma, salvarLiberacaoConteudo } from "./actions";
 
 export const metadata: Metadata = { title: "Turmas — CSMG Master" };
 export const dynamic = "force-dynamic";
@@ -31,6 +36,25 @@ export default async function TurmasMasterPage() {
     }
   }
 
+  // Catálogo de módulos + plano de liberação de cada turma (0026).
+  const { data: modulosBrutos } = await admin
+    .from("modulos")
+    .select("id, titulo, publicado, ordem")
+    .order("ordem", { ascending: true });
+  const modulos: ModuloDoPlano[] = (modulosBrutos ?? []).map((m) => ({
+    id: m.id as string,
+    titulo: m.titulo as string,
+    publicado: Boolean(m.publicado),
+  }));
+  const planos = new Map<number, LinhaPlano[]>(
+    await Promise.all(
+      turmas.map(
+        async (t) =>
+          [t.numero, await buscarPlanoDaTurma(t.numero)] as [number, LinhaPlano[]],
+      ),
+    ),
+  );
+
   return (
     <div className="animate-aparecer">
       <h1 className="font-display text-3xl font-bold tracking-tight text-brand-900 dark:text-brand-100">
@@ -40,7 +64,9 @@ export default async function TurmasMasterPage() {
         A data de liberação controla o acesso na hora: antes dela, inscrição
         da turma não ativa conta e cai na página de espera; depois dela, o
         acesso abre sozinho. O e-mail de convite continua saindo pelo botão
-        da aba E-mails.
+        da aba E-mails. Em <strong>Conteúdo liberado</strong> você escolhe
+        quais módulos cada turma enxerga — e pode agendar a abertura dos
+        próximos, que abrem sozinhos na data.
       </p>
 
       {turmas.length === 0 ? (
@@ -103,6 +129,14 @@ export default async function TurmasMasterPage() {
                     </button>
                   </div>
                 </FormAcao>
+
+                <LiberacaoConteudo
+                  numero={t.numero}
+                  restrito={Boolean(t.conteudo_restrito)}
+                  modulos={modulos}
+                  plano={planos.get(t.numero) ?? []}
+                  action={salvarLiberacaoConteudo}
+                />
               </section>
             );
           })}
