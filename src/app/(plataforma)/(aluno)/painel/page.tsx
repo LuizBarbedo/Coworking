@@ -10,6 +10,12 @@ import {
   ListaModulos,
   type CardModulo,
 } from "@/components/ava/lista-modulos";
+import { buscarLiberacaoDoAluno } from "@/lib/turmas-dados";
+import {
+  estadoDoModulo,
+  formatarQuandoLibera,
+  planoPorModulo,
+} from "@/lib/liberacao-modulos";
 
 export const metadata: Metadata = {
   title: "Meu painel — CSMG",
@@ -24,28 +30,8 @@ type Modulo = {
   ordem: number;
 };
 
-/** "2026-07-20T11:00:00Z" → "20/07 às 8h" (Brasília), pro selo Em breve. */
-function formatarDisponivelEm(iso: string): string {
-  const data = new Date(iso);
-  const dia = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit",
-    month: "2-digit",
-  }).format(data);
-  // "08:00" vira "8h"; "08:30" vira "8h30".
-  const hora = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    hour: "numeric",
-    minute: "2-digit",
-  })
-    .format(data)
-    .replace(":00", "h")
-    .replace(":", "h");
-  return `${dia} às ${hora}`;
-}
-
 export default async function PainelPage() {
-  await exigirVisaoAluno();
+  const usuario = await exigirVisaoAluno();
   const supabase = await createSupabaseServerClient();
 
   const [
@@ -55,6 +41,7 @@ export default async function PainelPage() {
     { data: progresso },
     progressoCurso,
     { data: todosModulos },
+    liberacao,
   ] = await Promise.all([
     supabase
       .from("modulos")
@@ -72,7 +59,12 @@ export default async function PainelPage() {
       .from("modulos")
       .select("*")
       .order("ordem", { ascending: true }),
+    // Plano da turma (0026) — só pra anunciar QUANDO cada módulo fechado
+    // abre; quem esconde o conteúdo é o RLS.
+    buscarLiberacaoDoAluno(usuario.email),
   ]);
+
+  const planoDaTurma = planoPorModulo(liberacao.plano);
 
   // Mapeia aula → módulo (via disciplina) para o progresso por módulo.
   const discToMod = new Map(
@@ -95,7 +87,15 @@ export default async function PainelPage() {
     const capaUrl = (m as { capa_url?: string | null }).capa_url ?? null;
     const publicado = publicadosPorId.get(m.id as string);
     if (!publicado) {
+      // Módulo fora do alcance do aluno: ou ainda não foi publicado pra
+      // ninguém (publicar_em), ou é da parte do curso que a turma dele
+      // ainda não recebeu (plano da turma).
       const agendado = (m as { publicar_em?: string | null }).publicar_em;
+      const quandoDaTurma = planoDaTurma.get(m.id as string);
+      const daTurma =
+        liberacao.restrito && estadoDoModulo(quandoDaTurma) === "agendado"
+          ? formatarQuandoLibera(quandoDaTurma)
+          : null;
       return {
         id: m.id as string,
         titulo: m.titulo as string,
@@ -103,9 +103,10 @@ export default async function PainelPage() {
         capaUrl,
         publicado: false,
         disponivelEm:
-          agendado && new Date(agendado) > new Date()
-            ? formatarDisponivelEm(agendado)
-            : null,
+          daTurma ??
+          (agendado && new Date(agendado) > new Date()
+            ? formatarQuandoLibera(agendado)
+            : null),
       };
     }
     const p = porModulo.get(m.id as string) ?? { total: 0, feitas: 0 };
