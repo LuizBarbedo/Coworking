@@ -12,6 +12,8 @@ export type Turma = {
   numero: number;
   nome?: string | null;
   liberacao_em: string | null;
+  /** Migração 0026: true = a turma só vê os módulos abertos em turma_modulos. */
+  conteudo_restrito?: boolean | null;
 };
 
 /** A turma já abriu? (null/ilegível = sim — fail-open deliberado) */

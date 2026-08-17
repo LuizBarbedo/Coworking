@@ -8,13 +8,16 @@ import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Turma } from "@/lib/turmas";
+import type { LinhaPlano } from "@/lib/liberacao-modulos";
 
 export async function buscarTurmas(): Promise<Turma[]> {
   try {
     const admin = createSupabaseAdminClient();
+    // "*" tolera ambientes sem a migração 0026 (conteudo_restrito vem como
+    // undefined e o gate de módulo simplesmente não morde).
     const { data, error } = await admin
       .from("turmas")
-      .select("numero, nome, liberacao_em")
+      .select("*")
       .order("numero", { ascending: true });
     if (error) return [];
     return (data as Turma[] | null) ?? [];
@@ -22,6 +25,58 @@ export async function buscarTurmas(): Promise<Turma[]> {
     // Sem env do service_role (ex.: build fora da VPS): a landing e os
     // fluxos seguem sem aviso de turma.
     return [];
+  }
+}
+
+/**
+ * Plano de liberação de módulos de uma turma (migração 0026). Antes dela a
+ * tabela não existe → lista vazia, que os chamadores tratam como "sem plano".
+ */
+export async function buscarPlanoDaTurma(
+  numero: number,
+): Promise<LinhaPlano[]> {
+  try {
+    const admin = createSupabaseAdminClient();
+    const { data, error } = await admin
+      .from("turma_modulos")
+      .select("modulo_id, liberacao_em")
+      .eq("turma", numero);
+    if (error) return [];
+    return (data as LinhaPlano[] | null) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Turma do aluno logado + plano dela, pelo e-mail da conta (mesmo vínculo do
+ * RLS). Serve só para ANUNCIAR "Em breve · 24/08 às 8h" no painel — quem
+ * esconde o conteúdo é o banco.
+ */
+export async function buscarLiberacaoDoAluno(email: string | null | undefined): Promise<{
+  restrito: boolean;
+  plano: LinhaPlano[];
+}> {
+  const vazio = { restrito: false, plano: [] as LinhaPlano[] };
+  if (!email) return vazio;
+  try {
+    const admin = createSupabaseAdminClient();
+    const padrao = email.replace(/([\\%_])/g, "\\$1");
+    const { data, error } = await admin
+      .from("inscricoes")
+      .select("turma")
+      .ilike("email", padrao)
+      .maybeSingle();
+    const turma = error ? null : ((data?.turma as number | null) ?? null);
+    if (turma == null) return vazio;
+
+    const turmas = await buscarTurmas();
+    const dela = turmas.find((t) => t.numero === turma);
+    if (!dela?.conteudo_restrito) return vazio;
+
+    return { restrito: true, plano: await buscarPlanoDaTurma(turma) };
+  } catch {
+    return vazio;
   }
 }
 
