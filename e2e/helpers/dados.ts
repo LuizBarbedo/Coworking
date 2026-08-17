@@ -76,6 +76,10 @@ export async function criarAlunoAtivado(
   if (erroInscricao) {
     throw new Error(`Falha ao criar inscrição de teste: ${erroInscricao.message}`);
   }
+  // A inscrição nasce na turma mais recente (default turma_atual(), 0023), que
+  // pode ter o conteúdo recortado (0026). O aluno de teste precisa do curso
+  // inteiro: joga na turma 1. Best-effort — antes da 0023 a coluna não existe.
+  await admin.from("inscricoes").update({ turma: 1 }).eq("email", email);
   const { error: erroAuth } = await admin.auth.admin.createUser({
     email,
     password: senha,
