@@ -19,6 +19,7 @@ import {
 } from "@/lib/email";
 import { dataLiberacaoFormatada, turmaLiberada } from "@/lib/turmas";
 import { buscarTurmaDaInscricao, buscarTurmas } from "@/lib/turmas-dados";
+import { buscarConteudoAbertoDaTurma } from "@/lib/conteudo-aberto";
 import { isValidCPF, unmaskCPF } from "@/lib/cpf";
 import { isValidPhone, unmaskPhone } from "@/lib/phone";
 import { urlDaPlataforma } from "@/lib/urls";
@@ -301,10 +302,17 @@ export async function cadastrarAluno(
   }
 
   try {
+    // Sem seletor de turma no formulário, a turma vem do default da coluna —
+    // então lê do banco em vez de supor a primeira.
+    const turmaDoAluno =
+      turmaEscolhida?.numero ??
+      (inscricaoId ? (await buscarTurmaDaInscricao(inscricaoId))?.numero ?? null : null);
     await enviarEmailConviteAluno({
       nome,
       email,
       matricula: data.matricula as string,
+      turma: turmaDoAluno,
+      conteudo: await buscarConteudoAbertoDaTurma(turmaDoAluno),
     });
     await registrarConviteIndividual({ inscricaoId, email, ok: true });
   } catch (erro) {
@@ -355,10 +363,13 @@ export async function reenviarConviteAluno(
   if (data.ativado_em) return { error: "Esse aluno já ativou a conta." };
 
   try {
+    const turmaDoAluno = (await buscarTurmaDaInscricao(data.id))?.numero ?? null;
     await enviarEmailConviteAluno({
       nome: data.nome,
       email: data.email,
       matricula: data.matricula,
+      turma: turmaDoAluno,
+      conteudo: await buscarConteudoAbertoDaTurma(turmaDoAluno),
     });
     await registrarConviteIndividual({
       inscricaoId: data.id,

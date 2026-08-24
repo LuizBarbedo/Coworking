@@ -9,6 +9,8 @@ import "server-only";
 // disparo — ela entra sozinha a partir da data de liberação da turma.
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import type { ConteudoDoConvite } from "@/lib/convite-conteudo";
+import { buscarConteudoAbertoDaTurma } from "@/lib/conteudo-aberto";
 import { enviarEmailConviteAluno } from "@/lib/email";
 import { extrairEmailDevolvido } from "@/lib/devolucoes";
 import { filtrarPorTurmaLiberada } from "@/lib/turmas";
@@ -134,6 +136,17 @@ export async function liberarEDispararConvites(opcoes?: {
     aguardandoTurma: aguardando.length,
   };
 
+  // Conteúdo de abertura por turma, buscado UMA vez por turma envolvida no
+  // disparo (não por aluno) e reaproveitado nos e-mails daquela turma.
+  const conteudoDaTurma = new Map<number | null, ConteudoDoConvite>();
+  const conteudoPara = async (turma: number | null) => {
+    const guardado = conteudoDaTurma.get(turma);
+    if (guardado) return guardado;
+    const buscado = await buscarConteudoAbertoDaTurma(turma);
+    conteudoDaTurma.set(turma, buscado);
+    return buscado;
+  };
+
   for (const inscricao of aptas) {
     // teste interno não recebe convite
     if (inscricao.email.endsWith("@coworkingsocial.com.br")) continue;
@@ -152,11 +165,15 @@ export async function liberarEDispararConvites(opcoes?: {
       continue;
     }
 
+    const turma = inscricao.turma ?? null;
+
     try {
       await enviarEmailConviteAluno({
         nome: inscricao.nome,
         email: inscricao.email,
         matricula: inscricao.matricula,
+        turma,
+        conteudo: await conteudoPara(turma),
       });
       await registrarEnvio(admin, {
         inscricao_id: inscricao.id,

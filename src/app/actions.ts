@@ -11,6 +11,7 @@ import {
 } from "@/lib/email";
 import { turmaLiberada, dataLiberacaoFormatada } from "@/lib/turmas";
 import { buscarInscricaoComTurmaPorMatricula } from "@/lib/turmas-dados";
+import { buscarConteudoAbertoDaTurma } from "@/lib/conteudo-aberto";
 import { registrarConviteIndividual } from "@/lib/convites";
 import { registrarEvento } from "@/lib/auditoria";
 import { sanitizarOrigem, type Origem } from "@/lib/origem";
@@ -213,10 +214,13 @@ export async function registerInscription(
 
   try {
     if (liberada) {
+      const turma = criada?.turma?.numero ?? null;
       await enviarEmailConviteAluno({
         nome,
         email,
         matricula: matricula as string,
+        turma,
+        conteudo: await buscarConteudoAbertoDaTurma(turma),
       });
       await registrarConviteIndividual({
         inscricaoId: liberada.id,

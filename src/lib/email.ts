@@ -6,6 +6,10 @@ import {
   listaModulosHtml,
   type ResumoModulo,
 } from "@/lib/avisos-modulos";
+import {
+  aberturaConviteHtml,
+  type ConteudoDoConvite,
+} from "@/lib/convite-conteudo";
 import { resolverRemetente, resolverSmtp } from "@/lib/email-config";
 import { urlDaPlataforma } from "@/lib/urls";
 
@@ -44,11 +48,20 @@ export async function enviarEmailForum(dados: {
   });
 }
 
-/** Convite de aluno cadastrado manualmente: matrícula + link do 1º acesso. */
+/**
+ * Convite de acesso do aluno: matrícula + link do 1º acesso.
+ *
+ * `turma` e `conteudo` mandam no texto de abertura — a frase anuncia a turma
+ * DELE e lista o que já está aberto para essa turma (vindo do banco, via
+ * `lib/conteudo-aberto`). Sem esses dados, sai a versão enxuta: o acesso está
+ * liberado, sem prometer aula que a turma ainda não vê.
+ */
 export async function enviarEmailConviteAluno(dados: {
   nome: string;
   email: string;
   matricula: string;
+  turma?: number | null;
+  conteudo?: ConteudoDoConvite;
 }) {
   const app = urlDaPlataforma();
 
@@ -58,13 +71,7 @@ export async function enviarEmailConviteAluno(dados: {
     subject: "Chegou a hora! Seu acesso à plataforma CSMG está liberado",
     html: `
       <p>Olá, ${dados.nome}!</p>
-      <p>A 1ª turma do curso de mentoria do <strong>Coworking Social de
-      Mudanças Globais</strong> começou — e o seu acesso está liberado.
-      <strong>As primeiras aulas já estão disponíveis</strong> na plataforma:
-      a apresentação do curso e as mentorias de Empreendedorismo com Legado
-      Cultural, Empreender com Organização e Contabilidade e Noções
-      Financeiras. Os demais módulos serão liberados ao longo das próximas
-      semanas.</p>
+      ${aberturaConviteHtml({ turma: dados.turma, conteudo: dados.conteudo })}
       <p><strong>Para entrar (leva 1 minuto):</strong></p>
       <ol>
         <li>Acesse <a href="${app}/primeiro-acesso">${app}/primeiro-acesso</a></li>
