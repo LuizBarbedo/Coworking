@@ -1,6 +1,11 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
+import {
+  assuntoAviso,
+  listaModulosHtml,
+  type ResumoModulo,
+} from "@/lib/avisos-modulos";
 import { resolverRemetente, resolverSmtp } from "@/lib/email-config";
 import { urlDaPlataforma } from "@/lib/urls";
 
@@ -145,6 +150,56 @@ export async function enviarEmailConviteMonitor(dados: {
       <p>Depois disso, seu acesso à plataforma é sempre por
       <a href="${urlDaPlataforma()}/login">${urlDaPlataforma()}/login</a>.</p>
       <p>Se você não esperava este convite, ignore este e-mail.</p>
+    `,
+  });
+}
+
+/**
+ * Aviso de módulo liberado. O corpo é montado a partir do banco
+ * (`lib/avisos-modulos`): nenhum nome de módulo, professor ou contagem de aula
+ * vive aqui — foi isso que travou o aviso anterior, que exigia editar este
+ * arquivo e fazer deploy a cada liberação.
+ *
+ * Com `matricula`, inclui o passo a passo do primeiro acesso: serve pra quem
+ * foi convidado e nunca entrou, num disparo manual. O fluxo automático só
+ * avisa quem já ativou a conta.
+ */
+export async function enviarEmailModuloLiberado(dados: {
+  nome: string;
+  email: string;
+  modulos: ResumoModulo[];
+  matricula?: string;
+}) {
+  const app = urlDaPlataforma();
+  const umSo = dados.modulos.length === 1;
+
+  const acesso = dados.matricula
+    ? `
+      <p>Você foi convidado e ainda não entrou na plataforma. Se o convite
+      anterior não chegou ou foi parar na caixa de spam, este e-mail resolve.</p>
+      <p><strong>Para entrar (leva 1 minuto):</strong></p>
+      <ol>
+        <li>Acesse <a href="${app}/primeiro-acesso">${app}/primeiro-acesso</a></li>
+        <li>Informe este e-mail e sua matrícula: <strong>${dados.matricula}</strong></li>
+        <li>Crie sua senha — e pronto, você cai direto nas aulas.</li>
+      </ol>
+      <p>Todo o conteúdo anterior continua disponível: você não perdeu nada e
+      pode começar de onde quiser.</p>`
+    : `<p><a href="${app}/painel">Entrar na plataforma</a></p>`;
+
+  await getTransporter().sendMail({
+    ...cabecalho(),
+    to: dados.email,
+    subject: assuntoAviso(dados.modulos),
+    html: `
+      <p>Olá, ${dados.nome}!</p>
+      <p>${umSo ? "Liberamos um módulo novo" : "Liberamos módulos novos"} na
+      plataforma, já ${umSo ? "disponível" : "disponíveis"} pra você:</p>
+      ${listaModulosHtml(dados.modulos)}
+      <p>O assistente de IA da plataforma já leu todo o material novo — pode
+      perguntar à vontade.</p>
+      ${acesso}
+      <p>Bons estudos!<br/>Equipe CSMG · Coworking Social de Mudanças Globais</p>
     `,
   });
 }
