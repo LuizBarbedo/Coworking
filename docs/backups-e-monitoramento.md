@@ -63,15 +63,72 @@ docker rm -f teste-restauracao
   `VIGIA_URL=https://app.coworkingsocial.com.br/api/health`, que aí a
   checagem cobre app **e** banco, não só a página de login.
 
-## Batimentos no banco (card do master)
+## Batimentos no banco
 
-- Migração **0025** criou `public.ops_heartbeats`: `backup-banco.sh` e
-  `redundancia-nuvem.sh` gravam um upsert no fim de cada rodada (sucesso
-  ou falha, best-effort — nunca derruba o backup).
-- O card "Saúde da operação" no Início do master (`/master`, só admin) lê
-  a tabela e sinaliza: **ok**, **falhou** (última rodada com erro) ou
-  **atrasado** (batimento com mais de 26h — cron parado). Detalhe fino
-  continua nos logs de `/var/log/coworking-*.log`.
+- Migração **0025** cria `public.ops_heartbeats` — **aplicada na produção em
+  22/08/2026** (até então só existia na homologação). `backup-banco.sh`,
+  `redundancia-nuvem.sh` e `avisos-modulos.sh` gravam um upsert no fim de cada
+  rodada (sucesso ou falha, best-effort — nunca derruba a rotina).
+- Uma linha por rotina, pela `id`: `backup-banco`, `redundancia-nuvem`,
+  `avisos-modulos`. Conferir a qualquer momento:
+
+  ```bash
+  psql "$DATABASE_URL" -c "select * from ops_heartbeats order by id;"
+  ```
+
+- **O card "Saúde da operação" não existe hoje** no Início do master: foi
+  retirado em `revert(master)` justamente porque a tabela não estava na
+  produção. Com a 0025 aplicada, ele pode voltar — leria a tabela e sinalizaria
+  **ok**, **falhou** (última rodada com erro) ou **atrasado** (batimento com
+  mais de 26h, indicando cron parado).
+- Detalhe fino continua nos logs de `/var/log/coworking-*.log`.
+- Nota de permissão: a tabela pertence a `supabase_admin` e tem RLS ligado
+  **sem policy** — ninguém alcança as linhas pela API. Os scripts gravam como
+  `postgres`, que é membro de `service_role` e por isso herda `BYPASSRLS`; a
+  aplicação grava com a service-role. Verificado em 22/08/2026.
+
+## Aviso automático de módulo novo
+
+- **O quê**: quando um módulo abre para uma turma, os alunos **que já ativaram
+  a conta** recebem um e-mail com o que foi liberado. O corpo é montado do
+  banco (título, disciplinas, contagem de aulas) — não há texto de módulo
+  escrito no código, então liberação nova não exige deploy.
+- **Como**: `scripts/avisos-modulos.sh` (wrapper de cron, `flock` para não
+  sobrepor rodadas) chamando
+  `scripts/disparo-avisos-automatico.ts`. Agendar **de hora em hora** no cron
+  do root, log em `/var/log/coworking-avisos.log`:
+
+  ```cron
+  0 * * * * /home/projetos/Coworking/scripts/avisos-modulos.sh >> /var/log/coworking-avisos.log 2>&1
+  ```
+
+- **Duas formas de "abrir"**, conforme a turma: turma com
+  `conteudo_restrito` usa `turma_modulos.liberacao_em` (0026); turma sem
+  restrição usa `modulos.publicar_em` (0019). Módulo despublicado nunca gera
+  aviso — o RLS exige publicado **e** liberado.
+- **Idempotência**: cada módulo é anunciado uma vez por turma, controlado pelo
+  `tipo` em `envios_email` (`aviso_modulo:<modulo_id>:t<turma>`). **Não há
+  janela de tempo**: se o cron ficar parado dois dias, a rodada seguinte
+  recupera sozinha.
+- **`AVISOS_DESDE`** (`AAAA-MM-DD`) no `.env.local` é o corte de ativação.
+  Sem ela o script se recusa a rodar, com erro explícito — porque sem corte a
+  primeira rodada anunciaria todo o catálogo que já está no ar.
+- **Quem NÃO recebe**: convidado que nunca ativou a conta. Aviso recorrente
+  para base fria é o que mais rápido derruba reputação de remetente; recuperar
+  essa lista é campanha manual e deliberada.
+- **Conferir antes de ligar**:
+
+  ```bash
+  cd /home/projetos/Coworking
+  npx tsx --conditions=react-server scripts/disparo-avisos-automatico.ts --contar
+  npx tsx --conditions=react-server scripts/disparo-avisos-automatico.ts --teste voce@exemplo.com
+  ```
+
+  `--contar` não envia nem registra nada; `--teste` manda uma amostra com o
+  conteúdo real do que abriu, também sem registrar.
+- **Batimento**: a rodada grava `avisos-modulos` em `ops_heartbeats` (migração
+  0025, aplicada na produção em 22/08/2026). A gravação é best-effort — banco
+  fora ou tabela ausente nunca derrubam o disparo.
 
 ## Segredos (R-13)
 

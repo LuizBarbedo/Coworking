@@ -112,7 +112,11 @@ migração não aplicada).
 | `DOMINIO_LANDING` | **só servidor** | domínio que serve só a landing (a plataforma vive em `app.<dominio>`; vazio = portão desligado). URLs internas sempre via `lib/urls.urlDaPlataforma()` |
 | `PLATAFORMA_LIBERADA` | **só servidor** | `"sim"` libera a plataforma no domínio principal (lida em runtime) |
 | `PAINEL_SENHA` | **só servidor** | senha única do painel `/relatorios` (cookie de 12h) |
-| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | **só servidor** | envio de e-mails (senha de app, não a da conta) |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | **só servidor** | envio pelo provedor transacional com domínio autenticado (SPF/DKIM/DMARC). Vazio = cai no Gmail |
+| `EMAIL_REMETENTE` / `EMAIL_REMETENTE_NOME` / `EMAIL_REPLY_TO` | **só servidor** | identidade do envio; sem `EMAIL_REPLY_TO`, respostas vão pro `GMAIL_USER` (o domínio não tem MX) |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | **só servidor** | retaguarda de envio e caixa de respostas (senha de app, não a da conta) |
+| `AVISOS_DESDE` | **só servidor** | corte de ativação (`AAAA-MM-DD`) do aviso automático de módulo novo; sem ela o disparo se recusa a rodar |
+| `DISPARO_INTERVALO_MS` | **só servidor** | intervalo entre envios nos disparos em massa (padrão `9000`) |
 | `OLLAMA_API_KEY` | **só servidor** | chave do Ollama Cloud (chat de IA) |
 | `OLLAMA_MODEL` | **só servidor** | modelo de chat (padrão `gpt-oss:20b`) |
 | `OLLAMA_BASE_URL` | **só servidor** | padrão `https://ollama.com` (nuvem) |
@@ -170,6 +174,8 @@ src/
 │   ├── permissoes.ts                 # níveis admin/monitor + permissões da equipe
 │   ├── auditoria.ts                  # registrarEvento (trilha de eventos)
 │   ├── convites.ts · devolucoes.ts   # convites de acesso + bounces (IMAP)
+│   ├── convite-conteudo.ts · conteudo-aberto.ts  # convite por turma (texto + dados)
+│   ├── avisos-modulos.ts · cronograma-turma.ts   # aviso de módulo novo + calendário
 │   ├── email.ts · metricas.ts · progresso.ts · relatorios-turma.ts
 │   ├── forum/                        # moderação IA, rate-limit, saúde, notificações
 │   ├── ia/                           # chunking · conhecimento · extrair-texto · guia
@@ -186,7 +192,10 @@ e2e/                                  # Playwright: inscrição, 1º acesso, aul
 scripts/
 ├── deploy.sh                         # deploy atômico na VPS (build + troca + health)
 ├── disparo-lancamento.ts             # disparo de convites fora do Next (retomável)
-├── criar-master.mjs · seed-aluno-teste.mjs · testar-email.mjs
+├── disparo-avisos-automatico.ts      # aviso de módulo novo por turma (cron horário)
+├── avisos-modulos.sh                 # wrapper de cron do aviso (flock + PATH)
+├── planejar-liberacao-turma.ts       # cronograma semanal de módulos por turma
+├── criar-master.mjs · seed-aluno-teste.mjs · testar-email.ts
 ├── gerar_narracao_elevenlabs.py      # narração do tour (offline)
 └── modal/                            # transcode.py (vídeo 720p) · gerar_capas.py (SDXL)
 supabase/
@@ -213,6 +222,27 @@ registro de e-mails (0020), auditoria (0021) e feedback de disciplina (0022).
    equipe usam `/definir-senha` com token (`invite`/`recovery`).
 4. Acessos seguintes: `/login` com e-mail + senha, sempre em
    `app.<dominio>` (`lib/urls.urlDaPlataforma()`).
+
+O texto do convite é **por turma**: anuncia a turma do aluno e lista o que já
+está aberto para ela, lido do banco (`lib/convite-conteudo.ts` +
+`lib/conteudo-aberto.ts`) pela mesma regra do RLS — turma sem restrição vê o
+que está publicado; turma restrita, só o que `turma_modulos` já abriu.
+
+## Liberação de conteúdo por turma
+
+Uma turma pode receber o curso aos poucos: `turmas.conteudo_restrito` liga o
+recorte e `turma_modulos.liberacao_em` diz quando cada módulo abre. A tela
+`/master/turmas` faz isso no clique; para um calendário inteiro há o script
+(prévia por padrão, grava com `--aplicar`):
+
+```bash
+npx tsx --conditions=react-server scripts/planejar-liberacao-turma.ts \
+  --turma 2 --abertos 6 --por-semana 3 --primeira 2026-08-31T08:00
+```
+
+A cada abertura, o cron horário (`scripts/avisos-modulos.sh` →
+`disparo-avisos-automatico.ts`) manda **um** e-mail por aluno ativado com os
+módulos que abriram juntos, uma única vez por turma e por módulo.
 
 ## Equipe e permissões
 

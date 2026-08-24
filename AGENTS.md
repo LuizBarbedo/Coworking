@@ -139,6 +139,17 @@ Desenvolvimento orientado a testes — **escreva o teste antes do código**:
   `npx tsx --conditions=react-server`).
 - **Inscrição pela landing** já nasce liberada e envia o e-mail de boas-vindas
   com o acesso na hora.
+- **Texto do convite é por turma** (`lib/convite-conteudo.ts` puro +
+  `lib/conteudo-aberto.ts` server-only): anuncia a turma do aluno e lista o
+  que já abriu para ela, lido do banco pela mesma regra do RLS. Nenhum título
+  de módulo no código — ao mexer no e-mail, mantenha assim.
+- **Liberação em conta-gotas** (migração 0026): `lib/cronograma-turma.ts`
+  monta o calendário ("N por semana") que `scripts/planejar-liberacao-turma.ts`
+  grava em `turma_modulos` (prévia por padrão, `--aplicar` para valer). É a
+  data gravada aí que faz o **aviso automático de módulo novo**
+  (`scripts/disparo-avisos-automatico.ts`, cron horário via
+  `scripts/avisos-modulos.sh`) sair no dia certo: um e-mail por aluno
+  ativado, uma vez por turma e por módulo, com o corte `AVISOS_DESDE`.
 - **Trilha de auditoria** (`lib/auditoria.ts`, migração 0021):
   `registrarEvento` à prova de falha, instrumentado em sessão/aula/quiz/
   fórum/moderação/conteúdo/equipe; visão com filtros em `/master/eventos`
