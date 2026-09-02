@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: "%s · CSMG",
   },
   description:
-    "Plataforma de capacitação online do Coworking Social de Mudanças Globais (CSMG), uma iniciativa da Prefeitura e SEIM/Integra Rio · Oroborus voltada a empreendedores, MEIs e autônomos da Região Metropolitana do Rio de Janeiro. Faça sua inscrição e tenha acesso gratuito aos cursos.",
+    "Plataforma de capacitação online do Coworking Social de Mudanças Globais (CSMG), iniciativa desenvolvida pela Oroborus em parceria com o IVIG/COPPE/UFRJ e a Fundação I²G, com patrocínio da Prefeitura do Rio de Janeiro, voltada a empreendedores, MEIs e autônomos da Região Metropolitana. Faça sua inscrição e tenha acesso gratuito aos cursos.",
   // favicon.ico, icon.svg, apple-icon.png e opengraph-image.tsx são detectados
   // por convenção de arquivo em src/app/ (Next 16) — sem `icons` manual.
 };

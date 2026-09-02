@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useId, useState, useTransition } from "react";
 import { registerInscription, type RegistrationPayload } from "@/app/actions";
 import { maskCPF } from "@/lib/cpf";
 import { maskPhone } from "@/lib/phone";
@@ -41,8 +41,24 @@ function capturarOrigem(): Origem {
 
 type AvisoTurma = { nome: string; dataLiberacao: string };
 
-export function RegistrationForm({ avisoTurma }: { avisoTurma?: AvisoTurma }) {
+export function RegistrationForm({
+  avisoTurma,
+  mostrarTitulo = true,
+}: {
+  avisoTurma?: AvisoTurma;
+  /**
+   * A landing de rolagem mostra o formulário duas vezes. Na instância do fim da
+   * página a seção já tem o próprio título, então repetir "Faça sua inscrição"
+   * duplicaria a entrada no índice de headings (leitor de tela ouve a mesma
+   * seção duas vezes).
+   */
+  mostrarTitulo?: boolean;
+}) {
   const [values, setValues] = useState<RegistrationPayload>(initialValues);
+  // A landing de rolagem mostra o formulário duas vezes (no hero e no fim da
+  // página). Sem prefixo por instância os ids colidiriam e o <label> passaria a
+  // apontar sempre para o primeiro input — rótulo errado no leitor de tela.
+  const prefixo = useId();
 
   // Persiste as UTMs assim que a página abre; a leitura acontece no submit.
   useEffect(() => {
@@ -101,12 +117,16 @@ export function RegistrationForm({ avisoTurma }: { avisoTurma?: AvisoTurma }) {
       noValidate
       className="rounded-2xl border border-brand-100 bg-superficie p-6 shadow-sm dark:border-brand-800 sm:p-8"
     >
-      <h2 className="font-display text-xl font-bold tracking-tight text-brand-900 dark:text-brand-100 sm:text-2xl">
-        Faça sua inscrição
-      </h2>
-      <p className="mt-1 text-sm text-brand-800/70 dark:text-brand-100/70">
-        Preencha seus dados para garantir acesso gratuito à plataforma.
-      </p>
+      {mostrarTitulo && (
+        <>
+          <h2 className="font-display text-xl font-bold tracking-tight text-brand-900 dark:text-brand-100 sm:text-2xl">
+            Faça sua inscrição
+          </h2>
+          <p className="mt-1 text-sm text-brand-800/70 dark:text-brand-100/70">
+            Preencha seus dados para garantir acesso gratuito à plataforma.
+          </p>
+        </>
+      )}
 
       {avisoTurma && (
         <p className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-3 text-sm text-brand-800/90 dark:border-brand-700 dark:bg-brand-900/40 dark:text-brand-100/90">
@@ -120,6 +140,7 @@ export function RegistrationForm({ avisoTurma }: { avisoTurma?: AvisoTurma }) {
       <div className="mt-6 grid gap-5">
         <Field
           id="nome"
+          prefixo={prefixo}
           label="Nome completo"
           autoComplete="name"
           value={values.nome}
@@ -128,16 +149,21 @@ export function RegistrationForm({ avisoTurma }: { avisoTurma?: AvisoTurma }) {
         />
         <Field
           id="cpf"
+          prefixo={prefixo}
           label="CPF"
           inputMode="numeric"
           autoComplete="off"
           placeholder="000.000.000-00"
+          // Campo sensível pedido de graça desperta desconfiança: dizer para
+          // que serve, ali mesmo, custa uma linha e evita abandono.
+          ajuda="Usamos para gerar sua matrícula e emitir a declaração no seu nome."
           value={values.cpf}
           onChange={(v) => update("cpf", v)}
           error={fieldError?.field === "cpf" ? fieldError.message : undefined}
         />
         <Field
           id="email"
+          prefixo={prefixo}
           label="E-mail"
           type="email"
           autoComplete="email"
@@ -148,6 +174,7 @@ export function RegistrationForm({ avisoTurma }: { avisoTurma?: AvisoTurma }) {
         />
         <Field
           id="telefone"
+          prefixo={prefixo}
           label="Telefone"
           inputMode="tel"
           autoComplete="tel"
@@ -188,6 +215,8 @@ export function RegistrationForm({ avisoTurma }: { avisoTurma?: AvisoTurma }) {
 
 type FieldProps = {
   id: FieldKey;
+  /** Prefixo por instância do formulário (useId), pra não colidir id. */
+  prefixo: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -196,10 +225,13 @@ type FieldProps = {
   autoComplete?: string;
   inputMode?: "text" | "numeric" | "tel" | "email";
   error?: string;
+  /** Explicação curta abaixo do campo (ex.: por que pedimos o CPF). */
+  ajuda?: string;
 };
 
 function Field({
   id,
+  prefixo,
   label,
   value,
   onChange,
@@ -208,17 +240,21 @@ function Field({
   autoComplete,
   inputMode,
   error,
+  ajuda,
 }: FieldProps) {
+  // O `name` continua sendo a chave do campo (autofill do navegador depende
+  // dela); só o `id` ganha prefixo.
+  const idDoCampo = `${prefixo}${id}`;
   return (
     <div>
       <label
-        htmlFor={id}
+        htmlFor={idDoCampo}
         className="mb-1.5 block text-sm font-medium text-brand-900 dark:text-brand-100"
       >
         {label}
       </label>
       <input
-        id={id}
+        id={idDoCampo}
         name={id}
         type={type}
         value={value}
@@ -227,17 +263,28 @@ function Field({
         inputMode={inputMode}
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={Boolean(error)}
-        aria-describedby={error ? `${id}-error` : undefined}
+        aria-describedby={
+          error ? `${idDoCampo}-error` : ajuda ? `${idDoCampo}-ajuda` : undefined
+        }
         className={`w-full rounded-lg border bg-superficie px-3.5 py-2.5 text-sm text-brand-900 transition placeholder:text-brand-900/30 focus:outline-none focus:ring-2 dark:text-brand-100 dark:placeholder:text-brand-100/30 ${
           error
             ? "border-red-400 focus:ring-red-200"
             : "border-brand-100 focus:border-brand-500 focus:ring-brand-200 dark:border-brand-700"
         }`}
       />
-      {error && (
-        <p id={`${id}-error`} className="mt-1.5 text-xs text-red-600">
+      {error ? (
+        <p id={`${idDoCampo}-error`} className="mt-1.5 text-xs text-red-600">
           {error}
         </p>
+      ) : (
+        ajuda && (
+          <p
+            id={`${idDoCampo}-ajuda`}
+            className="mt-1.5 text-xs text-brand-800/60 dark:text-brand-100/55"
+          >
+            {ajuda}
+          </p>
+        )
       )}
     </div>
   );

@@ -4,8 +4,11 @@ Ambiente Virtual de Aprendizagem (AVA) do **Coworking Social de Mudanças
 Globais (CSMG)**. Um único projeto Next.js com áreas isoladas por _route
 groups_:
 
-- **`(site)`** — inscrição pública (nome, CPF, e-mail, telefone) com matrícula
-  única; quem se inscreve já nasce liberado e recebe o acesso por e-mail.
+- **`(site)`** — **landing de rolagem** (long-form) com inscrição pública (nome,
+  CPF, e-mail, telefone) e matrícula única; quem se inscreve já nasce liberado e
+  recebe o acesso por e-mail. Nove seções segundo o roteiro da marketing, CTA
+  que acompanha a rolagem, cortes do canal por **fachada de vídeo** (nada do
+  YouTube carrega antes do clique) e formulário no hero e no fim da página.
   Rotas `/`, `/inscricao-realizada`, `/privacidade`.
 - **`(plataforma)`** — área autenticada: login, primeiro acesso, definição de
   senha por convite, painel do aluno com módulos → disciplinas → aulas,
@@ -168,6 +171,7 @@ src/
 │   ├── ava/                          # abas, aulas, quiz, chat-ia, assistente, avaliação
 │   ├── tour/ · marca/ · ilustracoes/ # tour guiado, Roda CSMG, spot-illustrations
 │   ├── perfil/ · metricas/ · site/   # perfil do aluno, gráficos, landing
+│   │   └── site/                     # seções da landing, fachada de vídeo, CTA fixo
 │   └── ui/                           # barra-progresso · contador · tema/som-toggle
 ├── lib/
 │   ├── auth.ts · painel-auth.ts      # DAL de sessão + gate do painel
@@ -183,7 +187,7 @@ src/
 │   ├── ollama.ts                     # cliente Ollama Cloud (streaming)
 │   ├── r2.ts · video.ts              # presigned URLs + fila de vídeo (server-only)
 │   ├── urls.ts                       # urlDaPlataforma() — base app.<dominio>
-│   ├── som/ · tour/                  # sons de conquista + passos do tour
+│   ├── site/                         # conteúdo do roteiro da landing + regra do CTA fixo│   ├── som/ · tour/                  # sons de conquista + passos do tour
 │   └── supabase/                     # server.ts · client.ts · admin.ts (+ supabase.ts anon)
 └── proxy.ts                          # renova sessão + protege rotas autenticadas
 
@@ -196,6 +200,7 @@ scripts/
 ├── avisos-modulos.sh                 # wrapper de cron do aviso (flock + PATH)
 ├── planejar-liberacao-turma.ts       # cronograma semanal de módulos por turma
 ├── criar-master.mjs · seed-aluno-teste.mjs · testar-email.ts
+├── preparar-midia-landing.mjs        # fotos dos palestrantes (do PDF) + capas da landing
 ├── gerar_narracao_elevenlabs.py      # narração do tour (offline)
 └── modal/                            # transcode.py (vídeo 720p) · gerar_capas.py (SDXL)
 supabase/
@@ -314,3 +319,8 @@ Rode `npm test` antes; os E2E rodam contra a porta 3000 (produção).
 Fluxo de trabalho (TDD, commits atômicos), arquitetura detalhada e
 convenções: **`AGENTS.md`** (carregado automaticamente por agentes de código
 via `CLAUDE.md`).
+
+Sobre a landing de rolagem: **`docs/landing-de-rolagem.md`** (o que foi
+construído, as decisões e o backlog de posicionamento) e
+**`docs/ambiente-de-teste-landing.md`** (a prévia que a marketing usa para
+aprovar antes do deploy).

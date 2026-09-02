@@ -63,7 +63,7 @@ Desenvolvimento orientado a testes — **escreva o teste antes do código**:
 
 | Grupo | Rotas | Acesso |
 |---|---|---|
-| `(site)` | `/` — landing + inscrição pública, `/privacidade` | público |
+| `(site)` | `/` — landing de rolagem + inscrição pública, `/privacidade` | público |
 | `(plataforma)` | `/login`, `/primeiro-acesso`, `/definir-senha` | público (entrada) |
 | `(plataforma)/(aluno)` | `/painel`, `/modulos/[modulo]/[disciplina]`, `/forum`, `/perfil` | aluno logado (`exigirAluno` no layout) |
 | `(plataforma)/master` | `/master/**` — conteúdo, alunos, equipe, e-mails, fórum, relatórios, eventos | papel `master` (`exigirMaster` no layout; páginas sensíveis exigem permissão/nível) |
@@ -165,6 +165,40 @@ definir senha/logout) · `(aluno)/actions.ts` (progresso, quiz, fórum, perfil,
 feedback de disciplina) · `master/actions.ts` (CRUD de conteúdo + base de
 conhecimento + moderação + alunos/equipe/e-mails) · `(painel)/actions.ts`
 (senha do painel).
+
+### Landing de rolagem (`(site)`, `components/site/`, `lib/site/`)
+
+- Texto das nove seções vem do roteiro da marketing e vive em
+  `lib/site/conteudo-landing.ts` (dado tipado, não banco): é copy de campanha na
+  página que recebe o tráfego pago, onde o LCP mais importa. Os testes ao lado
+  travam as invariantes que quebram a página em silêncio — as seções **afirmam
+  quantidades** ("11 temas", "11 especialistas"), então mexer na lista sem
+  mexer no texto falha o teste.
+- `VideoFachada` só cria o `<iframe>` **depois do clique**, no
+  `youtube-nocookie.com`, e a capa é local (`public/cortes/`). Não é só peso: o
+  embed do YouTube dispara cookie do Google no carregamento, o que contradiria
+  o `AvisoPrivacidade` da própria página. Não troque por embed direto.
+- A regra do CTA fixo é função pura em `lib/site/cta-rolagem.ts`. A barra espera
+  o `AvisoPrivacidade` ser dispensado — os dois são fixos no rodapé e se
+  sobrepõem.
+- `RegistrationForm` aparece duas vezes na página; os ids dos campos são
+  prefixados com `useId()`. Ao mexer nele, mantenha assim, senão os dois
+  `<label>` passam a apontar para o mesmo input.
+- Mídia é gerada, não versionada à mão:
+  `node scripts/preparar-midia-landing.mjs` (idempotente, `--forcar` refaz). A
+  ordem de `ORDEM_PALESTRANTES` foi conferida página a página no PDF — mudar sem
+  reconferir troca a foto de pessoa real na página pública.
+- **Um único formulário**, na seção `#inscricao` do fim. O componente aceita
+  duas instâncias (ids por `useId`) e `mostrarTitulo={false}`, mas a página usa
+  um só: numa landing de rolagem a inscrição fecha o argumento.
+- **Listas longas são faixa rolável até `lg`, grade a partir de `lg`** (temas e
+  especialistas). Não troque por carrossel: carrossel esconde o que está depois
+  do primeiro slide e é justamente a quantidade que faz a prova social. Os 11
+  itens ficam no DOM, sem `hidden`/`aria-hidden`, e o contêiner é focável.
+- Histórico das decisões, o que foi verificado e o backlog de posicionamento:
+  `docs/landing-de-rolagem.md`.
+- Ambiente de teste para a marketing revisar antes do deploy:
+  `docs/ambiente-de-teste-landing.md`.
 
 ### UX / design system
 

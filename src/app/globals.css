@@ -141,6 +141,15 @@
   to { stroke-dashoffset: 0; }
 }
 
+/* Rolagem suave nas âncoras da landing longa (CTA -> formulário). Fica sob
+   no-preference porque o bloco de prefers-reduced-motion adiante zera
+   animação e transição, mas não alcança scroll-behavior. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

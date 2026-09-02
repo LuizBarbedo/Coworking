@@ -5,7 +5,9 @@ import { expect, test } from "@playwright/test";
 
 test("landing pública carrega com o formulário de inscrição", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("form")).toBeVisible();
+  // A landing de rolagem mostra o formulário duas vezes (hero e fim da
+  // página); o .first() evita violação de modo estrito.
+  await expect(page.locator("form").first()).toBeVisible();
 });
 
 test("página de login renderiza os campos de e-mail e senha", async ({ page }) => {

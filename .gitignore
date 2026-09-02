@@ -55,8 +55,18 @@ prod-3000.log
 # Ancorados na raiz: existe rota src/.../master/conteudo/ que é código.
 /conteudo/
 /capas-geradas/
+# Material bruto da marketing (PDFs de ~21 MB). O que a landing usa é o
+# resultado gerado por scripts/preparar-midia-landing.mjs, que é versionado
+# em public/. Para regerar, peça os PDFs à marketing.
+/landing-material/
 .next-nova/
+.next-teste/
+.next-verificacao/
 
 
 # log do disparo de convites (contém e-mails de alunos — nunca commitar)
 disparo-lancamento.log
+
+# Artefatos do Supabase CLI (supabase start) — inclui segredos locais
+supabase/.temp/
+supabase/.branches/
