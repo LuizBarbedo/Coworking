@@ -39,7 +39,7 @@ function capturarOrigem(): Origem {
   return daUrl;
 }
 
-type AvisoTurma = { nome: string; dataLiberacao: string };
+type AvisoTurma = { nome: string; dataLiberacao?: string };
 
 export function RegistrationForm({
   avisoTurma,
@@ -130,10 +130,16 @@ export function RegistrationForm({
 
       {avisoTurma && (
         <p className="mt-4 rounded-xl border border-brand-100 bg-brand-50/60 p-3 text-sm text-brand-800/90 dark:border-brand-700 dark:bg-brand-900/40 dark:text-brand-100/90">
-          A inscrição garante sua vaga na{" "}
-          <strong className="font-semibold">{avisoTurma.nome}</strong> — o
-          acesso à plataforma abre em{" "}
-          <strong className="font-semibold">{avisoTurma.dataLiberacao}</strong>.
+          A inscrição garante sua vaga gratuita na{" "}
+          <strong className="font-semibold">{avisoTurma.nome}</strong>
+          {avisoTurma.dataLiberacao ? (
+            <>
+              {" "}— o acesso à plataforma abre em{" "}
+              <strong className="font-semibold">{avisoTurma.dataLiberacao}</strong>.
+            </>
+          ) : (
+            <> com acesso imediato às aulas.</>
+          )}
         </p>
       )}
 
@@ -206,9 +212,14 @@ export function RegistrationForm({
         )}
       </button>
 
-      <p className="mt-4 text-center text-xs text-brand-800/60 dark:text-brand-100/60">
-        Seus dados são tratados conforme a LGPD.
-      </p>
+      <div className="mt-4 flex flex-col items-center gap-1 text-center text-xs text-brand-800/70 dark:text-brand-100/70">
+        <p className="font-semibold text-brand-800 dark:text-brand-200">
+          Curso 100% gratuito · Sem taxas ou mensalidades
+        </p>
+        <p className="text-brand-800/50 dark:text-brand-100/50">
+          Seus dados são tratados conforme a LGPD.
+        </p>
+      </div>
     </form>
   );
 }

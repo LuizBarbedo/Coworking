@@ -62,14 +62,15 @@ export const CHAMADAS_CTA = [
 
 export const TEXTOS = {
   hero: {
-    titulo: "Aprenda. Conecte-se. Transforme.",
+    titulo: "Aprenda GRATUITAMENTE. Conecte-se. Transforme.",
     subtitulo:
-      "Uma capacitação gratuita para quem quer desenvolver novas habilidades, fortalecer ideias e transformar conhecimento em oportunidades.",
+      "Uma capacitação 100% gratuita para quem quer desenvolver novas habilidades, fortalecer ideias e transformar conhecimento em oportunidades.",
     apoio:
       "O Coworking Social de Mudanças Globais reúne especialistas e conteúdos voltados ao empreendedorismo, à inovação e ao impacto social.",
     selos: [
-      "Formação gratuita",
+      "Curso 100% gratuito",
       "Conteúdos com especialistas",
+      "Certificado de participação",
       "Acesso online",
     ],
   },
@@ -135,7 +136,7 @@ export const TEXTOS = {
     texto:
       "Conheça o Coworking Social de Mudanças Globais e faça parte de uma formação que conecta conhecimento, empreendedorismo, inovação e impacto social.",
     destaques: [
-      "Capacitação gratuita.",
+      "Capacitação 100% gratuita.",
       "Conteúdos com especialistas.",
       "Novas possibilidades para a sua jornada.",
     ],

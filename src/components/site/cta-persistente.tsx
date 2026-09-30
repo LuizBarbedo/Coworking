@@ -95,7 +95,7 @@ export function CtaPersistente({
     >
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-3">
         <p className="hidden text-sm font-medium text-brand-900 dark:text-brand-100 sm:block">
-          Capacitação gratuita e online.{" "}
+          Capacitação 100% gratuita e online.{" "}
           <span className="text-brand-700 dark:text-brand-300">
             Inscrições abertas.
           </span>

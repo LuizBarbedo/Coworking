@@ -85,13 +85,14 @@ const CORTE_DO_HERO = CORTES_YOUTUBE.find((corte) => corte.destaque);
 
 export default async function Home() {
   const turmaAtual = turmaAtualDeInscricao(await buscarTurmas());
-  const avisoTurma =
-    turmaAtual && !turmaLiberada(turmaAtual)
-      ? {
-          nome: turmaAtual.nome ?? `Turma ${turmaAtual.numero}`,
-          dataLiberacao: dataLiberacaoFormatada(turmaAtual),
-        }
-      : null;
+  const avisoTurma = turmaAtual
+    ? {
+        nome: turmaAtual.nome ?? `Turma ${turmaAtual.numero}`,
+        dataLiberacao: turmaLiberada(turmaAtual)
+          ? undefined
+          : dataLiberacaoFormatada(turmaAtual),
+      }
+    : null;
 
   return (
     <main className="relative flex flex-1 flex-col">
@@ -139,8 +140,8 @@ export default async function Home() {
             </div>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden text-xs text-brand-100/70 lg:block">
-              Acesso gratuito à comunidade
+            <span className="hidden text-xs font-medium text-brand-100/90 lg:block">
+              Formação 100% gratuita
             </span>
             {/* Aluno já cadastrado entra pela plataforma (subdomínio app —
                 o domínio da landing tem o portão de lançamento). */}
@@ -161,13 +162,25 @@ export default async function Home() {
             o vídeo — o buraco no meio do hero. */}
         <section className="mx-auto grid w-full max-w-6xl gap-12 px-6 pb-14 pt-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center lg:gap-14 lg:pt-14">
           <div className="animate-surgir text-white">
-            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium ring-1 ring-white/20">
-              {avisoTurma
-                ? `Inscrições abertas para a ${avisoTurma.nome}`
-                : "Inscrições abertas"}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium ring-1 ring-white/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {avisoTurma
+                  ? `Inscrições abertas · ${avisoTurma.nome}`
+                  : "Inscrições abertas"}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-amber-400/20 px-2.5 py-1 text-xs font-semibold text-amber-300 ring-1 ring-amber-400/40">
+                Curso 100% Gratuito
+              </span>
+            </div>
             <h1 className="mt-5 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-              {TEXTOS.hero.titulo}
+              {TEXTOS.hero.titulo.includes("GRATUITAMENTE") ? (
+                <>
+                  Aprenda <span className="text-amber-300">GRATUITAMENTE</span>. Conecte-se. Transforme.
+                </>
+              ) : (
+                TEXTOS.hero.titulo
+              )}
             </h1>
             <p className="mt-5 max-w-lg text-base text-brand-100/90 sm:text-lg">
               {TEXTOS.hero.subtitulo}
