@@ -23,7 +23,7 @@ export default async function ModeracaoForumPage() {
   await exigirPermissao("moderar_forum");
   const admin = createSupabaseAdminClient();
 
-  const [{ data: posts }, { data: respostas }] = await Promise.all([
+  const [postsRes, respostasRes] = await Promise.all([
     admin
       .from("forum_posts")
       .select(
@@ -34,14 +34,24 @@ export default async function ModeracaoForumPage() {
     admin
       .from("forum_respostas")
       .select(
-        "id, corpo, autor_id, created_at, veredito_ia, motivo_ia, forum_posts ( titulo )",
+        "id, corpo, autor_id, created_at, veredito_ia, motivo_ia, forum_posts!forum_respostas_post_id_fkey ( titulo )",
       )
       .eq("status", "pendente")
       .order("created_at", { ascending: true }),
   ]);
 
-  const listaPosts = posts ?? [];
-  const listaRespostas = respostas ?? [];
+  if (postsRes.error) {
+    console.error("Erro ao buscar posts para moderação:", postsRes.error);
+  }
+  if (respostasRes.error) {
+    console.error(
+      "Erro ao buscar respostas para moderação:",
+      respostasRes.error,
+    );
+  }
+
+  const listaPosts = postsRes.data ?? [];
+  const listaRespostas = respostasRes.data ?? [];
   const nomes = await nomesDosAutores([
     ...listaPosts.map((p) => p.autor_id as string),
     ...listaRespostas.map((r) => r.autor_id as string),

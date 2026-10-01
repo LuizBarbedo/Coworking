@@ -327,7 +327,9 @@ export async function editarResposta(
   const admin = createSupabaseAdminClient();
   const { data: resposta } = await admin
     .from("forum_respostas")
-    .select("autor_id, status, forum_posts ( titulo )")
+    .select(
+      "autor_id, status, forum_posts!forum_respostas_post_id_fkey ( titulo )",
+    )
     .eq("id", respostaId)
     .single();
   if (!resposta || resposta.autor_id !== aluno.id) {
