@@ -16,6 +16,7 @@ import {
   formatarQuandoLibera,
   planoPorModulo,
 } from "@/lib/liberacao-modulos";
+import { normalizarUrlStorage } from "@/lib/urls";
 
 export const metadata: Metadata = {
   title: "Meu painel — CSMG",
@@ -84,7 +85,9 @@ export default async function PainelPage() {
   // Junta publicados (com link e progresso) e não publicados (teaser).
   const publicadosPorId = new Map((modulos ?? []).map((m) => [m.id, m]));
   const cards: CardModulo[] = (todosModulos ?? []).map((m) => {
-    const capaUrl = (m as { capa_url?: string | null }).capa_url ?? null;
+    const capaUrl = normalizarUrlStorage(
+      (m as { capa_url?: string | null }).capa_url,
+    );
     const publicado = publicadosPorId.get(m.id as string);
     if (!publicado) {
       // Módulo fora do alcance do aluno: ou ainda não foi publicado pra

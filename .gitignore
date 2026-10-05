@@ -70,3 +70,7 @@ disparo-lancamento.log
 # Artefatos do Supabase CLI (supabase start) — inclui segredos locais
 supabase/.temp/
 supabase/.branches/
+
+# Configurações locais de agentes
+/.agents/
+

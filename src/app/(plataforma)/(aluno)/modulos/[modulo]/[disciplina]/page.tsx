@@ -13,6 +13,7 @@ import { NavSequencial } from "@/components/ava/nav-sequencial";
 import { Trilha } from "@/components/ui/trilha";
 import { AvaliacaoDisciplina } from "@/components/ava/avaliacao-disciplina";
 import { vizinhasDe } from "@/lib/navegacao-curso";
+import { normalizarUrlStorage } from "@/lib/urls";
 
 type Params = { modulo: string; disciplina: string };
 
@@ -215,7 +216,7 @@ export default async function DisciplinaPage({
         {materiais.map((m) => (
           <li key={m.id as string}>
             <a
-              href={m.url as string}
+              href={normalizarUrlStorage(m.url as string) ?? (m.url as string)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 rounded-lg border border-slate-200 bg-superficie px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300"

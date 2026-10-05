@@ -11,6 +11,7 @@ import {
   criarDisciplina,
 } from "../../actions";
 import { ListaDisciplinas } from "./lista-disciplinas";
+import { normalizarUrlStorage } from "@/lib/urls";
 
 export const metadata: Metadata = { title: "Editar módulo — CSMG" };
 
@@ -35,7 +36,9 @@ export default async function ModuloMasterPage({
     .eq("id", id)
     .maybeSingle();
   if (!modulo) notFound();
-  const capaAtual = (modulo as { capa_url?: string | null }).capa_url ?? null;
+  const capaAtual = normalizarUrlStorage(
+    (modulo as { capa_url?: string | null }).capa_url,
+  );
 
   const { data: disciplinas } = await admin
     .from("disciplinas")

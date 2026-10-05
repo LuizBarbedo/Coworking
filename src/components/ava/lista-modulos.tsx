@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BarraProgresso } from "@/components/ui/barra-progresso";
+import { normalizarUrlStorage } from "@/lib/urls";
 
 export type CardModulo = {
   id: string;
@@ -33,21 +34,26 @@ function Capa({
   modulo: CardModulo;
   className: string;
 }) {
-  if (modulo.capaUrl) {
+  const [falha, setFalha] = useState(false);
+  const capaUrl = normalizarUrlStorage(modulo.capaUrl);
+
+  if (capaUrl && !falha) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={modulo.capaUrl}
+        src={capaUrl}
         alt=""
         aria-hidden
         loading="lazy"
         decoding="async"
+        onError={() => setFalha(true)}
         width={960}
         height={548}
         className={`${className} object-cover ${modulo.publicado ? "" : "grayscale"}`}
       />
     );
   }
+
   // Sem capa: gradiente da marca com a inicial do módulo.
   return (
     <div

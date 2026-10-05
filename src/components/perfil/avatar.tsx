@@ -2,6 +2,7 @@
 // cor determinística. Server-safe (sem estado).
 
 import { corDoAvatar, iniciais } from "@/lib/perfil/avatar";
+import { normalizarUrlStorage } from "@/lib/urls";
 
 const TAMANHOS = {
   sm: "h-6 w-6 text-[10px]",
@@ -20,13 +21,14 @@ export function Avatar({
   avatarUrl: string | null;
   tamanho?: keyof typeof TAMANHOS;
 }) {
-  if (avatarUrl) {
+  const urlLimpa = normalizarUrlStorage(avatarUrl);
+  if (urlLimpa) {
     return (
       /* URL externa do Storage; next/image exigiria liberar o domínio no
          next.config — avatar pequeno não justifica a otimização. */
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={avatarUrl}
+        src={urlLimpa}
         alt={`Foto de ${nome}`}
         className={`${TAMANHOS[tamanho]} shrink-0 rounded-full object-cover`}
       />

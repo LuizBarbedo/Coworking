@@ -28,6 +28,7 @@ import {
   atualizarConhecimento,
   excluirConhecimento,
 } from "../../actions";
+import { normalizarUrlStorage } from "@/lib/urls";
 
 export const metadata: Metadata = { title: "Editar disciplina — CSMG" };
 
@@ -388,7 +389,10 @@ export default async function DisciplinaMasterPage({
                 <LinhaEditavel
                   resumo={
                     <a
-                      href={m.url as string}
+                      href={
+                        normalizarUrlStorage(m.url as string) ??
+                        (m.url as string)
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block truncate text-sm font-medium text-brand-700 hover:underline dark:text-brand-300"
